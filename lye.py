@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Class providing parsing and lexing of pseudo-Lilypond streams into data
 structures that can be passed to other high-level libraries.
@@ -9,7 +7,7 @@ Like with standard Lilypond, the default octave starts at C3 (48).
 
 import logging
 
-import fluidsynth
+#import fluidsynth
 
 import pymeta.grammar
 import pymeta.runtime
@@ -217,10 +215,10 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
             self.duration = d
         return self.duration
 
-# print LyGrammar("c1").apply("note")
-# print LyGrammar("c4 d e  d  c").apply("notes")
-# print LyGrammar("c e g c' |").apply("measure")
-# print LyGrammar("e4 d c2 | e4 d c2 |").apply("measures")
+print LyGrammar("c1").apply("note")
+#print LyGrammar("c4 d e  d  c").apply("notes")
+print LyGrammar("c e g c' |").apply("measure")
+print LyGrammar("e4 d c2 | e4 d c2 |").apply("measures")
 
 def chords_from_ly(s):
     """
