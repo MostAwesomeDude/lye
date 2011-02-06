@@ -14,6 +14,15 @@ import pymeta.runtime
 
 log = logging.getLogger("salsa.ly")
 
+class Note(object):
+    """
+    The fundamental unit of composition.
+    """
+
+    def __init__(self, pitch, duration):
+        self.pitch = pitch
+        self.duration = duration
+
 class Measure(object):
     def __init__(self, notes):
         self.notes = notes
@@ -33,14 +42,16 @@ class Measure(object):
 
         relative_marker = 0
 
-        for i, (pitch, duration) in enumerate(self.notes):
+        for i, note in enumerate(self.notes):
+            pitch = note.pitch
+
             begin = relative_marker
             # XXX fudge?
-            end = begin + duration
+            end = begin + note.duration
 
             self.notes[i] = pitch, begin, end
 
-            relative_marker += duration
+            relative_marker += note.duration
 
 class Melody(object):
     def __init__(self, measures):
@@ -115,7 +126,7 @@ duration ::= (<digit>+):d '.'*:dots
            => self.undot_duration(int("".join(d)), len(dots))
 
 note ::= <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
-       => (self.abs_pitch_to_number(p, a, o),
+       => Note(self.abs_pitch_to_number(p, a, o),
            self.check_duration(d))
 
 measure ::= <spaces>? <note>:n (<spaces> <note>)*:ns <spaces>?
