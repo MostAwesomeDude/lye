@@ -31,10 +31,12 @@ class TestCommands(unittest.TestCase):
         string, error = lye.LyGrammar(" \\relative").apply("relative")
         self.assertEqual(string, "\\relative")
 
-class Test(unittest.TestCase):
+class TestMeasure(unittest.TestCase):
 
     def test_measure(self):
         measure = lye.LyGrammar("c e g c' |").apply("measure")
+
+class TestMeasures(unittest.TestCase):
 
     def test_measures(self):
         measures = lye.LyGrammar("e4 d c2 | e4 d c2 |").apply("measures")

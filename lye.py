@@ -135,8 +135,7 @@ note ::= <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
 notes ::= <spaces>? <note>:n (<spaces> <note>)*:ns
           => [n] + ns
 
-measure ::= <spaces>? <note>:n (<spaces> <note>)*:ns <spaces>?
-          => Measure([n] + ns)
+measure ::= <notes>:ns <spaces>? => Measure(ns)
 
 measures ::= <measure>:m ('|' <measure>)*:ms => [m] + ms
 
