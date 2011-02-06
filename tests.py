@@ -17,6 +17,14 @@ class TestNote(unittest.TestCase):
         note, error = lye.LyGrammar("es").apply("note")
         self.assertEqual(note.pitch, 51)
 
+class TestNotes(unittest.TestCase):
+
+    def test_notes(self):
+        notes, error = lye.LyGrammar("c4 d e  d  c").apply("notes")
+        for note, pitch in zip(notes, (48, 50, 52, 50, 48)):
+            self.assertEqual(note.pitch, pitch)
+            self.assertEqual(note.duration, 120)
+
 class TestCommands(unittest.TestCase):
 
     def test_relative(self):

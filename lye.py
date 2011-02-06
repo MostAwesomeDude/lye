@@ -139,6 +139,9 @@ note ::= <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
        => Note(self.abs_pitch_to_number(p, a, o),
            self.check_duration(d))
 
+notes ::= <spaces>? <note>:n (<spaces> <note>)*:ns
+          => [n] + ns
+
 measure ::= <spaces>? <note>:n (<spaces> <note>)*:ns <spaces>?
           => Measure([n] + ns)
 
@@ -236,7 +239,6 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
             self.duration = d
         return self.duration
 
-#print LyGrammar("c1").apply("note")
 #print LyGrammar("c4 d e  d  c").apply("notes")
 #print LyGrammar("c e g c' |").apply("measure")
 #print LyGrammar("e4 d c2 | e4 d c2 |").apply("measures")
