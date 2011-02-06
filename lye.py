@@ -26,6 +26,8 @@ class Note(object):
     def __repr__(self):
         return "Note(%d, %d)" % (self.pitch, self.duration)
 
+    __str__ = __repr__
+
 class Measure(object):
     def __init__(self, notes):
         self.notes = notes
@@ -35,7 +37,9 @@ class Measure(object):
         return any(self.notes)
 
     def __repr__(self):
-        return "Measure(%s)" % self.notes
+        return "Measure(%r)" % self.notes
+
+    __str__ = __repr__
 
     def schedule_notes(self):
         """
@@ -64,7 +68,9 @@ class Melody(object):
         return any(self.measures)
 
     def __repr__(self):
-        return "Melody(%s)" % self.measures
+        return "Melody(%r)" % self.measures
+
+    __str__ = __repr__
 
     def play(self, sequencer):
         """
@@ -103,6 +109,7 @@ class Chords(Melody):
 # es requires a special case, because it can either be spelled es or ees.
 pitch_dict = dict(zip("cxdxefxgxaxb", range(48, 60)))
 pitch_dict["es"] = 51
+del pitch_dict["x"]
 
 relative_dict = dict(zip("cdefgab", range(7)))
 relative_dict["es"] = relative_dict["e"]
