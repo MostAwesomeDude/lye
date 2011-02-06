@@ -17,6 +17,12 @@ class TestNote(unittest.TestCase):
         note, error = lye.LyGrammar("es").apply("note")
         self.assertEqual(note.pitch, 51)
 
+class TestCommands(unittest.TestCase):
+
+    def test_relative(self):
+        string, error = lye.LyGrammar("\\relative").apply("relative")
+        self.assertEqual(string, "\\relative")
+
 class Test(unittest.TestCase):
 
     def test_measure(self):
