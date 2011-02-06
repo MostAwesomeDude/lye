@@ -1,10 +1,3 @@
-"""
-Class providing parsing and lexing of pseudo-Lilypond streams into data
-structures that can be passed to other high-level libraries.
-
-Like with standard Lilypond, the default octave starts at C3 (48).
-"""
-
 import logging
 
 #import fluidsynth
@@ -157,12 +150,22 @@ chords ::= <spaces>? <chord>+:c => Chords([Measure(c)])
 """
 
 class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
+    """
+    Class providing parsing and lexing of pseudo-Lilypond streams into data
+    structures that can be passed to other high-level libraries.
+
+    Like with standard Lilypond, the default octave starts at C3 (48).
+    """
+
+    ticks_per_beat = 120
+    """
+    Number of ticks per beat.
+    """
 
     def __init__(self, *args, **kwargs):
         super(LyGrammar, self).__init__(*args, **kwargs)
 
-        self.tpb = 120
-        self.duration = self.tpb
+        self.duration = self.ticks_per_beat
 
         self.brace_stack = []
         self.relative = None
@@ -180,7 +183,7 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
         Turn duration into a number of ticks, and apply dots, if any.
         """
 
-        duration = self.tpb * 4 / duration
+        duration = self.ticks_per_beat * 4 / duration
         while dots:
             dots -= 1
             duration *= 1.5
