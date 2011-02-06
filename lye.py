@@ -23,6 +23,9 @@ class Note(object):
         self.pitch = pitch
         self.duration = duration
 
+    def __repr__(self):
+        return "Note(%d, %d)" % (self.pitch, self.duration)
+
 class Measure(object):
     def __init__(self, notes):
         self.notes = notes
