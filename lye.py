@@ -30,6 +30,11 @@ class Chord(Note):
         self.pitches = [note.pitch for note in notes]
         self.duration = notes[0].duration
 
+class Marker(object):
+    """
+    A singleton representing a measure marker.
+    """
+
 class Measure(object):
     def __init__(self, notes):
         self.notes = notes
@@ -144,15 +149,15 @@ note ::= <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
 notes ::= <spaces>? <note>:n (<spaces> <note>)*:ns
           => [n] + ns
 
+chord ::= <token '<'> <spaces>? <notes>:ns <token '>'> => Chord(ns)
+
+marker ::= <token '|'> => self.marker
+
 measure ::= <notes>:ns <spaces>? => Measure(ns)
 
 measures ::= <measure>:m ('|' <measure>)*:ms => [m] + ms
 
 melody ::= <directive>? <measures>:m <directive>? => Melody(m)
-
-chord ::= <token '<'> <spaces>? <notes>:ns <token '>'> => Chord(ns)
-
-chords ::= <spaces>? <chord>+:c => Chords([Measure(c)])
 """
 
 class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
@@ -162,6 +167,8 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
 
     Like with standard Lilypond, the default octave starts at C3 (48).
     """
+
+    marker = Marker()
 
     ticks_per_beat = 120
     """

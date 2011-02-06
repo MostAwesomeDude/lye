@@ -47,3 +47,10 @@ class TestChords(unittest.TestCase):
         chord, error = lye.LyGrammar("<c e g>").apply("chord")
         self.assertEqual(chord.pitches, [48, 52, 55])
         self.assertEqual(chord.duration, 120)
+
+class TestMarker(unittest.TestCase):
+
+    def test_marker_identity(self):
+        grammar = lye.LyGrammar("|")
+        marker, error = grammar.apply("marker")
+        self.assertTrue(marker is grammar.marker)
