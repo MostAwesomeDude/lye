@@ -40,3 +40,10 @@ class TestMeasures(unittest.TestCase):
 
     def test_measures(self):
         measures = lye.LyGrammar("e4 d c2 | e4 d c2 |").apply("measures")
+
+class TestChords(unittest.TestCase):
+
+    def test_chord(self):
+        chord, error = lye.LyGrammar("<c e g>").apply("chord")
+        self.assertEqual(chord.pitches, [48, 52, 55])
+        self.assertEqual(chord.duration, 120)

@@ -150,9 +150,7 @@ measures ::= <measure>:m ('|' <measure>)*:ms => [m] + ms
 
 melody ::= <directive>? <measures>:m <directive>? => Melody(m)
 
-chord ::= <pitch>:p <accidental>?:a <duration>?:d <spaces>
-        => (self.abs_pitch_to_number(p, a, ""),
-            self.check_duration(d))
+chord ::= <token '<'> <spaces>? <notes>:ns <token '>'> => Chord(ns)
 
 chords ::= <spaces>? <chord>+:c => Chords([Measure(c)])
 """
