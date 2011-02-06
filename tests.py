@@ -20,7 +20,7 @@ class TestNote(unittest.TestCase):
 class TestCommands(unittest.TestCase):
 
     def test_relative(self):
-        string, error = lye.LyGrammar("\\relative").apply("relative")
+        string, error = lye.LyGrammar(" \\relative").apply("relative")
         self.assertEqual(string, "\\relative")
 
 class Test(unittest.TestCase):

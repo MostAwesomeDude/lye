@@ -108,7 +108,7 @@ relative_dict = dict(zip("cdefgab", range(7)))
 relative_dict["es"] = relative_dict["e"]
 
 grammar = """
-relative ::= '\\\\' 'r' 'e' 'l' 'a' 't' 'i' 'v' 'e' => "\\relative"
+relative ::= <token '\\\\relative'>
 begin_relative ::= <relative> <spaces>
                    <pitch>:p <accidental>? <octave>?:o <spaces> '{'
                  => self.open_brace("relative", (p, o if o else ""))
