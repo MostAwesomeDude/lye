@@ -21,6 +21,15 @@ class Note(object):
 
     __str__ = __repr__
 
+class Chord(Note):
+    """
+    A Note list.
+    """
+
+    def __init__(self, notes):
+        self.pitches = [note.pitch for note in notes]
+        self.duration = notes[0].duration
+
 class Measure(object):
     def __init__(self, notes):
         self.notes = notes
