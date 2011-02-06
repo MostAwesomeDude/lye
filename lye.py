@@ -227,7 +227,7 @@ def chords_from_ly(s):
 
     chords = LyGrammar(s).apply("chords")
     if not chords:
-        print "[ly] [!!] Failed chords %s" % s
+        log.error("Failed chords %s" % s)
     return chords
 
 def melody_from_ly(s):
