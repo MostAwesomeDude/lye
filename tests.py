@@ -34,12 +34,17 @@ class TestCommands(unittest.TestCase):
 class TestMeasure(unittest.TestCase):
 
     def test_measure(self):
-        measure = lye.LyGrammar("c e g c' |").apply("measure")
+        measure, error = lye.LyGrammar("c e g c' |").apply("measure")
+        self.assertEqual(measure.notes[0], (48, 0, 120))
+        self.assertEqual(measure.notes[1], (52, 120, 240))
+        self.assertEqual(measure.notes[2], (55, 240, 360))
+        self.assertEqual(measure.notes[3], (60, 360, 480))
 
 class TestMeasures(unittest.TestCase):
 
     def test_measures(self):
-        measures = lye.LyGrammar("e4 d c2 | e4 d c2 |").apply("measures")
+        measures, error = lye.LyGrammar("e4 d c2 | e4 d c2 |").apply("measures")
+        self.assertEqual(len(measures), 2)
 
 class TestChords(unittest.TestCase):
 
