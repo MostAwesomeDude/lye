@@ -28,11 +28,27 @@ class TestNote(unittest.TestCase):
 
 class TestNotes(unittest.TestCase):
 
-    def test_notes(self):
+    def test_notes_spaced(self):
         notes, error = lye.LyGrammar("c4 d e  d  c").apply("notes")
         for note, pitch in zip(notes, (48, 50, 52, 50, 48)):
             self.assertEqual(note.pitch, pitch)
             self.assertEqual(note.duration, 120)
+
+class TestChords(unittest.TestCase):
+
+    def test_chord(self):
+        chord, error = lye.LyGrammar("<c e g>").apply("chord")
+        self.assertEqual(chord.pitches, [48, 52, 55])
+        self.assertEqual(chord.duration, 120)
+
+    def test_chord_duration(self):
+        chord, error = lye.LyGrammar("<c1 e g>").apply("chord")
+        self.assertEqual(chord.duration, 480)
+
+    def test_chord_spaces(self):
+        chord, error = lye.LyGrammar(" < c e g > ").apply("chord")
+        self.assertEqual(chord.pitches, [48, 52, 55])
+        self.assertEqual(chord.duration, 120)
 
 class TestCommands(unittest.TestCase):
 
@@ -51,17 +67,6 @@ class TestMelody(unittest.TestCase):
 
     def test_melody_multiple_markers(self):
         melody, error = lye.LyGrammar("e4 d c2 | e4 d c2 |").apply("melody")
-
-class TestChords(unittest.TestCase):
-
-    def test_chord(self):
-        chord, error = lye.LyGrammar("<c e g>").apply("chord")
-        self.assertEqual(chord.pitches, [48, 52, 55])
-        self.assertEqual(chord.duration, 120)
-
-    def test_chord_duration(self):
-        chord, error = lye.LyGrammar("<c1 e g>").apply("chord")
-        self.assertEqual(chord.duration, 480)
 
 class TestMarker(unittest.TestCase):
 
