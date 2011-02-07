@@ -26,6 +26,10 @@ class TestNote(unittest.TestCase):
         self.assertEqual(note.pitch, 60)
         self.assertEqual(note.duration, 360)
 
+    def test_rest(self):
+        note, error = lye.LyGrammar("r").apply("note")
+        self.assertEqual(note.pitch, -1)
+
     def test_dots(self):
         note, error = lye.LyGrammar("c4.").apply("note")
         self.assertEqual(note.duration, 180)
@@ -74,6 +78,10 @@ class TestMelody(unittest.TestCase):
 
     def test_melody_multiple_markers(self):
         melody, error = lye.LyGrammar("e4 d c2 | e4 d c2 |").apply("melody")
+
+    def test_melody_rests(self):
+        melody, error = lye.LyGrammar("f4 a b r | f4 a b r").apply("melody")
+        self.assertEqual(melody.notes[3], (53, 480, 600))
 
 class TestMarker(unittest.TestCase):
 

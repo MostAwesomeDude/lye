@@ -79,8 +79,9 @@ class Melody(object):
 
         for note in self.notes:
             if isinstance(note, Marker):
-                if relative_marker != 0:
-                    print "Marker is off by %d" % relative_marker
+                remainder = relative_marker % self.ticks_per_beat
+                if remainder:
+                    print "Marker is off by %d" % remainder
                 continue
 
             elif isinstance(note, Chord):
@@ -97,10 +98,9 @@ class Melody(object):
                 end = begin + note.duration
                 relative_marker = end
 
-                scheduled.append((note.pitch, begin, end))
-
-            while relative_marker >= self.ticks_per_beat:
-                relative_marker -= self.ticks_per_beat
+                # If this note isn't a rest...
+                if note.pitch != -1:
+                    scheduled.append((note.pitch, begin, end))
 
         self.notes = scheduled
 
