@@ -30,6 +30,11 @@ class Chord(Note):
         self.pitches = [note.pitch for note in notes]
         self.duration = notes[0].duration
 
+    def __repr__(self):
+        return "Chord(%r, %d)" % (self.pitches, self.duration)
+
+    __str__ = __repr__
+
 class Marker(object):
     """
     A singleton representing a measure marker.
@@ -71,6 +76,9 @@ class Melody(object):
         for i, note in enumerate(self.notes):
             if isinstance(note, Marker):
                 print "Found a Marker!"
+                continue
+            elif isinstance(note, Chord):
+                print "Found %s" % note
                 continue
 
             print "Found %s" % note

@@ -53,6 +53,10 @@ class TestChords(unittest.TestCase):
         self.assertEqual(chord.pitches, [48, 52, 55])
         self.assertEqual(chord.duration, 120)
 
+    def test_chord_duration(self):
+        chord, error = lye.LyGrammar("<c1 e g>").apply("chord")
+        self.assertEqual(chord.duration, 480)
+
 class TestMarker(unittest.TestCase):
 
     def test_marker_identity(self):
