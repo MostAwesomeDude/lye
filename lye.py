@@ -60,6 +60,8 @@ class Melody(object):
         """
         Schedule notes by turning their durations into absolute begin, end
         pairs.
+
+        Additionally, this step discards rests.
         """
 
         relative_marker = 0
@@ -105,17 +107,12 @@ class Melody(object):
         # XXX this fudge value might not be needed?
         ticks = sequencer.ticks + 10
 
-        for measure in self.measures:
-            for pitch, begin, end in measure.notes:
-                if pitch != -1:
-                    event = fluidsynth.FluidEvent()
-                    event.dest = dest
-                    # XXX ? pitch vel duration
-                    event.note(0, pitch, 127, end - begin)
-                    sequencer.send(event, ticks + begin)
-
-            # XXX
-            ticks += 120 * 4
+        for pitch, begin, end in self.notes:
+            event = fluidsynth.FluidEvent()
+            event.dest = dest
+            # XXX ? pitch vel duration
+            event.note(0, pitch, 127, end - begin)
+            sequencer.send(event, ticks + begin)
 
 # es requires a special case, because it can either be spelled es or ees.
 pitch_dict = dict(zip("cxdxefxgxaxb", range(48, 60)))
