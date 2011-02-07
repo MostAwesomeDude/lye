@@ -252,15 +252,13 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
                     % accidental)
                 break
 
-        while octave:
-            if octave[0] == ",":
-                octave = octave[1:]
+        for c in octave:
+            if c == ",":
                 n -= 12
-            elif octave[0] == "'":
-                octave = octave[1:]
+            elif c == "'":
                 n += 12
             else:
-                log.error("Unknown symbol %s while lexing octave" % octave)
+                log.error("Unknown symbol %s while lexing octave" % c)
                 break
 
         return n
