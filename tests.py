@@ -17,6 +17,15 @@ class TestNote(unittest.TestCase):
         note, error = lye.LyGrammar("es").apply("note")
         self.assertEqual(note.pitch, 51)
 
+    def test_note_spaces(self):
+        note, error = lye.LyGrammar(" c ").apply("note")
+        self.assertEqual(note.pitch, 48)
+
+    def test_note_modified_spaces(self):
+        note, error = lye.LyGrammar(" c'2. ").apply("note")
+        self.assertEqual(note.pitch, 60)
+        self.assertEqual(note.duration, 360)
+
 class TestNotes(unittest.TestCase):
 
     def test_notes(self):

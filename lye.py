@@ -158,14 +158,12 @@ octave ::= ('\'' | ',')+:o => "".join(o)
 duration ::= (<digit>+):d '.'*:dots
            => self.undot_duration(int("".join(d)), len(dots))
 
-note ::= <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
-       => Note(self.abs_pitch_to_number(p, a, o),
-           self.check_duration(d))
+note ::= <spaces>? <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
+       => Note(self.abs_pitch_to_number(p, a, o), self.check_duration(d))
 
-notes ::= <spaces>? <note>:n (<spaces> <note>)*:ns
-          => [n] + ns
+notes ::= <note>*:ns => ns
 
-chord ::= <token '<'> <spaces>? <notes>:ns <token '>'> => Chord(ns)
+chord ::= <token '<'> <notes>:ns <token '>'> => Chord(ns)
 
 marker ::= <token '|'> => self.marker
 
