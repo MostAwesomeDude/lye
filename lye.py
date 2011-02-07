@@ -40,18 +40,6 @@ class Marker(object):
     A singleton representing a measure marker.
     """
 
-class Measure(object):
-    def __init__(self, notes):
-        self.notes = notes
-
-    def __nonzero__(self):
-        return any(self.notes)
-
-    def __repr__(self):
-        return "Measure(%r)" % self.notes
-
-    __str__ = __repr__
-
 class Melody(object):
 
     ticks_per_beat = 480
