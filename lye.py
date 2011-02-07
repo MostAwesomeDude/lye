@@ -38,13 +38,25 @@ class Marker(object):
 class Measure(object):
     def __init__(self, notes):
         self.notes = notes
-        self.schedule_notes()
 
     def __nonzero__(self):
         return any(self.notes)
 
     def __repr__(self):
         return "Measure(%r)" % self.notes
+
+    __str__ = __repr__
+
+class Melody(object):
+    def __init__(self, notes):
+        self.notes = notes
+        self.schedule_notes()
+
+    def __nonzero__(self):
+        return any(self.notes)
+
+    def __repr__(self):
+        return "Melody(%r)" % self.notes
 
     __str__ = __repr__
 
@@ -57,6 +69,11 @@ class Measure(object):
         relative_marker = 0
 
         for i, note in enumerate(self.notes):
+            if isinstance(note, Marker):
+                print "Found a Marker!"
+                continue
+
+            print "Found %s" % note
             pitch = note.pitch
 
             begin = relative_marker
@@ -66,18 +83,6 @@ class Measure(object):
             self.notes[i] = pitch, begin, end
 
             relative_marker += note.duration
-
-class Melody(object):
-    def __init__(self, measures):
-        self.measures = measures
-
-    def __nonzero__(self):
-        return any(self.measures)
-
-    def __repr__(self):
-        return "Melody(%r)" % self.measures
-
-    __str__ = __repr__
 
     def play(self, sequencer):
         """
@@ -103,15 +108,6 @@ class Melody(object):
 
             # XXX
             ticks += 120 * 4
-
-class Chords(Melody):
-    def __init__(self, measures):
-        self.measures = []
-        self.chord_measures = measures
-        self.chords_to_notes()
-
-    def chords_to_notes(self):
-        self.measures = self.chord_measures
 
 # es requires a special case, because it can either be spelled es or ees.
 pitch_dict = dict(zip("cxdxefxgxaxb", range(48, 60)))
@@ -153,11 +149,12 @@ chord ::= <token '<'> <spaces>? <notes>:ns <token '>'> => Chord(ns)
 
 marker ::= <token '|'> => self.marker
 
-measure ::= <notes>:ns <spaces>? => Measure(ns)
+protonote ::= (<note> | <chord> | <marker>)
 
-measures ::= <measure>:m ('|' <measure>)*:ms => [m] + ms
+protonote_cluster ::= <spaces>? <protonote>:pn (<spaces>? <protonote>)*:pns
+                    => [pn] + pns
 
-melody ::= <directive>? <measures>:m <directive>? => Melody(m)
+melody ::= <directive>? <protonote_cluster>:m <directive>? => Melody(m)
 """
 
 class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
