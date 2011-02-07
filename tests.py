@@ -31,20 +31,17 @@ class TestCommands(unittest.TestCase):
         string, error = lye.LyGrammar(" \\relative").apply("relative")
         self.assertEqual(string, "\\relative")
 
-class TestMeasure(unittest.TestCase):
+class TestMelody(unittest.TestCase):
 
-    def test_measure(self):
-        measure, error = lye.LyGrammar("c e g c' |").apply("measure")
-        self.assertEqual(measure.notes[0], (48, 0, 120))
-        self.assertEqual(measure.notes[1], (52, 120, 240))
-        self.assertEqual(measure.notes[2], (55, 240, 360))
-        self.assertEqual(measure.notes[3], (60, 360, 480))
+    def test_melody_marker(self):
+        melody, error = lye.LyGrammar("c e g c' |").apply("melody")
+        self.assertEqual(melody.notes[0], (48, 0, 120))
+        self.assertEqual(melody.notes[1], (52, 120, 240))
+        self.assertEqual(melody.notes[2], (55, 240, 360))
+        self.assertEqual(melody.notes[3], (60, 360, 480))
 
-class TestMeasures(unittest.TestCase):
-
-    def test_measures(self):
-        measures, error = lye.LyGrammar("e4 d c2 | e4 d c2 |").apply("measures")
-        self.assertEqual(len(measures), 2)
+    def test_melody_multiple_markers(self):
+        melody, error = lye.LyGrammar("e4 d c2 | e4 d c2 |").apply("melody")
 
 class TestChords(unittest.TestCase):
 

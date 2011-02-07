@@ -53,6 +53,9 @@ class Measure(object):
     __str__ = __repr__
 
 class Melody(object):
+
+    ticks_per_beat = 480
+
     def __init__(self, notes):
         self.notes = notes
         self.schedule_notes()
@@ -72,25 +75,34 @@ class Melody(object):
         """
 
         relative_marker = 0
+        scheduled = []
 
-        for i, note in enumerate(self.notes):
+        for note in self.notes:
             if isinstance(note, Marker):
-                print "Found a Marker!"
+                if relative_marker != 0:
+                    print "Marker is off by %d" % relative_marker
                 continue
+
             elif isinstance(note, Chord):
-                print "Found %s" % note
-                continue
+                begin = relative_marker
+                end = begin + note.duration
+                relative_marker = end
 
-            print "Found %s" % note
-            pitch = note.pitch
+                for pitch in note.pitches:
+                    scheduled.append((pitch, begin, end))
 
-            begin = relative_marker
-            # XXX fudge?
-            end = begin + note.duration
+            else:
+                begin = relative_marker
+                # XXX fudge?
+                end = begin + note.duration
+                relative_marker = end
 
-            self.notes[i] = pitch, begin, end
+                scheduled.append((note.pitch, begin, end))
 
-            relative_marker += note.duration
+            while relative_marker >= self.ticks_per_beat:
+                relative_marker -= self.ticks_per_beat
+
+        self.notes = scheduled
 
     def play(self, sequencer):
         """
