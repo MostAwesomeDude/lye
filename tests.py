@@ -26,6 +26,13 @@ class TestNote(unittest.TestCase):
         self.assertEqual(note.pitch, 60)
         self.assertEqual(note.duration, 360)
 
+    def test_dots(self):
+        note, error = lye.LyGrammar("c4.").apply("note")
+        self.assertEqual(note.duration, 180)
+
+        note, error = lye.LyGrammar("c4..").apply("note")
+        self.assertEqual(note.duration, 270)
+
 class TestNotes(unittest.TestCase):
 
     def test_notes_spaced(self):

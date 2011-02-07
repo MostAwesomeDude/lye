@@ -214,8 +214,8 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
         duration = self.ticks_per_beat * 4 / duration
         while dots:
             dots -= 1
-            duration *= 1.5
-        return int(duration)
+            duration = duration * 3 / 2
+        return duration
 
     def abs_pitch_to_number(self, pitch, accidental, octave):
         """
