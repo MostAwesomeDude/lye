@@ -18,3 +18,13 @@ class TestLyeGrammar(unittest.TestCase):
         case = "\\chords"
         grammar = LyeGrammar(case)
         grammar.apply("mode_changing_head_with_context")
+
+    def test_context_def_mod(self):
+        case = "\\consists"
+        grammar = LyeGrammar(case)
+        grammar.apply("context_def_mod")
+
+    def test_command_event(self):
+        case = "\\mark \\default"
+        grammar = LyeGrammar(case)
+        grammar.apply("command_event")

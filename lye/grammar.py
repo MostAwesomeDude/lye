@@ -209,6 +209,114 @@ mode_changing_head_with_context ::= <token "\\drums">
     | <token "\\chords">
     | <token "\\lyrics">
 
+relative_music ::= <token "\\relative"> <composite_music>
+    | <token "\\relative"> <absolute_pitch> <music>
+
+new_lyrics ::= <token "\\addlyrics">
+
+re_rhythmed_music ::= <grouped_music_list> <new_lyrics>
+    | <MUSIC_IDENTIFIER> <new_lyrics>
+
+context_change ::= <token "\\change"> <STRING> <token "="> <STRING>
+
+property_path_revved ::= <embedded_scm>
+    | <property_path_revved> <embedded_scm>
+
+property_path ::= <property_path_revved>
+
+property_operation ::= <STRING> <token "="> <scalar>
+    | <token "\\unset"> <simple_string>
+    | <token "\\override"> <simple_string> <property_path> <token "=">
+        <scalar>
+    | <token "\\revert"> <simple_string> <embedded_scm>
+
+context_def_mod ::= <token "\\consists">
+    | <token "\\remove">
+    | <token "\\accepts">
+    | <token "\\defaultchild">
+    | <token "\\denies">
+    | <token "\\alias">
+    | <token "\\type">
+    | <token "\\description">
+    | <token "\\name">
+
+context_mod ::= <property_operation>
+    | <context_def_mod> <STRING>
+    | <context_def_mod> <embedded_scm>
+
+context_prop_spec ::= <simple_string> (<token "."> <simple_string>)?
+
+simple_music_property_def ::=
+    <token "\\override"> <context_prop_spec> <property_path> <token "=">
+        <scalar>
+    | <token "\\revert"> <context_prop_spec> <embedded_scm>
+    | <token "\\set"> <context_prop_spec> <token "="> <scalar>
+    | <token "\\unset"> <context_prop_spec>
+
+music_property_def ::= <token "\\once">? <simple_music_property_def>
+
+string ::= <STRING>
+    | <STRING_IDENTIFIER>
+    | <string> <token "+"> <string>
+
+simple_string ::= <STRING>
+    | <LYRICS_STRING>
+    | <STRING_IDENTIFIER>
+
+scalar ::= <string>
+    | <LYRICS_STRING>
+    | <bare_number>
+    | <embedded_scm>
+    | <full_markup>
+    | <DIGIT>
+
+event_chord ::= <simple_chord_elements> <post_events>
+    | <CHORD_REPETITION> <optional_notemode_duration> <post_events>
+    | <MULTI_MEASURE_REST> <optional_notemode_duration> <post_events>
+    | <command_element>
+    | <note_chord_element>
+
+note_chord_element ::=
+    <chord_body> <optional_notemode_duration> <post_events>
+
+chord_body ::= <token "<"> <chord_body_elements> <token ">">
+
+chord_body_elements ::= <token "">
+    | <chord_body_elements> <chord_body_element>
+
+chord_body_element ::=
+    <pitch> <exclamations> <questions> <octave_check> <post_events>
+    | <DRUM_PITCH> <post_events>
+    | <music_function_chord_body>
+
+music_function_identifier_musicless_prefix ::= <MUSIC_FUNCTION>
+
+music_function_chord_body ::=
+    <music_function_identifier_musicless_prefix> <EXPECT_MUSIC>
+        <function_arglist_nonmusic> <chord_body_element>
+    | <music_function_identifier_musicless_prefix> <function_arglist_nonmusic>
+
+music_function_event ::=
+    <music_function_identifier_musicless_prefix> <EXPECT_MUSIC>
+        <function_arglist_nonmusic> <post_event>
+    | <music_function_identifier_musicless_prefix> <function_arglist_nonmusic>
+
+command_element ::= <command_event>
+    | <token "\\skip"> <duration_length>
+    | <token "\\[">
+    | <token "\\]">
+    | <token "\\">
+    | <token "|">
+    | <token "\\partial"> <duration_length>
+    | <token "\\time"> <fraction>
+    | <token "\\mark"> <scalar>
+
+command_event ::= <token "\\~">
+    | <token "\\mark"> <token "\\default">
+    | <tempo_event>
+    | <token "\\key"> <token "\\default">
+    | <token "\\key"> <NOTENAME_PITCH> <SCM_IDENTIFIER>
+
 """
 """
 Port of the Lilypond grammar to PyMeta. This is based on the 2.13 Ly grammar.
