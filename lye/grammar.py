@@ -183,7 +183,7 @@ generic_prefix_music_scm ::= <MUSIC_FUNCTION> <function_arglist>
 
 optional_id ::= <token "="> <simple_string>:ss => ss
 
-prefix_composste_music ::= <generic_prefix_music_scm>
+prefix_composite_music ::= <generic_prefix_music_scm>
     | <token "\\context"> <simple_string> <optional_id> <optional_context_mod>
         <music>
     | <token "\\new"> <simple_string> <optional_id> <optional_context_mod>
