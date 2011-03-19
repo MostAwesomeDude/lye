@@ -439,6 +439,87 @@ new_chord ::=
 
 chord_items ::= <chord_item>*
 
+chord_separator ::= <token ":">
+    | <token "^">
+    | <token "/"> <steno_tonic_pitch>
+    | <token "/+"> <steno_tonic_pitch>
+
+chord_item ::= <chord_separator>
+    | <step_numbers>
+    | <CHORD_MODIFIER>
+
+step_numbers ::= <step_number>
+    | <step_numbers> <token "."> <step_number>
+
+step_number ::= <bare_unsigned>
+    | <bare_unsigned> <token "+">
+    | <bare_unsigned> <token "-">
+
+tempo_range ::= <bare_unsigned>
+    | <bare_unsigned> <token "~"> <bare_unsigned>
+
+number_expression ::= <number_expression> <token "+"> <number_term>
+    | <number_expression> <token "-"> <number_term>
+    | <number_term>
+
+number_term ::= <number_factor>
+    | <number_factor> <token "*"> <number_factor>
+    | <number_factor> <token "/"> <number_factor>
+
+number_factor ::= <token "-"> <number_factor>
+    | <bare_number>
+
+bare_number ::= <UNSIGNED>
+    | <REAL>
+    | <NUMBER_IDENTIFIER>
+    | <REAL> <NUMBER_IDENTIFIER>
+    | <UNSIGNED> <NUMBER_IDENTIFIER>
+
+bare_unsigned ::= <UNSIGNED> | <DIGIT>
+
+unsigned_number ::= <bare_unsigned> | <NUMBER_IDENTIFIER>
+
+exclamations ::= <token "!">*
+
+questions ::= <token "?">*
+
+markup_top ::= <markup_list>
+    | <markup_head_1_list> <simple_markup>
+    | <simple_markup>
+
+markup_list ::= <MARKUPLINES_IDENTIFIER>
+    | <markup_composed_list>
+    | <markup_braced_list>
+    | <markup_command_list>
+
+markup_composed_list ::= <markup_head_1_list> <markup_braced_list>
+
+markup_braced_list ::= <token "{"> <markup_braced_list_body> <token "}">
+
+markup_braced_list_body ::= (<markup> | <markup_list>)*
+
+markup_command_list ::= <MARKUP_LIST_FUNCTION> <markup_command_list_arguments>
+
+markup_command_basic_arguments ::=
+    <EXPECT_MARKUP_LIST> <markup_command_list_arguments> <markup_list>
+    | <EXPECT_SCM> <markup_command_list_arguments> <embedded_scm>
+    | <EXPECT_NO_MORE_ARGS>
+
+markup_command_list_arguments ::= <markup_command_basic_arguments>
+    | <EXPECT_MARKUP> <markup_command_list_arguments> <markup>
+
+markup_head_1_item ::=
+    <MARKUP_FUNCTION> <EXPECT_MARKUP> <markup_command_list_arguments>
+
+markup_head_1_list ::= <markup_head_1_item>+
+
+simple_markup ::= <STRING>
+    | <MARKUP_IDENTIFIER>
+    | <LYRIC_MARKUP_IDENTIFIER>
+    | <STRING_IDENTIFIER>
+
+markup ::= <markup_head_1_list>? <simple_markup>
+
 """
 """
 Port of the Lilypond grammar to PyMeta. This is based on the 2.13 Ly grammar.
