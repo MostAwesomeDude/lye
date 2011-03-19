@@ -1,10 +1,9 @@
+from pymeta.grammar import OMeta
+
 grammar = """
 
-lilypond ::= <token "">
-    | <lilypond> <toplevel_expression>
-    | <lilypond> <assignment>
-    | <lilypond> <error>
-    | <lilypond> <token "\\invalid">
+lilypond ::= (<token "\\invalid">
+    | <toplevel_expression> | <assignment> | <error>)*
 
 toplevel_expression ::= <lilypond_header>
     | <book_block>
@@ -15,8 +14,7 @@ toplevel_expression ::= <lilypond_header>
     | <full_markup_list>
     | <output_def>
 
-embedded_scm ::= <SCM_TOKEN>
-    | <SCM_IDENTIFIER>
+embedded_scm ::= <SCM_TOKEN> | <SCM_IDENTIFIER>
 
 lilypond_header_body ::= <token "">
     | <lilypond_header_body> <assignment>
@@ -25,11 +23,11 @@ lilypond_header ::=
     <token "\\header"> <token "{"> <lilypond_header_body>:lhb <token "{">
     => lhb
 
-assignment_id ::= STRING
-    | LYRICS_STRING
+assignment_id ::= <STRING>
+    | <LYRICS_STRING>
 
 assignment ::= <assignment_id> <token "="> <identifier_init>
-    | <assignment_id> <property_path <token "="> <identifier_init>
+    | <assignment_id> <property_path> <token "="> <identifier_init>
     | <embedded_scm>
 
 identifier_init ::= <score_block>
@@ -52,7 +50,7 @@ context_def_spec_block ::=
     => cdsb
 
 context_def_spec_body ::= <token "">
-    | <CONTEXT_DEF_IDENTIFIER
+    | <CONTEXT_DEF_IDENTIFIER>
     | <context_def_spec_body> <token "\\grobdescriptions"> <embedded_scm>
     | <context_def_spec_body> <context_mod>
     | <context_def_spec_body> <context_modification>
@@ -96,7 +94,7 @@ score_body ::= <music>
 
 paper_block ::= <output_def>
 
-output_def ::= <output_def_body <token "}">
+output_def ::= <output_def_body> <token "}">
 
 output_def_head ::= <token "\\paper">
     | <token "\\midi">
@@ -187,3 +185,6 @@ generic_prefix_music_scm ::= <MUSIC_FUNCTION> <function_arglist>
 """
 Port of the Lilypond grammar to PyMeta. This is based on the 2.13 Ly grammar.
 """
+
+class LyeGrammar(OMeta.makeGrammar(grammar, globals())):
+    pass
