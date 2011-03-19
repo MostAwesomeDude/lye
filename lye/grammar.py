@@ -301,11 +301,12 @@ music_function_event ::=
         <function_arglist_nonmusic> <post_event>
     | <music_function_identifier_musicless_prefix> <function_arglist_nonmusic>
 
+# XXX this should go back in when we figure out why it doesn't work
+#    | <token "\\">
 command_element ::= <command_event>
     | <token "\\skip"> <duration_length>
     | <token "\\[">
     | <token "\\]">
-    | <token "\\">
     | <token "|">
     | <token "\\partial"> <duration_length>
     | <token "\\time"> <fraction>
@@ -316,6 +317,127 @@ command_event ::= <token "\\~">
     | <tempo_event>
     | <token "\\key"> <token "\\default">
     | <token "\\key"> <NOTENAME_PITCH> <SCM_IDENTIFIER>
+
+post_events ::= <post_event>*
+
+post_event ::= <direction_less_event>
+    | <script_dir> <music_function_event>
+    | <token "--">
+    | <token "__">
+    | <script_dir> <direction_reqd_event>
+    | <script_dir> <direction_less_event>
+    | <string_number_event>
+
+string_number_event ::= <E_UNSIGNED>
+
+direction_less_char ::= <token "[">
+    | <token "]">
+    | <token "~">
+    | <token "(">
+    | <token ")">
+    | <token "\!">
+    | <token "\(">
+    | <token "\)">
+    | <token "\>">
+    | <token "\<">
+
+direction_less_event ::= <direction_less_char>
+    | <EVENT_IDENTIFIER>
+    | <tremolo_type>
+
+direction_reqd_event ::= <gen_text_def> | <script_abbreviation>
+
+octave_check ::= <token "">
+    | <token "=">
+    | <token "="> <sub_quotes>
+    | <token "="> <sup_quotes>
+
+sup_quotes ::= <token "'">+
+
+sub_quotes ::= <token ",">+
+
+steno_pitch ::= <NOTENAME_PITCH>
+    | <NOTENAME_PITCH> <sup_quotes>
+    | <NOTENAME_PITCH> <sub_quotes>
+
+steno_tonic_pitch ::= <TONICNAME_PITCH>
+    | <TONICNAME_PITCH> <sup_quotes>
+    | <TONICNAME_PITCH> <sub_quotes>
+
+pitch ::= <steno_pitch>
+
+pitch_also_in_chords ::= <pitch> | <steno_tonic_pitch>
+
+gen_text_def ::= <full_markup> | <string> | <DIGIT>
+
+script_abbreviation ::= <token "^">
+    | <token "+">
+    | <token "-">
+    | <token "|">
+    | <token ">">
+    | <token ".">
+    | <token "_">
+
+script_dir ::= <token "_"> | <token "^"> | <token "-">
+
+absolute_pitch ::= <steno_pitch>
+
+duration_length ::= <multiplied_duration>
+
+optional_notemode_duration ::= <multiplied_duration>?
+
+steno_duration ::= <bare_unsigned> <dots>
+    | <DURATION_IDENTIFIER> <dots>
+
+multiplied_duration ::= <steno_duration>
+    | <multiplied_duration> <token "*"> <bare_unsigned>
+    | <multiplied_duration> <token "*"> <FRACTION>
+
+fraction ::= <FRACTION>
+    | <UNSIGNED> <token "/"> <UNSIGNED>
+
+dots ::= <token ".">*
+
+tremolo_type ::= <token ":"> <bare_unsigned>?
+
+bass_number ::= <DIGIT> | <UNSIGNED> | <STRING> | <full_markup>
+
+figured_bass_alteration ::= <token "-"> | <token "+"> | <token "!">
+
+bass_figure ::= <token "_">
+    | <bass_number>
+    | <bass_figure> <token "]">
+    | <bass_figure> <figured_bass_alteration>
+    | <bass_figure> <figured_bass_modification>
+
+figured_bass_alteration ::= <token "\+"> | <token "\!"> | <token "/">
+
+br_bass_figure ::= <token "[">? <bass_figure>
+
+figure_list ::= <br_bass_figure>*
+
+figure_spec ::= <FIGURE_OPEN> <figure_list> <FIGURE_CLOSE>
+
+optional_rest ::= <token "\\rest">?
+
+simple_element ::=
+    <pitch> <exclamations> <questions> <octave_check>
+        <optional_notemode_duration> <optional_rest>
+    | <DRUM_PITCH> <optional_notemode_duration>
+    | <REST_NAME> <optional_notemode_duration>
+    | <lyric_element> <optional_notemode_duration>
+
+simple_chord_elements ::= <simple_element>
+    | <new_chord>
+    | <figure_spec> <optional_notemode_duration>
+
+lyric_element ::= <lyric_markup> | <LYRICS_STRING>
+
+new_chord ::=
+    <steno_tonic_pitch> <optional_notemode_duration>
+    (<chord_separator> <chord_items>)?
+
+chord_items ::= <chord_item>*
 
 """
 """

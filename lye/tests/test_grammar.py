@@ -28,3 +28,13 @@ class TestLyeGrammar(unittest.TestCase):
         case = "\\mark \\default"
         grammar = LyeGrammar(case)
         grammar.apply("command_event")
+
+    def test_optional_rest(self):
+        case = "\\rest"
+        grammar = LyeGrammar(case)
+        grammar.apply("optional_rest")
+
+    def test_optional_rest_empty(self):
+        case = ""
+        grammar = LyeGrammar(case)
+        grammar.apply("optional_rest")
