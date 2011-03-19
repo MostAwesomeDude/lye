@@ -181,6 +181,34 @@ function_arglist ::= <EXPECT_NO_MORE_ARGS>
 
 generic_prefix_music_scm ::= <MUSIC_FUNCTION> <function_arglist>
 
+optional_id ::= <token "="> <simple_string>:ss => ss
+
+prefix_composste_music ::= <generic_prefix_music_scm>
+    | <token "\\context"> <simple_string> <optional_id> <optional_context_mod>
+        <music>
+    | <token "\\new"> <simple_string> <optional_id> <optional_context_mod>
+        <music>
+    | <token "\\times"> <fraction> <music>
+    | <repeated_music>
+    | <token "\\transpose"> <pitch_also_in_chords> <pitch_also_in_chords>
+        <music>
+    | <mode_changing_head> <grouped_music_list>
+    | <mode_changing_head_with_context> <optional_context_mod>
+        <grouped_music_list>
+    | <relative_music>
+    | <re_rhythmed_music>
+
+mode_changing_head ::= <token "\\notemode">
+    | <token "\\drummode">
+    | <token "\\figuremode">
+    | <token "\\chordmode">
+    | <token "\\lyricmode">
+
+mode_changing_head_with_context ::= <token "\\drums">
+    | <token "\\figures">
+    | <token "\\chords">
+    | <token "\\lyrics">
+
 """
 """
 Port of the Lilypond grammar to PyMeta. This is based on the 2.13 Ly grammar.
