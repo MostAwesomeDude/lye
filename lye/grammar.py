@@ -262,13 +262,13 @@ scalar ::= <string>
     | <DIGIT>
 
 event_chord ::= <simple_chord_elements> <post_events>
-    | <CHORD_REPETITION> <optional_notemode_duration> <post_events>
-    | <MULTI_MEASURE_REST> <optional_notemode_duration> <post_events>
+    | <CHORD_REPETITION> <multiplied_duration>? <post_events>
+    | <MULTI_MEASURE_REST> <multiplied_duration>? <post_events>
     | <command_element>
     | <note_chord_element>
 
 note_chord_element ::=
-    <chord_body> <optional_notemode_duration> <post_events>
+    <chord_body> <multiplied_duration>? <post_events>
 
 chord_body ::= <token "<"> <chord_body_element>* <token ">">
 
@@ -372,8 +372,6 @@ absolute_pitch ::= <steno_pitch>
 
 duration_length ::= <multiplied_duration>
 
-optional_notemode_duration ::= <multiplied_duration>?
-
 steno_duration ::= <bare_unsigned> <dots>
     | <DURATION_IDENTIFIER> <dots>
 
@@ -406,23 +404,21 @@ figure_list ::= <br_bass_figure>*
 
 figure_spec ::= <FIGURE_OPEN> <figure_list> <FIGURE_CLOSE>
 
-optional_rest ::= <token "\\rest">?
-
 simple_element ::=
     <pitch> <exclamations> <questions> <octave_check>
-        <optional_notemode_duration> <optional_rest>
-    | <DRUM_PITCH> <optional_notemode_duration>
-    | <REST_NAME> <optional_notemode_duration>
-    | <lyric_element> <optional_notemode_duration>
+        <multiplied_duration>? <token "\\rest">?
+    | <DRUM_PITCH> <multiplied_duration>?
+    | <REST_NAME> <multiplied_duration>?
+    | <lyric_element> <multiplied_duration>?
 
 simple_chord_elements ::= <simple_element>
     | <new_chord>
-    | <figure_spec> <optional_notemode_duration>
+    | <figure_spec> <multiplied_duration>?
 
 lyric_element ::= <lyric_markup> | <LYRICS_STRING>
 
 new_chord ::=
-    <steno_tonic_pitch> <optional_notemode_duration>
+    <steno_tonic_pitch> <multiplied_duration>?
     (<chord_separator> <chord_items>)?
 
 chord_items ::= <chord_item>*
