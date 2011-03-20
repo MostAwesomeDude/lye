@@ -408,9 +408,7 @@ lyric_element ::= <lyric_markup> | <LYRICS_STRING>
 
 new_chord ::=
     <steno_tonic_pitch> <multiplied_duration>?
-    (<chord_separator> <chord_items>)?
-
-chord_items ::= <chord_item>*
+    (<chord_separator> <chord_item>*)?
 
 chord_separator ::= <token ":">
     | <token "^">
@@ -457,7 +455,7 @@ exclamations ::= <token "!">*
 questions ::= <token "?">*
 
 markup_top ::= <markup_list>
-    | <markup_head_1_list> <simple_markup>
+    | <markup_head_1_item>+ <simple_markup>
     | <simple_markup>
 
 markup_list ::= <MARKUPLINES_IDENTIFIER>
@@ -465,7 +463,7 @@ markup_list ::= <MARKUPLINES_IDENTIFIER>
     | <markup_braced_list>
     | <markup_command_list>
 
-markup_composed_list ::= <markup_head_1_list> <markup_braced_list>
+markup_composed_list ::= <markup_head_1_item>+ <markup_braced_list>
 
 markup_braced_list ::= <token "{"> <markup_braced_list_body> <token "}">
 
@@ -484,14 +482,12 @@ markup_command_list_arguments ::= <markup_command_basic_arguments>
 markup_head_1_item ::=
     <MARKUP_FUNCTION> <EXPECT_MARKUP> <markup_command_list_arguments>
 
-markup_head_1_list ::= <markup_head_1_item>+
-
 simple_markup ::= <STRING>
     | <MARKUP_IDENTIFIER>
     | <LYRIC_MARKUP_IDENTIFIER>
     | <STRING_IDENTIFIER>
 
-markup ::= <markup_head_1_list>? <simple_markup>
+markup ::= <markup_head_1_item>* <simple_markup>
 
 """
 """
