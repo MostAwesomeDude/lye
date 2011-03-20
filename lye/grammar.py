@@ -6,8 +6,7 @@ grammar = """
 UNSIGNED ::= <digit>+:d => int("".join(d))
 STRING ::= <letterOrDigit>*:a => "".join(a)
 
-lilypond ::= (<token "\\invalid">
-    | <toplevel_expression> | <assignment> | <error>)*
+lilypond ::= (<token "\\invalid"> | <toplevel_expression> | <assignment>)*
 
 toplevel_expression ::= <lilypond_header>
     | <book_block>
@@ -64,7 +63,6 @@ book_body ::= <token "">
     | <book_body> <full_markup>
     | <book_body> <full_markup_list>
     | <book_body> <lilypond_header>
-    | <book_body> <error>
 
 bookpart_block ::=
     <token "\\bookpart"> <token "{"> <bookpart_body>:bb <token "}">
@@ -78,7 +76,6 @@ bookpart_body ::= <token "">
     | <bookpart_body> <full_markup>
     | <bookpart_body> <full_markup_list>
     | <bookpart_body> <lilypond_header>
-    | <bookpart_body> <error>
 
 score_block ::= <token "\\score"> <token "{"> <score_body>:sb <token "}">
     => sb
@@ -87,7 +84,6 @@ score_body ::= <music>
     | <SCORE_IDENTIFIER>
     | <score_body> <lilypond_header>
     | <score_body> <output_def>
-    | <score_body> <error>
 
 paper_block ::= <output_def>
 
@@ -101,7 +97,6 @@ output_def_body ::= <output_def_head> <token "{">
     | <output_def_head> <token "{"> <OUTPUT_DEF_IDENTIFIER>
     | <output_def_body> <assignment>
     | <output_def_body> <context_def_spec_block>
-    | <output_def_body> <error>
 
 tempo_event ::= <token "\\tempo"> <steno_duration> <token "="> <tempo_range>
     | <token "\\tempo"> <scalar> <steno_duration> <token "="> <tempo_range>
@@ -110,7 +105,6 @@ tempo_event ::= <token "\\tempo"> <steno_duration> <token "="> <tempo_range>
 music_list ::= <token "">
     | <music_list> <music>
     | <music_list> <embedded_scm>
-    | <music_list> <error>
 
 music ::= <simple_music>
     | <composite_music>
