@@ -139,8 +139,6 @@ context_modification ::=
     | <token "\\with"> <CONTEXT_MOD_IDENTIFIER>
     | <CONTEXT_MOD_IDENTIFIER>
 
-optional_context_mod ::= <token ""> | <context_modification>
-
 context_mod_list ::= <token "">
     | <context_mod_list> <context_mod>
     | <context_mod_list> <CONTEXT_MOD_IDENTIFIER>
@@ -175,16 +173,16 @@ generic_prefix_music_scm ::= <MUSIC_FUNCTION> <function_arglist>
 optional_id ::= <token "="> <simple_string>:ss => ss
 
 prefix_composite_music ::= <generic_prefix_music_scm>
-    | <token "\\context"> <simple_string> <optional_id> <optional_context_mod>
+    | <token "\\context"> <simple_string> <optional_id>? <context_modification>?
         <music>
-    | <token "\\new"> <simple_string> <optional_id> <optional_context_mod>
+    | <token "\\new"> <simple_string> <optional_id>? <context_modification>?
         <music>
     | <token "\\times"> <fraction> <music>
     | <repeated_music>
     | <token "\\transpose"> <pitch_also_in_chords> <pitch_also_in_chords>
         <music>
     | <mode_changing_head> <grouped_music_list>
-    | <mode_changing_head_with_context> <optional_context_mod>
+    | <mode_changing_head_with_context> <context_modification>?
         <grouped_music_list>
     | <relative_music>
     | <re_rhythmed_music>
@@ -400,9 +398,7 @@ figured_bass_alteration ::= <token "\+"> | <token "\!"> | <token "/">
 
 br_bass_figure ::= <token "[">? <bass_figure>
 
-figure_list ::= <br_bass_figure>*
-
-figure_spec ::= <FIGURE_OPEN> <figure_list> <FIGURE_CLOSE>
+figure_spec ::= <FIGURE_OPEN> <br_bass_figure>* <FIGURE_CLOSE>
 
 simple_element ::=
     <pitch> <exclamations> <questions> <octave_check>
