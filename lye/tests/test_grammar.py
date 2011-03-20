@@ -4,6 +4,18 @@ from lye.grammar import LyeGrammar
 
 class TestLyeGrammar(unittest.TestCase):
 
+    def test_UNSIGNED(self):
+        case = "12"
+        grammar = LyeGrammar(case)
+        result, error = grammar.apply("UNSIGNED")
+        self.assertEqual(result, 12)
+
+    def test_STRING(self):
+        case = "\"test\""
+        grammar = LyeGrammar(case)
+        result, error = grammar.apply("STRING")
+        self.assertEqual(result, "test")
+
     def test_lilypond_invalid(self):
         case = "\\invalid"
         grammar = LyeGrammar(case)

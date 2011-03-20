@@ -2,6 +2,9 @@ from pymeta.grammar import OMeta
 
 grammar = """
 
+UNSIGNED ::= <digit>+:d => int("".join(d))
+STRING ::= '"' <letterOrDigit>*:a '"' => "".join(a)
+
 lilypond ::= (<token "\\invalid">
     | <toplevel_expression> | <assignment> | <error>)*
 
