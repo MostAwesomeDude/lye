@@ -56,7 +56,7 @@ book_block ::= <token "\\book"> <token "{"> <book_body>:bb <token "}">
 
 book_body ::= <token "">
     | <BOOK_IDENTIFIER>
-    | <book_body> <paper_block>
+    | <book_body> <output_def>
     | <book_body> <bookpart_block>
     | <book_body> <score_block>
     | <book_body> <composite_music>
@@ -70,7 +70,7 @@ bookpart_block ::=
 
 bookpart_body ::= <token "">
     | <BOOK_IDENTIFIER>
-    | <bookpart_body> <paper_block>
+    | <bookpart_body> <output_def>
     | <bookpart_body> <score_block>
     | <bookpart_body> <composite_music>
     | <bookpart_body> <full_markup>
@@ -85,8 +85,6 @@ score_body ::= <music>
     | <score_body> <lilypond_header>
     | <score_body> <output_def>
 
-paper_block ::= <output_def>
-
 output_def ::= <output_def_body> <token "}">
 
 output_def_head ::= <token "\\paper">
@@ -98,16 +96,13 @@ output_def_body ::= <output_def_head> <token "{">
     | <output_def_body> <assignment>
     | <output_def_body> <context_def_spec_block>
 
-tempo_event ::= <token "\\tempo"> <steno_duration> <token "="> <tempo_range>
-    | <token "\\tempo"> <scalar> <steno_duration> <token "="> <tempo_range>
+tempo_event ::=
+    <token "\\tempo"> <scalar>? <steno_duration> <token "="> <tempo_range>
     | <token "\\tempo"> <scalar>
 
-music_list ::= <token "">
-    | <music_list> <music>
-    | <music_list> <embedded_scm>
+music_list ::= (<music> | <embedded_scm>)*
 
-music ::= <simple_music>
-    | <composite_music>
+music ::= <simple_music> | <composite_music>
 
 alternative_music ::= <token "">
     | <token "\\alternative"> <token "{"> <music_list>:ml <token "}">
@@ -135,13 +130,11 @@ simple_music ::= <event_chord>
     | <context_change>
 
 context_modification ::=
-    <token "\\with"> <token "$"> <token "{"> <context_mod_list> <token "}">
+    <token "\\with"> <token "{"> <context_mod_list> <token "}">
     | <token "\\with"> <CONTEXT_MOD_IDENTIFIER>
     | <CONTEXT_MOD_IDENTIFIER>
 
-context_mod_list ::= <token "">
-    | <context_mod_list> <context_mod>
-    | <context_mod_list> <CONTEXT_MOD_IDENTIFIER>
+context_mod_list ::= (<context_mod> | <CONTEXT_MOD_IDENTIFIER>)*
 
 composite_music ::= <prefix_composite_music>
     | <grouped_music_list>
