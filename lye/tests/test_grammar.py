@@ -48,6 +48,11 @@ class TestLyeGrammar(unittest.TestCase):
         grammar = LyeGrammar(case)
         grammar.apply("context_def_mod")
 
+    def test_chord_body(self):
+        case = "<c4>"
+        grammar = LyeGrammar(case)
+        grammar.apply("chord_body")
+
     def test_command_event(self):
         case = "\\mark \\default"
         grammar = LyeGrammar(case)

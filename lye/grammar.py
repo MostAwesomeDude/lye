@@ -270,10 +270,7 @@ event_chord ::= <simple_chord_elements> <post_events>
 note_chord_element ::=
     <chord_body> <optional_notemode_duration> <post_events>
 
-chord_body ::= <token "<"> <chord_body_elements> <token ">">
-
-chord_body_elements ::= <token "">
-    | <chord_body_elements> <chord_body_element>
+chord_body ::= <token "<"> <chord_body_element>* <token ">">
 
 chord_body_element ::=
     <pitch> <exclamations> <questions> <octave_check> <post_events>
