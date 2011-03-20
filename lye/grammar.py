@@ -1,9 +1,10 @@
 from pymeta.grammar import OMeta
+from pymeta.runtime import ParseError
 
 grammar = """
 
 UNSIGNED ::= <digit>+:d => int("".join(d))
-STRING ::= '"' <letterOrDigit>*:a '"' => "".join(a)
+STRING ::= <letterOrDigit>*:a => "".join(a)
 
 lilypond ::= (<token "\\invalid">
     | <toplevel_expression> | <assignment> | <error>)*
@@ -19,18 +20,11 @@ toplevel_expression ::= <lilypond_header>
 
 embedded_scm ::= <SCM_TOKEN> | <SCM_IDENTIFIER>
 
-lilypond_header_body ::= <token "">
-    | <lilypond_header_body> <assignment>
-
 lilypond_header ::=
-    <token "\\header"> <token "{"> <lilypond_header_body>:lhb <token "{">
-    => lhb
+    <token "\\header"> <token "{"> <assignment>*:body <token "}"> => body
 
-assignment_id ::= <STRING>
-    | <LYRICS_STRING>
-
-assignment ::= <assignment_id> <token "="> <identifier_init>
-    | <assignment_id> <property_path> <token "="> <identifier_init>
+assignment ::=
+    <STRING>:k <property_path>? <token "="> <identifier_init>:v => (k, v)
     | <embedded_scm>
 
 identifier_init ::= <score_block>
@@ -529,4 +523,10 @@ Port of the Lilypond grammar to PyMeta. This is based on the 2.13 Ly grammar.
 """
 
 class LyeGrammar(OMeta.makeGrammar(grammar, globals())):
-    pass
+
+    def stub(self):
+        # Stub out.
+        raise ParseError(*self.input.nullError())
+
+    rule_SCM_TOKEN = stub
+    rule_SCM_IDENTIFIER = stub

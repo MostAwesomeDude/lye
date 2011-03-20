@@ -11,7 +11,7 @@ class TestLyeGrammar(unittest.TestCase):
         self.assertEqual(result, 12)
 
     def test_STRING(self):
-        case = "\"test\""
+        case = "test"
         grammar = LyeGrammar(case)
         result, error = grammar.apply("STRING")
         self.assertEqual(result, "test")
@@ -20,6 +20,18 @@ class TestLyeGrammar(unittest.TestCase):
         case = "\\invalid"
         grammar = LyeGrammar(case)
         grammar.apply("lilypond")
+
+    def test_lilypond_header(self):
+        case = "\\header {}"
+        grammar = LyeGrammar(case)
+        result, error = grammar.apply("lilypond_header")
+        self.assertEqual(result, [])
+
+    def test_lilypond_header_hurp(self):
+        case = "\\header { hurp = \"derp\" }"
+        grammar = LyeGrammar(case)
+        result, error = grammar.apply("lilypond_header")
+        self.assertEqual(result, [])
 
     def test_mode_changing_head(self):
         case = "\\drummode"
