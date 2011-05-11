@@ -2,6 +2,12 @@ import unittest
 
 from lye.grammar2 import LyGrammar
 
+class TestPrimitives(unittest.TestCase):
+
+    def test_pitch_es(self):
+        pitch, error = LyGrammar("es").apply("pitch")
+        self.assertEqual(pitch, "es")
+
 class TestNote(unittest.TestCase):
 
     def test_note(self):
