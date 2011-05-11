@@ -1,4 +1,4 @@
-from lye.grammar import Chord, Note, Marker, LyGrammar
+from lye.grammar import Chord, Note, Marker, LyGrammar, LyeError
 
 class Melody(object):
 
@@ -91,5 +91,5 @@ def melody_from_ly(s):
 
     melody = Melody(LyGrammar(s).apply("melody")[0])
     if not melody:
-        log.error("Failed melody %s" % s)
+        raise LyeError("Failed melody %s" % s)
     return melody

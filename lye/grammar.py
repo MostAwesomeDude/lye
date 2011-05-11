@@ -1,9 +1,17 @@
-import logging
-
 import pymeta.grammar
 import pymeta.runtime
 
-log = logging.getLogger("salsa.ly")
+class InternalParseError(Exception):
+    """
+    An impossible condition happened inside the parser.
+
+    This is probably an implementation error.
+    """
+
+class LyeError(Exception):
+    """
+    Something happened when parsing, and it's your fault.
+    """
 
 class Note(object):
     """
@@ -171,9 +179,8 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
                 accidental = accidental[2:]
                 n += 1
             else:
-                log.error("Unknown symbol %s while lexing accidental"
-                    % accidental)
-                break
+                raise InternalParseError(
+                    "Unknown symbol %s while lexing accidental" % accidental)
 
         for c in octave:
             if c == ",":
@@ -181,8 +188,8 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
             elif c == "'":
                 n += 12
             else:
-                log.error("Unknown symbol %s while lexing octave" % c)
-                break
+                raise InternalParseError(
+                    "Unknown symbol %s while lexing octave" % c)
 
         return n
 
@@ -198,5 +205,5 @@ def chords_from_ly(s):
 
     chords = LyGrammar(s).apply("chords")
     if not chords:
-        log.error("Failed chords %s" % s)
+        raise LyeError("Failed chords %s" % s)
     return chords
