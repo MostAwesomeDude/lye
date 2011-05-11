@@ -89,22 +89,6 @@ class TestCommands(unittest.TestCase):
         string, error = LyGrammar(" \\relative").apply("relative")
         self.assertEqual(string, "\\relative")
 
-class TestMelody(unittest.TestCase):
-
-    def test_melody_marker(self):
-        melody, error = LyGrammar("c e g c' |").apply("melody")
-        self.assertEqual(melody.notes[0], (48, 0, 120))
-        self.assertEqual(melody.notes[1], (52, 120, 240))
-        self.assertEqual(melody.notes[2], (55, 240, 360))
-        self.assertEqual(melody.notes[3], (60, 360, 480))
-
-    def test_melody_multiple_markers(self):
-        melody, error = LyGrammar("e4 d c2 | e4 d c2 |").apply("melody")
-
-    def test_melody_rests(self):
-        melody, error = LyGrammar("f4 a b r | f4 a b r").apply("melody")
-        self.assertEqual(melody.notes[3], (53, 480, 600))
-
 class TestMarker(unittest.TestCase):
 
     def test_measure_name(self):
