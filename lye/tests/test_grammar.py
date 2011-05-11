@@ -1,6 +1,6 @@
 import unittest
 
-from lye.grammar2 import LyGrammar
+from lye.grammar import LyGrammar
 
 class TestPrimitives(unittest.TestCase):
 

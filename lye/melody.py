@@ -1,4 +1,4 @@
-from lye.grammar2 import Chord, Note, Marker, LyGrammar
+from lye.grammar import Chord, Note, Marker, LyGrammar
 
 class Melody(object):
 
