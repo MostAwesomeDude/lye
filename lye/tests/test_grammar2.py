@@ -82,6 +82,10 @@ class TestChords(unittest.TestCase):
 class TestCommands(unittest.TestCase):
 
     def test_relative(self):
+        string, error = LyGrammar("\\relative").apply("relative")
+        self.assertEqual(string, "\\relative")
+
+    def test_relative_leading_space(self):
         string, error = LyGrammar(" \\relative").apply("relative")
         self.assertEqual(string, "\\relative")
 

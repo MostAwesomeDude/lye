@@ -1,7 +1,5 @@
 import logging
 
-#import fluidsynth
-
 import pymeta.grammar
 import pymeta.runtime
 
@@ -137,11 +135,11 @@ sharp ::= 'i' 's' => "is"
 flat ::= 'e' 's' => "es"
 accidental ::= (<sharp> | <flat>)+:a => "".join(a)
 
-pitch ::= ('r' | 'c' | 'd' | <flat> | 'e' | 'f' | 'g' | 'a' | 'b')
+pitch ::= 'r' | 'c' | 'd' | <flat> | 'e' | 'f' | 'g' | 'a' | 'b'
 
 octave ::= ('\'' | ',')+:o => "".join(o)
 
-duration ::= (<digit>+):d '.'*:dots
+duration ::= <digit>+:d '.'*:dots
            => self.undot_duration(int("".join(d)), len(dots))
 
 note ::= <spaces>? <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
@@ -153,7 +151,7 @@ chord ::= <token '<'> <notes>:ns <token '>'> => Chord(ns)
 
 marker ::= <token '|'> => self.marker
 
-protonote ::= (<note> | <chord> | <marker>)
+protonote ::= <marker> | <chord> | <note>
 
 protonote_cluster ::= <spaces>? <protonote>:pn (<spaces>? <protonote>)*:pns
                     => [pn] + pns
@@ -253,10 +251,6 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
         if d:
             self.duration = d
         return self.duration
-
-#print LyGrammar("c4 d e  d  c").apply("notes")
-#print LyGrammar("c e g c' |").apply("measure")
-#print LyGrammar("e4 d c2 | e4 d c2 |").apply("measures")
 
 def chords_from_ly(s):
     """
