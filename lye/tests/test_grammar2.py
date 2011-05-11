@@ -8,6 +8,18 @@ class TestPrimitives(unittest.TestCase):
         pitch, error = LyGrammar("es").apply("pitch")
         self.assertEqual(pitch, "es")
 
+    def test_flat(self):
+        accidental, error = LyGrammar("es").apply("accidental")
+        self.assertEqual(accidental, "es")
+
+    def test_sharp(self):
+        accidental, error = LyGrammar("is").apply("accidental")
+        self.assertEqual(accidental, "is")
+
+    def test_sharp_repeated(self):
+        accidental, error = LyGrammar("isis").apply("accidental")
+        self.assertEqual(accidental, "isis")
+
 class TestNote(unittest.TestCase):
 
     def test_note(self):
