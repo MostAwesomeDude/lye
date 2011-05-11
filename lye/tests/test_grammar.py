@@ -48,12 +48,13 @@ class TestNote(unittest.TestCase):
         note, error = LyGrammar("r").apply("note")
         self.assertEqual(note.pitch, -1)
 
-    def test_dots(self):
+    def test_dotted(self):
         note, error = LyGrammar("c4.").apply("note")
         self.assertEqual(note.duration, 180)
 
+    def test_double_dotted(self):
         note, error = LyGrammar("c4..").apply("note")
-        self.assertEqual(note.duration, 270)
+        self.assertEqual(note.duration, 210)
 
 class TestNotes(unittest.TestCase):
 
