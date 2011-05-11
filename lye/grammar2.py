@@ -38,6 +38,9 @@ class Marker(object):
     A singleton representing a measure marker.
     """
 
+    def __init__(self, name):
+        self.name = name
+
 class Melody(object):
 
     ticks_per_beat = 480
@@ -63,13 +66,22 @@ class Melody(object):
         """
 
         relative_marker = 0
+        partial = False
+        partial_offset = 0
         scheduled = []
 
         for note in self.notes:
             if isinstance(note, Marker):
-                remainder = relative_marker % self.ticks_per_beat
-                if remainder:
-                    print "Marker is off by %d" % remainder
+                if note.name == "measure":
+                    remainder = ((relative_marker - partial_offset) %
+                        self.ticks_per_beat)
+                    if remainder and not partial:
+                        print "Marker is off by %d" % remainder
+                    # Start the next bar.
+                    partial = False
+                    partial_offset = remainder
+                elif marker.name == "partial":
+                    partial = True
                 continue
 
             elif isinstance(note, Chord):
@@ -81,6 +93,7 @@ class Melody(object):
                     scheduled.append((pitch, begin, end))
 
             else:
+                # Note
                 begin = relative_marker
                 # XXX fudge?
                 end = begin + note.duration
@@ -149,7 +162,11 @@ notes ::= <note>*:ns => ns
 
 chord ::= <token '<'> <notes>:ns <token '>'> => Chord(ns)
 
-marker ::= <token '|'> => self.marker
+measure_marker ::= <token '|'> => Marker("measure")
+
+partial_marker ::= <token "\\\\partial"> => Marker("partial")
+
+marker ::= <measure_marker> | <partial_marker>
 
 protonote ::= <marker> | <chord> | <note>
 
@@ -166,8 +183,6 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
 
     Like with standard Lilypond, the default octave starts at C3 (48).
     """
-
-    marker = Marker()
 
     ticks_per_beat = 120
     """

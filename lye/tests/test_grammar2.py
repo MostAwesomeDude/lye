@@ -107,10 +107,15 @@ class TestMelody(unittest.TestCase):
 
 class TestMarker(unittest.TestCase):
 
-    def test_marker_identity(self):
+    def test_measure_name(self):
         grammar = LyGrammar("|")
         marker, error = grammar.apply("marker")
-        self.assertTrue(marker is grammar.marker)
+        self.assertEqual(marker.name, "measure")
+
+    def test_partial_name(self):
+        grammar = LyGrammar("\\partial")
+        marker, error = grammar.apply("marker")
+        self.assertEqual(marker.name, "partial")
 
 class TestSalsaSnippets(unittest.TestCase):
 
