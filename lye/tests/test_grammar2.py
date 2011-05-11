@@ -121,7 +121,7 @@ class TestSalsaSnippets(unittest.TestCase):
 
     def test_shady_snippet(self):
         snippet = """\\relative d'' {
-            r2.. d8 |
+            \\partial r2.. d8 |
             g4 fis b4. d,8 | g4 fis a4. d,8 | g4 fis e d | d2.. d8 |
             g4 fis b4. d,8 | g4 fis a4. d,8 | g4 fis e d | d2.. bes8 |
             d2.. c8 | d1

@@ -80,7 +80,7 @@ class Melody(object):
                     # Start the next bar.
                     partial = False
                     partial_offset = remainder
-                elif marker.name == "partial":
+                elif note.name == "partial":
                     partial = True
                 continue
 
