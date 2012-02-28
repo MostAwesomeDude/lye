@@ -1,3 +1,6 @@
+from fluidsynth import fluidsynth
+
+from lye.algos import simplify_ties
 from lye.grammar import Chord, Note, Marker, LyGrammar, LyeError
 
 class Melody(object):
@@ -6,6 +9,7 @@ class Melody(object):
 
     def __init__(self, notes):
         self.notes = notes
+        simplify_ties(notes)
         self.schedule_notes()
 
     def __nonzero__(self):

@@ -1,6 +1,8 @@
 import pymeta.grammar
 import pymeta.runtime
 
+from lye.types import Marker
+
 class InternalParseError(Exception):
     """
     An impossible condition happened inside the parser.
@@ -27,6 +29,10 @@ class Note(object):
 
     __str__ = __repr__
 
+    def __eq__(self, other):
+        return (self.pitch == getattr(other, "pitch", None) and
+            self.duration == getattr(other, "duration", None))
+
 class Chord(Note):
     """
     A Note list.
@@ -38,19 +44,6 @@ class Chord(Note):
 
     def __repr__(self):
         return "Chord(%r, %d)" % (self.pitches, self.duration)
-
-    __str__ = __repr__
-
-class Marker(object):
-    """
-    A singleton representing a measure marker.
-    """
-
-    def __init__(self, name):
-        self.name = name
-
-    def __repr__(self):
-        return "Marker(%r)" % self.name
 
     __str__ = __repr__
 
@@ -95,7 +88,9 @@ measure_marker ::= <token '|'> => Marker("measure")
 
 partial_marker ::= <token "\\\\partial"> => Marker("partial")
 
-marker ::= <measure_marker> | <partial_marker>
+tie_marker ::= <token "~"> => Marker("tie")
+
+marker ::= <measure_marker> | <partial_marker> | <tie_marker>
 
 protonote ::= <marker> | <chord> | <note>
 

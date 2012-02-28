@@ -28,7 +28,7 @@ class TestSalsaSnippets(unittest.TestCase):
             d2.. c8 | d1
         }
         """
-        print melody_from_ly(snippet)
+        melody_from_ly(snippet)
 
     def test_shiny_snippet_one(self):
         snippet = """\\relative c' {
@@ -36,7 +36,7 @@ class TestSalsaSnippets(unittest.TestCase):
             r4 c, d e | g f c d | c1
         }
         """
-        print melody_from_ly(snippet)
+        melody_from_ly(snippet)
 
     def test_shiny_snippet_two(self):
         snippet = """\\relative b' {
@@ -45,4 +45,4 @@ class TestSalsaSnippets(unittest.TestCase):
             d1 | dis8. b dis8 c8. es c8 | b1
         }
         """
-        print melody_from_ly(snippet)
+        melody_from_ly(snippet)
