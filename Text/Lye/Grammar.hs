@@ -25,7 +25,7 @@ data Pitch = RawPitch Diatonic [Accidental] [Octave]
            | Rest
     deriving (Eq, Show)
 
-data Note = Note Pitch Duration
+data Note = Note Pitch (Maybe Duration)
     deriving (Eq, Show)
 
 type Chord = [Note]
@@ -34,6 +34,10 @@ type Chord = [Note]
 -- | whitespace.
 token :: String -> a -> P s a
 token s m = optional (many space) ->> (text s ##> m)
+
+-- | Optionally parse an object, wrapping the result with Maybe.
+maybeParse :: P s a -> P s (Maybe a)
+maybeParse p = p ## Just // unit Nothing
 
 measure :: P s Marker
 measure = token "|" Measure
@@ -114,3 +118,6 @@ preparePitch (RawPitch d as os) =
         d''' = foldl oct' d'' os
     in TruePitch d'''
 preparePitch p = p
+
+note :: P s Note
+note = pitch <> maybeParse (duration ## undot) ## uncurry Note
