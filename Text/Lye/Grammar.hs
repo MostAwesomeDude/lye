@@ -1,13 +1,14 @@
 import Control.Monad
 import Control.Monad.ST
 import Data.Char
+import qualified Data.Map as M
 import Data.STRef
 import Text.Parsers.Frisby
 import Text.Parsers.Frisby.Char
 
 type Duration = Int
 
-data Marker = Relative
+data Marker = Measure | Partial | Relative | Tie
     deriving (Eq, Show)
 
 data Accidental = Flat | Sharp
@@ -16,10 +17,12 @@ data Accidental = Flat | Sharp
 data Octave = OctaveUp | OctaveDown
     deriving (Eq, Show)
 
-data Diatonic = C | D | E | F | G | A | B
-    deriving (Eq, Show)
+data Diatonic = C | D | Es | E | F | G | A | B | R
+    deriving (Eq, Ord, Show)
 
-data Pitch = Pitch Diatonic [Accidental]
+data Pitch = RawPitch Diatonic [Accidental] [Octave]
+           | TruePitch Int
+           | Rest
     deriving (Eq, Show)
 
 data Note = Note Pitch Duration
@@ -31,6 +34,18 @@ type Chord = [Note]
 -- | whitespace.
 token :: String -> a -> P s a
 token s m = optional (many space) ->> (text s ##> m)
+
+measure :: P s Marker
+measure = token "|" Measure
+
+relative :: P s Marker
+relative = token "\\relative" Relative
+
+partial :: P s Marker
+partial = token "\\partial" Partial
+
+tie :: P s Marker
+tie = token "~" Tie
 
 -- | Parse a series of digits into an Int.
 integer :: P s Int
@@ -62,11 +77,40 @@ undot (size, dots) = runST $ do
 diatonic :: P s Diatonic
 diatonic = choice [ token "c" C
                   , token "d" D
+                  , token "es" Es
                   , token "e" E
                   , token "f" F
                   , token "g" G
                   , token "a" A
-                  , token "b" B ]
+                  , token "b" B
+                  , token "r" R ]
 
 pitch :: P s Pitch
-pitch = diatonic <> accidentals ## uncurry Pitch
+pitch = diatonic <> accidentals <> octaves ## (uncurry . uncurry) RawPitch
+
+pitchMap :: M.Map Diatonic Int
+pitchMap = M.fromList [ (C, 48)
+                      , (D, 50)
+                      , (Es, 51)
+                      , (E, 52)
+                      , (F, 53)
+                      , (G, 55)
+                      , (A, 57)
+                      , (B, 59) ]
+
+preparePitch :: Pitch -> Pitch
+preparePitch (RawPitch R _ _) = Rest
+preparePitch (RawPitch d as os) =
+    let d' = case M.lookup d pitchMap of
+            Just x -> x
+            Nothing -> error "Missing diatonic pitch"
+        acc' d a = case a of
+            Sharp -> d + 1
+            Flat -> d - 1
+        oct' d o = case o of
+            OctaveUp -> d + 12
+            OctaveDown -> d - 12
+        d'' = foldl acc' d' as
+        d''' = foldl oct' d'' os
+    in TruePitch d'''
+preparePitch p = p
