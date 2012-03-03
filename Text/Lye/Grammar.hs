@@ -102,22 +102,27 @@ pitchMap = M.fromList [ (C, 48)
                       , (A, 57)
                       , (B, 59) ]
 
-preparePitch :: Pitch -> Pitch
-preparePitch (PitchData R _ _) = Rest
-preparePitch (PitchData d as os) =
-    let d' = case M.lookup d pitchMap of
+-- | Finalize pitches if they are rests.
+doRests :: Pitch -> Pitch
+doRests (PitchData R _ _) = Rest
+doRests x = x
+
+-- | Finalize an absolute pitch.
+doAbsolute :: Pitch -> Pitch
+doAbsolute (PitchData d as os) =
+    let p = case M.lookup d pitchMap of
             Just x -> x
             Nothing -> error "Missing diatonic pitch"
-        acc' d a = case a of
-            Sharp -> d + 1
-            Flat -> d - 1
-        oct' d o = case o of
-            OctaveUp -> d + 12
-            OctaveDown -> d - 12
-        d'' = foldl acc' d' as
-        d''' = foldl oct' d'' os
-    in MIDIPitch d'''
-preparePitch p = p
+        acc' x a = case a of
+            Sharp -> x + 1
+            Flat -> x - 1
+        oct' x o = case o of
+            OctaveUp -> x + 12
+            OctaveDown -> x - 12
+        p' = foldl acc' p as
+        p'' = foldl oct' p' os
+    in MIDIPitch p''
+doAbsolute x = x
 
 note :: P s Note
 note = pitch <> maybeParse (duration ## undot) ## uncurry Note
