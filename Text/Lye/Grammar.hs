@@ -20,8 +20,8 @@ data Octave = OctaveUp | OctaveDown
 data Diatonic = C | D | Es | E | F | G | A | B | R
     deriving (Eq, Ord, Show)
 
-data Pitch = RawPitch Diatonic [Accidental] [Octave]
-           | TruePitch Int
+data Pitch = PitchData Diatonic [Accidental] [Octave]
+           | MIDIPitch Int
            | Rest
     deriving (Eq, Show)
 
@@ -90,7 +90,7 @@ diatonic = choice [ token "c" C
                   , token "r" R ]
 
 pitch :: P s Pitch
-pitch = diatonic <> accidentals <> octaves ## (uncurry . uncurry) RawPitch
+pitch = diatonic <> accidentals <> octaves ## (uncurry . uncurry) PitchData
 
 pitchMap :: M.Map Diatonic Int
 pitchMap = M.fromList [ (C, 48)
@@ -103,8 +103,8 @@ pitchMap = M.fromList [ (C, 48)
                       , (B, 59) ]
 
 preparePitch :: Pitch -> Pitch
-preparePitch (RawPitch R _ _) = Rest
-preparePitch (RawPitch d as os) =
+preparePitch (PitchData R _ _) = Rest
+preparePitch (PitchData d as os) =
     let d' = case M.lookup d pitchMap of
             Just x -> x
             Nothing -> error "Missing diatonic pitch"
@@ -116,8 +116,11 @@ preparePitch (RawPitch d as os) =
             OctaveDown -> d - 12
         d'' = foldl acc' d' as
         d''' = foldl oct' d'' os
-    in TruePitch d'''
+    in MIDIPitch d'''
 preparePitch p = p
 
 note :: P s Note
 note = pitch <> maybeParse (duration ## undot) ## uncurry Note
+
+chord :: P s Chord
+chord = between (token "<" ()) (token ">" ()) (many note)
