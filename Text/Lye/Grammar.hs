@@ -107,22 +107,44 @@ doRests :: Pitch -> Pitch
 doRests (PitchData R _ _) = Rest
 doRests x = x
 
+doAccidentals x a = case a of
+    Sharp -> x + 1
+    Flat -> x - 1
+doOctaves x o = case o of
+    OctaveUp -> x + 12
+    OctaveDown -> x - 12
+
 -- | Finalize an absolute pitch.
 doAbsolute :: Pitch -> Pitch
 doAbsolute (PitchData d as os) =
     let p = case M.lookup d pitchMap of
             Just x -> x
             Nothing -> error "Missing diatonic pitch"
-        acc' x a = case a of
-            Sharp -> x + 1
-            Flat -> x - 1
-        oct' x o = case o of
-            OctaveUp -> x + 12
-            OctaveDown -> x - 12
-        p' = foldl acc' p as
-        p'' = foldl oct' p' os
+        p' = foldl doAccidentals p as
+        p'' = foldl doOctaves p' os
     in MIDIPitch p''
 doAbsolute x = x
+
+-- | Finalize a relative pitch.
+-- | The previous pitch is curried in, to be used as a reference point; it
+-- | must be a MIDIPitch, or else this function will just pass things through.
+doRelative :: Pitch -> Pitch -> Pitch
+doRelative (MIDIPitch prev) (PitchData d as os) =
+    let p = case M.lookup d pitchMap of
+            Just x -> x
+            Nothing -> error "Missing diatonic pitch"
+        -- Let's get in range.
+        (to, tp) = prev `divMod` 12
+        pp = p `mod` 12
+        po = case compare pp tp of
+            EQ -> to
+            LT -> if tp - pp > 5 then to + 1 else to
+            GT -> if pp - tp > 5 then to - 1 else to
+        p' = po * 12 + pp
+        p'' = foldl doAccidentals p' as
+        p''' = foldl doOctaves p'' os
+    in MIDIPitch p'''
+doRelative _ x = x
 
 note :: P s Note
 note = pitch <> maybeParse (duration ## undot) ## uncurry Note
