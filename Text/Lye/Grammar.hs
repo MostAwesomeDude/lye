@@ -36,6 +36,7 @@ data Note = Note Pitch (Maybe Duration)
     deriving (Eq, Show)
 
 pitchNote = lens (\(Note p _) -> p) (\p (Note _ d) -> Note p d)
+pitchDuration = lens (\(Note _ d) -> d) (\d (Note p _) -> Note p d)
 
 type Chord = [Note]
 
@@ -156,6 +157,14 @@ note = pitch <> maybeParse (duration ## undot) ## uncurry Note
 
 chord :: P s Chord
 chord = between (token "<" ()) (token ">" ()) (many note)
+
+carryDuration :: [Note] -> [Note]
+carryDuration ns =
+    let loop :: Note -> State Duration Note
+        loop n = case getL pitchDuration n of
+            Just d -> put d >> return n
+            Nothing -> get >>= \d -> return $ setL pitchDuration (Just d) n
+    in (flip evalState) 120 $ forM ns loop
 
 relativeBlock :: P s [Note]
 relativeBlock =
