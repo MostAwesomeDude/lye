@@ -1,8 +1,15 @@
+import Prelude hiding ((.))
+
+import Control.Category
 import Control.Monad
 import Control.Monad.ST
+import Control.Monad.Trans.State.Lazy
 import Data.Char
+import Data.Lens.Common
 import qualified Data.Map as M
+import Data.Maybe
 import Data.STRef
+import Debug.Trace
 import Text.Parsers.Frisby
 import Text.Parsers.Frisby.Char
 
@@ -27,6 +34,8 @@ data Pitch = PitchData Diatonic [Accidental] [Octave]
 
 data Note = Note Pitch (Maybe Duration)
     deriving (Eq, Show)
+
+pitchNote = lens (\(Note p _) -> p) (\p (Note _ d) -> Note p d)
 
 type Chord = [Note]
 
@@ -73,9 +82,9 @@ undot (size, dots) = runST $ do
     duration <- newSTRef $ 480 `div` size
     dotted <- newSTRef $ 480 `div` size
     replicateM_ dots $ do
-        modifySTRef dotted $ (`div` 2)
+        modifySTRef dotted (`div` 2)
         dot <- readSTRef dotted
-        modifySTRef duration $ (+ dot)
+        modifySTRef duration (+ dot)
     readSTRef duration
 
 diatonic :: P s Diatonic
@@ -117,9 +126,7 @@ doOctaves x o = case o of
 -- | Finalize an absolute pitch.
 doAbsolute :: Pitch -> Pitch
 doAbsolute (PitchData d as os) =
-    let p = case M.lookup d pitchMap of
-            Just x -> x
-            Nothing -> error "Missing diatonic pitch"
+    let p = fromMaybe (error "Missing diatonic pitch") (M.lookup d pitchMap)
         p' = foldl doAccidentals p as
         p'' = foldl doOctaves p' os
     in MIDIPitch p''
@@ -130,9 +137,7 @@ doAbsolute x = x
 -- | must be a MIDIPitch, or else this function will just pass things through.
 doRelative :: Pitch -> Pitch -> Pitch
 doRelative (MIDIPitch prev) (PitchData d as os) =
-    let p = case M.lookup d pitchMap of
-            Just x -> x
-            Nothing -> error "Missing diatonic pitch"
+    let p = fromMaybe (error "Missing diatonic pitch") (M.lookup d pitchMap)
         -- Let's get in range.
         (to, tp) = prev `divMod` 12
         pp = p `mod` 12
@@ -151,3 +156,20 @@ note = pitch <> maybeParse (duration ## undot) ## uncurry Note
 
 chord :: P s Chord
 chord = between (token "<" ()) (token ">" ()) (many note)
+
+relativeBlock :: P s [Note]
+relativeBlock =
+    let opener :: P s Pitch
+        opener = between relative (token "{" ()) pitch
+        loop :: Note -> State Pitch Note
+        loop n = do
+            p <- get
+            let p' = doRelative p $ getL pitchNote n
+            put p'
+            let n' = setL pitchNote p' n
+            return n'
+        zipper :: Pitch -> [Note] -> [Note]
+        zipper p ns = evalState (mapM loop ns) (doAbsolute p)
+        notes :: P s [Note]
+        notes = (opener <> many note) ## uncurry zipper
+    in notes <<- token "}" ()
