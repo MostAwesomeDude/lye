@@ -13,9 +13,12 @@ import Debug.Trace
 import Text.Parsers.Frisby
 import Text.Parsers.Frisby.Char
 
-type Duration = Int
+import Text.Lye.Types
 
-data Marker = Measure | Partial | Relative | Tie
+data Directive = Partial | Relative
+    deriving (Eq, Show)
+
+data Marker = Measure | Tie
     deriving (Eq, Show)
 
 data Accidental = Flat | Sharp
@@ -27,18 +30,16 @@ data Octave = OctaveUp | OctaveDown
 data Diatonic = C | D | Es | E | F | G | A | B | R
     deriving (Eq, Ord, Show)
 
-data Pitch = PitchData Diatonic [Accidental] [Octave]
-           | MIDIPitch Int
-           | Rest
+data PitchData = PitchData Diatonic [Accidental] [Octave]
     deriving (Eq, Show)
 
-data Note = Note Pitch (Maybe Duration)
+data NoteData = NoteData PitchData (Maybe Duration)
     deriving (Eq, Show)
 
-pitchNote = lens (\(Note p _) -> p) (\p (Note _ d) -> Note p d)
-pitchDuration = lens (\(Note _ d) -> d) (\d (Note p _) -> Note p d)
+-- pitchNote = lens (\(Note p _) -> p) (\p (Note _ d) -> Note p d)
+-- pitchDuration = lens (\(Note _ d) -> d) (\d (Note p _) -> Note p d)
 
-type Chord = [Note]
+type ChordData = [NoteData]
 
 -- | Parse a string into an arbitrary object, consuming any leading
 -- | whitespace.
@@ -49,14 +50,14 @@ token s m = optional (many space) ->> (text s ##> m)
 maybeParse :: P s a -> P s (Maybe a)
 maybeParse p = p ## Just // unit Nothing
 
-measure :: P s Marker
-measure = token "|" Measure
-
-relative :: P s Marker
+relative :: P s Directive
 relative = token "\\relative" Relative
 
-partial :: P s Marker
+partial :: P s Directive
 partial = token "\\partial" Partial
+
+measure :: P s Marker
+measure = token "|" Measure
 
 tie :: P s Marker
 tie = token "~" Tie
@@ -99,7 +100,7 @@ diatonic = choice [ token "c" C
                   , token "b" B
                   , token "r" R ]
 
-pitch :: P s Pitch
+pitch :: P s PitchData
 pitch = diatonic <> accidentals <> octaves ## (uncurry . uncurry) PitchData
 
 pitchMap :: M.Map Diatonic Int
@@ -112,11 +113,6 @@ pitchMap = M.fromList [ (C, 48)
                       , (A, 57)
                       , (B, 59) ]
 
--- | Finalize pitches if they are rests.
-doRests :: Pitch -> Pitch
-doRests (PitchData R _ _) = Rest
-doRests x = x
-
 doAccidentals x a = case a of
     Sharp -> x + 1
     Flat -> x - 1
@@ -125,19 +121,18 @@ doOctaves x o = case o of
     OctaveDown -> x - 12
 
 -- | Finalize an absolute pitch.
-doAbsolute :: Pitch -> Pitch
+doAbsolute :: PitchData -> Pitch
 doAbsolute (PitchData d as os) =
     let p = fromMaybe (error "Missing diatonic pitch") (M.lookup d pitchMap)
         p' = foldl doAccidentals p as
         p'' = foldl doOctaves p' os
-    in MIDIPitch p''
-doAbsolute x = x
+    in p''
 
 -- | Finalize a relative pitch.
 -- | The previous pitch is curried in, to be used as a reference point; it
 -- | must be a MIDIPitch, or else this function will just pass things through.
-doRelative :: Pitch -> Pitch -> Pitch
-doRelative (MIDIPitch prev) (PitchData d as os) =
+doRelative :: Pitch -> PitchData -> Pitch
+doRelative prev (PitchData d as os) =
     let p = fromMaybe (error "Missing diatonic pitch") (M.lookup d pitchMap)
         -- Let's get in range.
         (to, tp) = prev `divMod` 12
@@ -149,36 +144,50 @@ doRelative (MIDIPitch prev) (PitchData d as os) =
         p' = po * 12 + pp
         p'' = foldl doAccidentals p' as
         p''' = foldl doOctaves p'' os
-    in MIDIPitch p'''
-doRelative _ x = x
+    in p'''
 
-note :: P s Note
-note = pitch <> maybeParse (duration ## undot) ## uncurry Note
+noteData :: P s NoteData
+noteData = pitch <> maybeParse (duration ## undot) ## uncurry NoteData
 
-chord :: P s Chord
-chord = between (token "<" ()) (token ">" ()) (many note)
+chordData :: P s ChordData
+chordData = between (token "<" ()) (token ">" ()) (many noteData)
 
-carryDuration :: [Note] -> [Note]
-carryDuration ns =
-    let loop :: Note -> State Duration Note
-        loop n = case getL pitchDuration n of
-            Just d -> put d >> return n
-            Nothing -> get >>= \d -> return $ setL pitchDuration (Just d) n
-    in (flip evalState) 120 $ forM ns loop
+data NoteMetadata = NM { nmDuration :: Int }
 
-relativeBlock :: P s [Note]
-relativeBlock =
-    let opener :: P s Pitch
-        opener = between relative (token "{" ()) pitch
-        loop :: Note -> State Pitch Note
-        loop n = do
-            p <- get
-            let p' = doRelative p $ getL pitchNote n
-            put p'
-            let n' = setL pitchNote p' n
-            return n'
-        zipper :: Pitch -> [Note] -> [Note]
-        zipper p ns = evalState (mapM loop ns) (doAbsolute p)
-        notes :: P s [Note]
-        notes = (opener <> many note) ## uncurry zipper
-    in notes <<- token "}" ()
+normalizeNotes :: (NoteMetadata, [Note]) -> [NoteData]
+    -> (NoteMetadata, [Note])
+normalizeNotes (nm, ns) [] = (nm, ns)
+normalizeNotes (nm, ns) (NoteData p md:nds) =
+    let d = fromMaybe (nmDuration nm) md
+        n = Note (doAbsolute p) d
+        nm' = nm { nmDuration = d }
+    in normalizeNotes (nm', n:ns) nds
+
+absoluteBlock :: P s [Note]
+absoluteBlock = let initial = (NM { nmDuration = 120 }, [])
+    in many noteData ## (\nds -> (reverse . snd) $ normalizeNotes initial nds)
+
+-- carryDuration :: [Note] -> [Note]
+-- carryDuration ns =
+--    let loop :: Note -> State Duration Note
+--        loop n = case getL pitchDuration n of
+--            Just d -> put d >> return n
+--            Nothing -> get >>= \d -> return $ setL pitchDuration (Just d) n
+--    in (flip evalState) 120 $ forM ns loop
+
+-- relativeBlock :: P s [Note]
+-- relativeBlock =
+--     let opener :: P s Pitch
+--         opener = between relative (token "{" ()) pitch
+--         loop :: Note -> State Pitch Note
+--         loop n = do
+--             p <- get
+--             let p' = doRelative p $ getL pitchNote n
+--             put p'
+--             let n' = setL pitchNote p' n
+--             return n'
+--         zipper :: Pitch -> [Note] -> [Note]
+--         zipper p ns = evalState (mapM loop ns) (doAbsolute p)
+--         notes :: P s [Note]
+--         notes = (opener <> many note) ## uncurry zipper
+--     in notes <<- token "}" ()
