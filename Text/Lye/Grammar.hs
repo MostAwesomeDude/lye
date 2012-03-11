@@ -163,6 +163,13 @@ normalizeNotes (nm, ns) (NoteData p md:nds) =
         nm' = nm { nmDuration = d }
     in normalizeNotes (nm', n:ns) nds
 
+fillDurations :: (Duration, [NoteData]) -> (Duration, [NoteData])
+fillDurations (d, []) = (d, [])
+fillDurations (d, nd@(NoteData _ (Just d')):nds) =
+    (d', nd:(snd $ fillDurations (d', nds)))
+fillDurations (d, NoteData p Nothing:nds) =
+    (d, NoteData p (Just d):(snd $ fillDurations (d, nds)))
+
 absoluteBlock :: P s [Note]
 absoluteBlock = let initial = (NM { nmDuration = 120 }, [])
     in many noteData ## (\nds -> (reverse . snd) $ normalizeNotes initial nds)
