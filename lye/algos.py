@@ -36,7 +36,6 @@ def simplify_ties(notes):
 
         if before.pitch == after.pitch:
             before.duration += after.duration
-            print notes[pos:pos + 2]
             del notes[pos:pos + 2]
         else:
             warn("Tie between differing pitches", LyeParseWarning)
