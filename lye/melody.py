@@ -13,6 +13,9 @@ class Melody(object):
 
     ticks_per_beat = 480
 
+    volume = 127
+    pan = 63
+
     def __init__(self, notes):
         self.notes = notes
         simplify_ties(notes)
@@ -100,7 +103,7 @@ class Melody(object):
             event = fluidsynth.FluidEvent()
             event.dest = dest
             # XXX ? pitch vel duration
-            event.note(0, pitch, 127, duration)
+            event.note(0, pitch, self.volume, duration)
             sequencer.send(event, ticks + begin)
 
     def to_midi(self, f, channel):
@@ -115,7 +118,7 @@ class Melody(object):
         for pitch, begin, duration in scheduled:
             begin = begin / self.ticks_per_beat
             duration = duration / self.ticks_per_beat
-            f.addNote(track, channel, pitch, begin, duration, 127)
+            f.addNote(track, channel, pitch, begin, duration, self.volume)
 
 def melody_from_ly(s):
     """

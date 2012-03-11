@@ -83,7 +83,6 @@ class GenericEvent():
                 return False
         if self.type == 'controllerEvent':
             if self.parameter1 != other.parameter1 or \
-                self.parameter2 != other.parameter2 or \
                 self.channel != other.channel or \
                 self.eventType != other.eventType:
                 return False

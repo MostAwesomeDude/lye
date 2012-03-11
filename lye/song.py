@@ -36,6 +36,8 @@ class Song(object):
 
         for channel in self.melodies:
             melody, instrument = self.melodies[channel]
+            # Pan.
+            f.addControllerEvent(track, channel, time, 0x0a, melody.pan)
             if instrument in numbered_instruments:
                 f.addProgramChange(track, channel, time,
                     numbered_instruments[instrument])
