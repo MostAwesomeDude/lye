@@ -60,6 +60,8 @@ relative_dict = dict(zip("cdefgab", range(7)))
 relative_dict["es"] = relative_dict["e"]
 
 grammar = """
+int ::= <digit>+:d => int("".join(d))
+
 relative ::= <token "\\\\relative">
 
 begin_relative ::= <relative> <spaces>
@@ -78,8 +80,7 @@ pitch ::= 'r' | 'c' | 'd' | <flat> | 'e' | 'f' | 'g' | 'a' | 'b'
 
 octave ::= ('\'' | ',')+:o => "".join(o)
 
-duration ::= <digit>+:d '.'*:dots
-           => self.undot_duration(int("".join(d)), len(dots))
+duration ::= <int>:i '.'*:dots => self.undot_duration(i, len(dots))
 
 note ::= <spaces>? <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
        => Note(self.abs_pitch_to_number(p, a, o), self.check_duration(d))

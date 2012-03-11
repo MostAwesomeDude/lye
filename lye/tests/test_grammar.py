@@ -4,6 +4,10 @@ from lye.grammar import LyGrammar
 
 class TestPrimitives(unittest.TestCase):
 
+    def test_int(self):
+        i, error = LyGrammar("456").apply("int")
+        self.assertEqual(i, 456)
+
     def test_pitch_es(self):
         pitch, error = LyGrammar("es").apply("pitch")
         self.assertEqual(pitch, "es")
