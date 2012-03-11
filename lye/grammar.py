@@ -47,6 +47,10 @@ class Chord(Note):
 
     __str__ = __repr__
 
+    def __eq__(self, other):
+        return (self.pitches == getattr(other, "pitches", None) and
+            self.duration == getattr(other, "duration", None))
+
 # es requires a special case, because it can either be spelled es or ees.
 pitch_dict = dict(zip("cxdxefxgxaxb", range(48, 60)))
 pitch_dict["es"] = 51

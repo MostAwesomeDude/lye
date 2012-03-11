@@ -7,16 +7,20 @@ class TestMelody(unittest.TestCase):
     def test_melody_marker(self):
         melody = melody_from_ly("c e g c' |")
         self.assertEqual(melody.notes[0], (48, 0, 120))
-        self.assertEqual(melody.notes[1], (52, 120, 240))
-        self.assertEqual(melody.notes[2], (55, 240, 360))
-        self.assertEqual(melody.notes[3], (60, 360, 480))
+        self.assertEqual(melody.notes[1], (52, 120, 120))
+        self.assertEqual(melody.notes[2], (55, 240, 120))
+        self.assertEqual(melody.notes[3], (60, 360, 120))
 
     def test_melody_multiple_markers(self):
         melody_from_ly("e4 d c2 | e4 d c2 |")
 
     def test_melody_rests(self):
         melody = melody_from_ly("f4 a b r | f4 a b r")
-        self.assertEqual(melody.notes[3], (53, 480, 600))
+        self.assertEqual(melody.notes[3], (53, 480, 120))
+
+    def test_melody_chords(self):
+        melody = melody_from_ly("<c e> <d f>")
+        self.assertEqual(len(melody.notes), 4)
 
 class TestSalsaSnippets(unittest.TestCase):
 

@@ -80,6 +80,25 @@ class TestChords(unittest.TestCase):
         self.assertEqual(chord.pitches, [48, 52, 55])
         self.assertEqual(chord.duration, 120)
 
+    def test_chord_protonote(self):
+        chord, error = LyGrammar("<c e g>").apply("protonote")
+        self.assertEqual(chord.pitches, [48, 52, 55])
+        self.assertEqual(chord.duration, 120)
+
+    def test_chord_protonote_cluster(self):
+        chords, error = LyGrammar("<c e g> <d f a>").apply("protonote_cluster")
+        self.assertEqual(chords[0].pitches, [48, 52, 55])
+        self.assertEqual(chords[0].duration, 120)
+        self.assertEqual(chords[1].pitches, [50, 53, 57])
+        self.assertEqual(chords[1].duration, 120)
+
+    def test_chord_protonote_cluster_duration(self):
+        chords, error = LyGrammar("<c8 e g> <d16 f a>").apply("protonote_cluster")
+        self.assertEqual(chords[0].pitches, [48, 52, 55])
+        self.assertEqual(chords[0].duration, 60)
+        self.assertEqual(chords[1].pitches, [50, 53, 57])
+        self.assertEqual(chords[1].duration, 30)
+
 class TestCommands(unittest.TestCase):
 
     def test_relative(self):
