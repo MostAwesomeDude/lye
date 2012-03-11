@@ -1,5 +1,6 @@
 from __future__ import division
 
+from collections import namedtuple
 from StringIO import StringIO
 
 from fluidsynth import fluidsynth
@@ -7,6 +8,8 @@ from fluidsynth import fluidsynth
 from lye.algos import simplify_ties
 from lye.grammar import Chord, Note, Marker, LyGrammar, LyeError
 from lye.MidiFile import MIDIFile
+
+NoteTuple = namedtuple("NoteTuple", "pitch, begin, duration")
 
 class Melody(object):
 
@@ -54,22 +57,21 @@ class Melody(object):
 
             elif isinstance(note, Chord):
                 begin = relative_marker
-                end = begin + note.duration
-                relative_marker = end
+                relative_marker = begin + note.duration
 
                 for pitch in note.pitches:
-                    scheduled.append((pitch, begin, end))
+                    scheduled.append(NoteTuple(pitch, begin, note.duration))
 
             elif isinstance(note, Note):
                 # Note
                 begin = relative_marker
                 # XXX fudge?
-                end = begin + note.duration
-                relative_marker = end
+                relative_marker = begin + note.duration
 
                 # If this note isn't a rest...
                 if note.pitch != -1:
-                    scheduled.append((note.pitch, begin, end))
+                    scheduled.append(NoteTuple(note.pitch, begin,
+                        note.duration))
 
         self.notes = scheduled
 
@@ -86,11 +88,11 @@ class Melody(object):
         # XXX this fudge value might not be needed?
         ticks = sequencer.ticks + 10
 
-        for pitch, begin, end in self.notes:
+        for pitch, begin, duration in self.notes:
             event = fluidsynth.FluidEvent()
             event.dest = dest
             # XXX ? pitch vel duration
-            event.note(0, pitch, 127, end - begin)
+            event.note(0, pitch, 127, duration)
             sequencer.send(event, ticks + begin)
 
     def to_midi(self):
@@ -105,13 +107,13 @@ class Melody(object):
         time = 0
 
         f.addTrackName(track, time, "Lye")
-        f.addTempo(track, time, 60)
+        f.addTempo(track, time, 84 / 4)
 
         channel = 0
 
-        for pitch, begin, end in self.notes:
+        for pitch, begin, duration in self.notes:
             begin = begin / self.ticks_per_beat
-            duration = (end - begin) / self.ticks_per_beat
+            duration = duration / self.ticks_per_beat
             f.addNote(track, channel, pitch, begin, duration, 127)
 
         sio = StringIO()
