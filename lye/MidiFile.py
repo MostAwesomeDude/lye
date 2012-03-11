@@ -12,12 +12,6 @@
 
 import struct,  sys,  math
 
-# TICKSPERBEAT is the number of "ticks" (time measurement in the MIDI file) that
-# corresponds to one beat. This number is somewhat arbitrary, but should be chosen
-# to provide adequate temporal resolution.
-
-TICKSPERBEAT = 128
-
 controllerEventTypes = {
                         'pan' : 0x0a
                         }
@@ -218,9 +212,12 @@ class MIDITrack:
             self.trackName = trackName
 
 
-    def __init__(self, removeDuplicates,  deinterleave):
+    def __init__(self, ticksPerBeat, removeDuplicates,  deinterleave):
         '''Initialize the MIDITrack object.
         '''
+
+        self.ticksPerBeat = ticksPerBeat
+
         self.headerString = struct.pack('cccc','M','T','r','k')
         self.dataLength = 0 # Is calculated after the data is in place
         self.MIDIdata = ""
@@ -304,7 +301,7 @@ class MIDITrack:
             if thing.type == 'note':
                 event = MIDIEvent()
                 event.type = "NoteOn"
-                event.time = thing.time * TICKSPERBEAT
+                event.time = thing.time * self.ticksPerBeat
                 event.pitch = thing.pitch
                 event.volume = thing.volume
                 event.channel = thing.channel
@@ -313,7 +310,7 @@ class MIDITrack:
 
                 event = MIDIEvent()
                 event.type = "NoteOff"
-                event.time = (thing.time + thing.duration) * TICKSPERBEAT
+                event.time = (thing.time + thing.duration) * self.ticksPerBeat
                 event.pitch = thing.pitch
                 event.volume = thing.volume
                 event.channel = thing.channel
@@ -323,7 +320,7 @@ class MIDITrack:
             elif thing.type == 'tempo':
                 event = MIDIEvent()
                 event.type = "Tempo"
-                event.time = thing.time * TICKSPERBEAT
+                event.time = thing.time * self.ticksPerBeat
                 event.tempo = thing.tempo
                 event.ord = 3
                 self.MIDIEventList.append(event)
@@ -331,7 +328,7 @@ class MIDITrack:
             elif thing.type == 'programChange':
                 event = MIDIEvent()
                 event.type = "ProgramChange"
-                event.time = thing.time * TICKSPERBEAT
+                event.time = thing.time * self.ticksPerBeat
                 event.programNumber = thing.programNumber
                 event.channel = thing.channel
                 event.ord = 1
@@ -340,7 +337,7 @@ class MIDITrack:
             elif thing.type == 'trackName':
                 event = MIDIEvent()
                 event.type = "TrackName"
-                event.time = thing.time * TICKSPERBEAT
+                event.time = thing.time * self.ticksPerBeat
                 event.trackName = thing.trackName
                 event.ord = 0
                 self.MIDIEventList.append(event)
@@ -348,7 +345,7 @@ class MIDITrack:
             elif thing.type == 'controllerEvent':
                 event = MIDIEvent()
                 event.type = "ControllerEvent"
-                event.time = thing.time * TICKSPERBEAT
+                event.time = thing.time * self.ticksPerBeat
                 event.eventType = thing.eventType
                 event.channel = thing.channel
                 event.paramerter1 = thing.parameter1
@@ -358,7 +355,7 @@ class MIDITrack:
             elif thing.type == 'SysEx':
                 event = MIDIEvent()
                 event.type = "SysEx"
-                event.time = thing.time * TICKSPERBEAT
+                event.time = thing.time * self.ticksPerBeat
                 event.manID = thing.manID
                 event.payload = thing.payload
                 event.ord = 1
@@ -369,7 +366,7 @@ class MIDITrack:
                 event.type = "UniversalSysEx"
                 event.realTime = thing.realTime
                 event.sysExChannel = thing.sysExChannel
-                event.time = thing.time * TICKSPERBEAT
+                event.time = thing.time * self.ticksPerBeat
                 event.code = thing.code
                 event.subcode = thing.subcode
                 event.payload = thing.payload
@@ -629,7 +626,7 @@ class MIDIHeader:
     complete and well formed MIDI pattern.
 
     '''
-    def __init__(self,numTracks):
+    def __init__(self, numTracks, ticksPerBeat):
         ''' Initialize the data structures
         '''
         self.headerString = struct.pack('cccc','M','T','h','d')
@@ -637,7 +634,7 @@ class MIDIHeader:
         # Format 1 = multi-track file
         self.format = struct.pack('>H',1)
         self.numTracks = struct.pack('>H',numTracks)
-        self.ticksPerBeat = struct.pack('>H',TICKSPERBEAT)
+        self.ticksPerBeat = struct.pack('>H', ticksPerBeat)
 
 
     def writeFile(self,fileHandle):
@@ -674,18 +671,26 @@ class MIDIFile:
         software will need to figure out how to interpret NoteOff events upon playback.
     '''
 
-    def __init__(self, numTracks, removeDuplicates=True,  deinterleave=True):
+    def __init__(self, numTracks, ticksPerBeat=128, removeDuplicates=True,
+        deinterleave=True):
         '''
         Initialize the class
         '''
-        self.header = MIDIHeader(numTracks)
+
+        # ticksPerBeat is the number of "ticks" (time measurement in the MIDI
+        # file) that corresponds to one beat. This number is somewhat
+        # arbitrary, but should be chosen to provide adequate temporal
+        # resolution.
+        self.ticksPerBeat = ticksPerBeat
+
+        self.header = MIDIHeader(numTracks, ticksPerBeat)
 
         self.tracks = list()
         self.numTracks = numTracks
         self.closed = False
 
         for i in range(0,numTracks):
-            self.tracks.append(MIDITrack(removeDuplicates,  deinterleave))
+            self.tracks.append(MIDITrack(ticksPerBeat, removeDuplicates,  deinterleave))
 
 
     # Public Functions. These (for the most part) wrap the MIDITrack functions, where most
