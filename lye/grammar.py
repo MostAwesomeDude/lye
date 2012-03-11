@@ -162,7 +162,7 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
             dotted /= 2
             duration += dotted
             dots -= 1
-        return int(duration)
+        return duration
 
     def abs_pitch_to_number(self, pitch, accidental, octave):
         """
@@ -212,7 +212,10 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
     def check_duration(self, d):
         if d:
             self.duration = d
-        return self.duration
+        if self.tuplet:
+            return int(self.tuplet * self.duration)
+        else:
+            return self.duration
 
 def chords_from_ly(s):
     """

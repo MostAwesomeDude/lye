@@ -32,7 +32,7 @@ class Song(object):
         track = 0
 
         f.addTrackName(track, time, "Lye")
-        f.addTempo(track, time, 84 / 4)
+        f.addTempo(track, time, 96 / 4)
 
         for channel in self.melodies:
             melody, instrument = self.melodies[channel]
