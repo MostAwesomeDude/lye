@@ -1,7 +1,12 @@
+from __future__ import division
+
+from StringIO import StringIO
+
 from fluidsynth import fluidsynth
 
 from lye.algos import simplify_ties
 from lye.grammar import Chord, Note, Marker, LyGrammar, LyeError
+from lye.MidiFile import MIDIFile
 
 class Melody(object):
 
@@ -68,7 +73,7 @@ class Melody(object):
 
         self.notes = scheduled
 
-    def play(self, sequencer):
+    def to_fs(self, sequencer):
         """
         Sends the melody to `sequencer`.
         """
@@ -87,6 +92,31 @@ class Melody(object):
             # XXX ? pitch vel duration
             event.note(0, pitch, 127, end - begin)
             sequencer.send(event, ticks + begin)
+
+    def to_midi(self):
+        """
+        Create a MIDI expression for this melody.
+        """
+
+        # XXX
+        f = MIDIFile(1, ticksPerBeat=self.ticks_per_beat)
+
+        track = 0
+        time = 0
+
+        f.addTrackName(track, time, "Lye")
+        f.addTempo(track, time, 60)
+
+        channel = 0
+
+        for pitch, begin, end in self.notes:
+            begin = begin / self.ticks_per_beat
+            duration = (end - begin) / self.ticks_per_beat
+            f.addNote(track, channel, pitch, begin, duration, 127)
+
+        sio = StringIO()
+        f.writeFile(sio)
+        return sio.getvalue()
 
 def melody_from_ly(s):
     """
