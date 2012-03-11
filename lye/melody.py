@@ -1,13 +1,11 @@
 from __future__ import division
 
 from collections import namedtuple
-from StringIO import StringIO
 
 from fluidsynth import fluidsynth
 
 from lye.algos import simplify_ties
 from lye.grammar import Chord, Note, Marker, LyGrammar, LyeError
-from lye.MidiFile import MIDIFile
 
 NoteTuple = namedtuple("NoteTuple", "pitch, begin, duration")
 
@@ -95,30 +93,17 @@ class Melody(object):
             event.note(0, pitch, 127, duration)
             sequencer.send(event, ticks + begin)
 
-    def to_midi(self):
+    def to_midi(self, f, channel):
         """
         Create a MIDI expression for this melody.
         """
 
-        # XXX
-        f = MIDIFile(1, ticksPerBeat=self.ticks_per_beat)
-
         track = 0
-        time = 0
-
-        f.addTrackName(track, time, "Lye")
-        f.addTempo(track, time, 84 / 4)
-
-        channel = 0
 
         for pitch, begin, duration in self.notes:
             begin = begin / self.ticks_per_beat
             duration = duration / self.ticks_per_beat
             f.addNote(track, channel, pitch, begin, duration, 127)
-
-        sio = StringIO()
-        f.writeFile(sio)
-        return sio.getvalue()
 
 def melody_from_ly(s):
     """
