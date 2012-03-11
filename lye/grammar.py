@@ -154,9 +154,6 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
 
         duration = self.ticks_per_beat * 4 / duration
 
-        if self.tuplet:
-            duration = duration * self.tuplet
-
         dotted = duration
         while dots:
             dotted /= 2
