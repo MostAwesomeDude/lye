@@ -61,6 +61,12 @@ del pitch_dict["x"]
 relative_dict = dict(zip("cdefgab", range(7)))
 relative_dict["es"] = relative_dict["e"]
 
+def concat(l):
+    rv = []
+    for i in l:
+        rv.extend(i)
+    return rv
+
 grammar = """
 int ::= <digit>+:d => int("".join(d))
 
@@ -71,12 +77,12 @@ begin_relative ::= <relative> <spaces>
                    <pitch>:p <accidental>? <octave>?:o <spaces> '{'
                  => self.open_brace("relative", (p, o if o else ""))
 
-close_brace ::= '}' => self.close_brace()
+close_brace ::= <token "}"> => self.close_brace()
 
 begin_times ::= <times> <int>:n '/' <int>:d
               => self.open_brace("tuplet", Fraction(n, d))
 
-directive ::= <begin_relative> | <begin_times> | <close_brace>
+directive ::= <begin_relative> | <begin_times>
 
 sharp ::= 'i' 's' => "is"
 flat ::= 'e' 's' => "es"
@@ -103,12 +109,10 @@ tie_marker ::= <token "~"> => Marker("tie")
 
 marker ::= <measure_marker> | <partial_marker> | <tie_marker>
 
-protonote ::= <marker> | <chord> | <note>
+protonote ::= <spaces>? (<marker> | <chord> | <note>)
 
-protonote_cluster ::= <spaces>? <protonote>:pn (<spaces>? <protonote>)*:pns
-                    => [pn] + pns
-
-melody ::= <directive>? <protonote_cluster>:m <directive>? => m
+melody ::= <directive> <melody>+:m <close_brace> => concat(m)
+         | <protonote>+
 """
 
 class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
@@ -149,6 +153,9 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
         """
 
         duration = self.ticks_per_beat * 4 / duration
+
+        if self.tuplet:
+            duration = duration * self.tuplet
 
         dotted = duration
         while dots:
