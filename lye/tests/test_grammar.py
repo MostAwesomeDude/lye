@@ -113,6 +113,10 @@ class TestCommands(unittest.TestCase):
         string, error = LyGrammar(" \\relative").apply("relative")
         self.assertEqual(string, "\\relative")
 
+    def test_times(self):
+        string, error = LyGrammar("\\times").apply("times")
+        self.assertEqual(string, "\\times")
+
 class TestMarker(unittest.TestCase):
 
     def test_measure_name(self):

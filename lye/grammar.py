@@ -1,3 +1,5 @@
+from fractions import Fraction
+
 import pymeta.grammar
 import pymeta.runtime
 
@@ -63,6 +65,7 @@ grammar = """
 int ::= <digit>+:d => int("".join(d))
 
 relative ::= <token "\\\\relative">
+times ::= <token "\\\\times">
 
 begin_relative ::= <relative> <spaces>
                    <pitch>:p <accidental>? <octave>?:o <spaces> '{'
@@ -70,7 +73,10 @@ begin_relative ::= <relative> <spaces>
 
 close_brace ::= '}' => self.close_brace()
 
-directive ::= <begin_relative> | <close_brace>
+begin_times ::= <times> <int>:n '/' <int>:d
+              => self.open_brace("tuplet", Fraction(n, d))
+
+directive ::= <begin_relative> | <begin_times> | <close_brace>
 
 sharp ::= 'i' 's' => "is"
 flat ::= 'e' 's' => "es"
@@ -113,10 +119,14 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
     Like with standard Lilypond, the default octave starts at C3 (48).
     """
 
+    # Number of ticks per beat.
     ticks_per_beat = 120
-    """
-    Number of ticks per beat.
-    """
+
+    # The relative pitch, or None if pitches are absolute.
+    relative = None
+
+    # Tuplet timing factor, or None if durations are not tupled.
+    tuplet = None
 
     def __init__(self, *args, **kwargs):
         super(LyGrammar, self).__init__(*args, **kwargs)
@@ -124,7 +134,6 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
         self.duration = self.ticks_per_beat
 
         self.brace_stack = []
-        self.relative = None
 
     def open_brace(self, name, arg=None):
         self.brace_stack.append(
