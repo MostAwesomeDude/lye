@@ -16,7 +16,6 @@ class Melody(object):
     def __init__(self, notes):
         self.notes = notes
         simplify_ties(notes)
-        self.schedule_notes()
 
     def __nonzero__(self):
         return any(self.notes)
@@ -25,6 +24,15 @@ class Melody(object):
         return "Melody(%r)" % self.notes
 
     __str__ = __repr__
+
+    def __mul__(self, value):
+        """
+        Extend this melody.
+        """
+
+        other = Melody(self.notes)
+        other.notes *= value
+        return other
 
     def schedule_notes(self):
         """
@@ -71,12 +79,14 @@ class Melody(object):
                     scheduled.append(NoteTuple(note.pitch, begin,
                         note.duration))
 
-        self.notes = scheduled
+        return scheduled
 
     def to_fs(self, sequencer):
         """
         Sends the melody to `sequencer`.
         """
+
+        scheduled = self.schedule_notes()
 
         # XXX
         tpb = sequencer.ticks_per_beat
@@ -86,7 +96,7 @@ class Melody(object):
         # XXX this fudge value might not be needed?
         ticks = sequencer.ticks + 10
 
-        for pitch, begin, duration in self.notes:
+        for pitch, begin, duration in scheduled:
             event = fluidsynth.FluidEvent()
             event.dest = dest
             # XXX ? pitch vel duration
@@ -98,9 +108,11 @@ class Melody(object):
         Create a MIDI expression for this melody.
         """
 
+        scheduled = self.schedule_notes()
+
         track = 0
 
-        for pitch, begin, duration in self.notes:
+        for pitch, begin, duration in scheduled:
             begin = begin / self.ticks_per_beat
             duration = duration / self.ticks_per_beat
             f.addNote(track, channel, pitch, begin, duration, 127)
