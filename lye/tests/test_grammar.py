@@ -1,6 +1,16 @@
 import unittest
 
+from pymeta.runtime import ParseError
+
 from lye.grammar import LyGrammar
+
+class ParsingMixin(object):
+
+    def assertParses(self, data, grammar, rule):
+        try:
+            return grammar(data).apply(rule)[0]
+        except ParseError, pe:
+            assert False, pe.formatError(data)
 
 class TestPrimitives(unittest.TestCase):
 
@@ -128,3 +138,10 @@ class TestMarker(unittest.TestCase):
         grammar = LyGrammar("\\partial")
         marker, error = grammar.apply("marker")
         self.assertEqual(marker.name, "partial")
+
+class TestDirectives(unittest.TestCase, ParsingMixin):
+
+    def test_times_melody(self):
+        notes = self.assertParses("\\times 2/3 { c8 d c }", LyGrammar,
+            "melody")
+        self.assertEqual(notes[0].duration, 40)

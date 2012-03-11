@@ -74,12 +74,12 @@ relative ::= <token "\\\\relative">
 times ::= <token "\\\\times">
 
 begin_relative ::= <relative> <spaces>
-                   <pitch>:p <accidental>? <octave>?:o <spaces> '{'
+                   <pitch>:p <accidental>? <octave>?:o <token "{">
                  => self.open_brace("relative", (p, o if o else ""))
 
 close_brace ::= <token "}"> => self.close_brace()
 
-begin_times ::= <times> <int>:n '/' <int>:d
+begin_times ::= <times> <spaces> <int>:n '/' <int>:d <token "{">
               => self.open_brace("tuplet", Fraction(n, d))
 
 directive ::= <begin_relative> | <begin_times>
@@ -162,7 +162,7 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
             dotted /= 2
             duration += dotted
             dots -= 1
-        return duration
+        return int(duration)
 
     def abs_pitch_to_number(self, pitch, accidental, octave):
         """
