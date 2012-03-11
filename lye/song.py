@@ -1,3 +1,4 @@
+from copy import deepcopy
 from StringIO import StringIO
 
 from lye.instruments import numbered_instruments
@@ -8,10 +9,17 @@ class Song(object):
     A collection of melodies.
     """
 
+    tempo = 120
     ticks_per_beat = 480
 
     def __init__(self):
         self.melodies = {}
+
+    def __imul__(self, value):
+        for channel in self.melodies:
+            melody, instrument = self.melodies[channel]
+            self.melodies[channel] = melody * value, instrument
+        return self
 
     def add_melody(self, melody, channel, instrument):
         """
@@ -23,7 +31,9 @@ class Song(object):
         The instrument may be None if the channel is 10 (drums).
         """
 
-        self.melodies[channel] = melody, instrument
+        # XXX Hax: Do a deep copy since melodies are pretty easy to reuse and
+        # we might mutate them later.
+        self.melodies[channel] = deepcopy(melody), instrument
 
     def to_midi(self):
         f = MIDIFile(len(self.melodies), ticksPerBeat=self.ticks_per_beat)
@@ -32,7 +42,7 @@ class Song(object):
         track = 0
 
         f.addTrackName(track, time, "Lye")
-        f.addTempo(track, time, 84 / 4)
+        f.addTempo(track, time, self.tempo // 4)
 
         for channel in self.melodies:
             melody, instrument = self.melodies[channel]
