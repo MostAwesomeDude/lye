@@ -188,10 +188,10 @@ bounds = {
     "voice oohs": (0, 88),
     "synth voice": (0, 88),
     "orchestra hit": (0, 88),
-    "trumpet": (0, 88),
-    "trombone": (0, 88),
+    "trumpet": (60, 84), # C4 - C6 (R-K)
+    "trombone": (34, 70), # Bb1 - Bb4 (R-K)
     "tuba": (0, 88),
-    "muted trumpet": (0, 88),
+    "muted trumpet": (60, 84), # C4 - C6 (R-K)
     "french horn": (0, 88),
     "brass section": (0, 88),
     "synthbrass 1": (0, 88),
