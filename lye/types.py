@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 class Marker(object):
     """
     A singleton representing a measure marker.
@@ -13,3 +15,5 @@ class Marker(object):
 
     def __eq__(self, other):
         return self.name == getattr(other, "name", None)
+
+Note = namedtuple("Note", "pitch, begin, duration")

@@ -1,13 +1,9 @@
 from __future__ import division
 
-from collections import namedtuple
-
 from fluidsynth import fluidsynth
 
 from lye.algos import simplify_ties
 from lye.grammar import Chord, Note, Marker, LyGrammar, LyeError
-
-NoteTuple = namedtuple("NoteTuple", "pitch, begin, duration")
 
 class Melody(object):
 
@@ -39,8 +35,7 @@ class Melody(object):
 
     def schedule_notes(self):
         """
-        Schedule notes by turning their durations into absolute begin, end
-        pairs.
+        Attach correct beginning times to notes.
 
         Additionally, this step discards rests.
         """
@@ -69,7 +64,7 @@ class Melody(object):
                 relative_marker = begin + note.duration
 
                 for pitch in note.pitches:
-                    scheduled.append(NoteTuple(pitch, begin, note.duration))
+                    scheduled.append(Note(pitch, begin, note.duration))
 
             elif isinstance(note, Note):
                 # Note
@@ -79,8 +74,7 @@ class Melody(object):
 
                 # If this note isn't a rest...
                 if note.pitch != -1:
-                    scheduled.append(NoteTuple(note.pitch, begin,
-                        note.duration))
+                    scheduled.append(note._replace(begin=begin))
 
         return scheduled
 

@@ -3,7 +3,7 @@ from fractions import Fraction
 import pymeta.grammar
 import pymeta.runtime
 
-from lye.types import Marker
+from lye.types import Marker, Note
 
 class InternalParseError(Exception):
     """
@@ -17,25 +17,7 @@ class LyeError(Exception):
     Something happened when parsing, and it's your fault.
     """
 
-class Note(object):
-    """
-    The fundamental unit of composition.
-    """
-
-    def __init__(self, pitch, duration):
-        self.pitch = pitch
-        self.duration = duration
-
-    def __repr__(self):
-        return "Note(%d, %d)" % (self.pitch, self.duration)
-
-    __str__ = __repr__
-
-    def __eq__(self, other):
-        return (self.pitch == getattr(other, "pitch", None) and
-            self.duration == getattr(other, "duration", None))
-
-class Chord(Note):
+class Chord(object):
     """
     A Note list.
     """
@@ -95,7 +77,7 @@ octave ::= ('\'' | ',')+:o => "".join(o)
 duration ::= <int>:i '.'*:dots => self.undot_duration(i, len(dots))
 
 note ::= <spaces>? <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
-       => Note(self.abs_pitch_to_number(p, a, o), self.check_duration(d))
+       => Note(self.abs_pitch_to_number(p, a, o), None, self.check_duration(d))
 
 notes ::= <note>*:ns => ns
 
