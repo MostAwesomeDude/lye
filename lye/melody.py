@@ -64,7 +64,13 @@ class Melody(object):
                 for melody in melodies:
                     melody.append(o)
 
-        return [Melody(m) for m in melodies]
+        rv = []
+        for m in melodies:
+            melody = Melody(m)
+            melody.pan = self.pan
+            melody.volume = self.volume
+            rv.append(melody)
+        return rv
 
     def schedule_notes(self):
         """
