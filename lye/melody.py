@@ -33,6 +33,39 @@ class Melody(object):
         other.notes *= value
         return other
 
+    def split(self):
+        """
+        Split this melody into harmonies.
+
+        The melody should be harmonized somewhat already.
+
+        Attempts are made to put as much work into the top of the melody as
+        possible.
+
+        Returned melodies are high-to-low.
+        """
+
+        count = 0
+
+        for o in self.notes:
+            if isinstance(o, Chord):
+                count = max(count, len(o.pitches))
+
+        melodies = [[] for i in range(count)]
+
+        for o in self.notes:
+            if isinstance(o, Chord):
+                for i, pitch in enumerate(sorted(o.pitches, reverse=True)):
+                    melodies[i].append(Note(pitch, None, o.duration))
+                for i in range(i + 1, len(melodies)):
+                    # Create rests.
+                    melodies[i].append(Note(-1, None, o.duration))
+            else:
+                for melody in melodies:
+                    melody.append(o)
+
+        return [Melody(m) for m in melodies]
+
     def schedule_notes(self):
         """
         Attach correct beginning times to notes.
