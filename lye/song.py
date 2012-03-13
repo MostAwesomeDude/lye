@@ -17,11 +17,10 @@ class Song(object):
 
     def __imul__(self, value):
         for channel in self.melodies:
-            melody, instrument = self.melodies[channel]
-            self.melodies[channel] = melody * value, instrument
+            self.melodies[channel] *= value
         return self
 
-    def add_melody(self, melody, channel, instrument):
+    def add_melody(self, melody, channel, instrument=None):
         """
         Add a melody to this song.
 
@@ -33,7 +32,10 @@ class Song(object):
 
         # XXX Hax: Do a deep copy since melodies are pretty easy to reuse and
         # we might mutate them later.
-        self.melodies[channel] = deepcopy(melody), instrument
+        copied = deepcopy(melody)
+        if instrument is not None:
+            copied.instrument = instrument
+        self.melodies[channel] = copied
 
     def to_midi(self):
         f = MIDIFile(len(self.melodies), ticksPerBeat=self.ticks_per_beat)
@@ -44,13 +46,12 @@ class Song(object):
         f.addTrackName(track, time, "Lye")
         f.addTempo(track, time, self.tempo // 4)
 
-        for channel in self.melodies:
-            melody, instrument = self.melodies[channel]
+        for channel, melody in self.melodies.iteritems():
             # Pan.
             f.addControllerEvent(track, channel, time, 0x0a, melody.pan)
-            if instrument in numbered_instruments:
+            if melody.instrument in numbered_instruments:
                 f.addProgramChange(track, channel, time,
-                    numbered_instruments[instrument])
+                    numbered_instruments[melody.instrument])
             melody.to_midi(f, channel)
 
         sio = StringIO()

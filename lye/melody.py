@@ -4,11 +4,13 @@ from fluidsynth import fluidsynth
 
 from lye.algos import simplify_ties
 from lye.grammar import Chord, Note, Marker, LyGrammar, LyeError
+from lye.instruments import NEAREST, fit
 
 class Melody(object):
 
     ticks_per_beat = 480
 
+    instrument = None
     volume = 127
     pan = 63
 
@@ -31,7 +33,22 @@ class Melody(object):
 
         other = Melody(self.notes)
         other.notes *= value
+        other.pan = self.pan
+        other.volume = self.volume
+        other.instrument = self.instrument
         return other
+
+    def __imul__(self, value):
+        self.notes *= value
+        return self
+
+    def fit(self, strategy=NEAREST):
+        """
+        Force this melody to be within the range of its instrument.
+        """
+
+        if self.instrument:
+            fit(self, self.instrument, strategy)
 
     def split(self):
         """
