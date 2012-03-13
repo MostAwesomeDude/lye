@@ -70,6 +70,26 @@ class TestNote(unittest.TestCase):
         note, error = LyGrammar("c4..").apply("note")
         self.assertEqual(note.duration, 210)
 
+class TestDrums(unittest.TestCase, ParsingMixin):
+
+    def test_kit(self):
+        k = self.assertParses("bd", LyGrammar, "kit")
+        self.assertEqual(k, "bd")
+
+    def test_drum_raw_negative(self):
+        self.assertRaises(ParseError, LyGrammar("bd").apply, "drum")
+
+    def test_drum_raw(self):
+        g = LyGrammar("bd")
+        g.drums = True
+        k, error = g.apply("drum")
+        self.assertEqual(k, (36, None, 120))
+
+    def test_drum_mode(self):
+        m = self.assertParses("\\drums { sn }", LyGrammar, "melody")
+        self.assertEqual(len(m), 1)
+        self.assertEqual(m[0], (40, None, 120))
+
 class TestNotes(unittest.TestCase):
 
     def test_notes_spaced(self):

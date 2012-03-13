@@ -3,6 +3,7 @@ from fractions import Fraction
 import pymeta.grammar
 import pymeta.runtime
 
+from lye.drums import drum_notes
 from lye.types import Marker, Note
 
 class InternalParseError(Exception):
@@ -52,19 +53,27 @@ def concat(l):
 grammar = """
 int ::= <digit>+:d => int("".join(d))
 
+drums ::= <token "\\\\drums">
 relative ::= <token "\\\\relative">
 times ::= <token "\\\\times">
+
+begin_drums ::= <drums> <token "{"> => self.open_brace("drums", True)
 
 begin_relative ::= <relative> <spaces>
                    <pitch>:p <accidental>? <octave>?:o <token "{">
                  => self.open_brace("relative", (p, o if o else ""))
 
-close_brace ::= <token "}"> => self.close_brace()
-
 begin_times ::= <times> <spaces> <int>:n '/' <int>:d <token "{">
               => self.open_brace("tuplet", Fraction(n, d))
 
-directive ::= <begin_relative> | <begin_times>
+directive ::= <begin_drums> | <begin_relative> | <begin_times>
+
+close_brace ::= <token "}"> => self.close_brace()
+
+kit ::= <token "bd"> | <token "sn">
+
+drum ::= ?( self.drums ) <spaces>? <kit>:k <duration>?:d
+       => Note(drum_notes[k], None, self.check_duration(d))
 
 sharp ::= 'i' 's' => "is"
 flat ::= 'e' 's' => "es"
@@ -76,10 +85,12 @@ octave ::= ('\'' | ',')+:o => "".join(o)
 
 duration ::= <int>:i '.'*:dots => self.undot_duration(i, len(dots))
 
-note ::= <spaces>? <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
-       => Note(self.abs_pitch_to_number(p, a, o), None, self.check_duration(d))
+note ::= ?( not self.drums ) <spaces>? <pitch>:p <accidental>?:a <octave>?:o
+         <duration>?:d
+       => Note(self.abs_pitch_to_number(p, a, o), None,
+               self.check_duration(d))
 
-notes ::= <note>*:ns => ns
+notes ::= (<note> | <drum>)*:ns => ns
 
 chord ::= <token '<'> <notes>:ns <token '>'> => Chord(ns)
 
@@ -91,7 +102,7 @@ tie_marker ::= <token "~"> => Marker("tie")
 
 marker ::= <measure_marker> | <partial_marker> | <tie_marker>
 
-protonote ::= <spaces>? (<marker> | <chord> | <note>)
+protonote ::= <spaces>? (<marker> | <chord> | <note> | <drum>)
 
 melody ::= <directive> <melody>+:m <close_brace> => concat(m)
          | <protonote>+
@@ -113,6 +124,9 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
 
     # Tuplet timing factor, or None if durations are not tupled.
     tuplet = None
+
+    # Whether we are in drums mode.
+    drums = None
 
     def __init__(self, *args, **kwargs):
         super(LyGrammar, self).__init__(*args, **kwargs)
