@@ -196,10 +196,10 @@ bounds = {
     "brass section": (0, 88),
     "synthbrass 1": (0, 88),
     "synthbrass 2": (0, 88),
-    "soprano sax": (0, 88),
-    "alto sax": (0, 88),
-    "tenor sax": (0, 88),
-    "baritone sax": (0, 88),
+    "soprano sax": (56, 87), # Ab3 - Eb6
+    "alto sax": (49, 80), # Db3 - Ab5
+    "tenor sax": (44, 75), # Ab2 - Eb5
+    "baritone sax": (37, 68), # Db2 - Ab4
     "oboe": (0, 88),
     "english horn": (0, 88),
     "bassoon": (0, 88),
