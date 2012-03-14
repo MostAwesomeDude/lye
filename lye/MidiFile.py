@@ -102,20 +102,9 @@ class GenericEvent():
     def __hash__(self):
         '''
         Return a hash code for the object.
-
-        This is needed for the removal of duplicate objects from the event list. The only
-        real requirement for the algorithm is that the hash of equal objects must be equal.
-        There is probably great opportunity for improvements in the hashing function.
         '''
-        # Robert Jenkin's 32 bit hash.
-        a = int(self.time)
-        a = (a+0x7ed55d16) + (a<<12)
-        a = (a^0xc761c23c) ^ (a>>19)
-        a = (a+0x165667b1) + (a<<5)
-        a = (a+0xd3a2646c) ^ (a<<9)
-        a = (a+0xfd7046c5) + (a<<3)
-        a = (a^0xb55a4f09) ^ (a>>16)
-        return a
+
+        return hash(self.time)
 
 class MIDITrack:
     '''A class that encapsulates a MIDI track
