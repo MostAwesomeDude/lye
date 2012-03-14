@@ -92,9 +92,11 @@ note ::= ?( not self.drums ) <spaces>? <pitch>:p <accidental>?:a <octave>?:o
        => Note(self.abs_pitch_to_number(p, a, o), None,
                self.check_duration(d))
 
-notes ::= (<note> | <drum> | <rest>)*:ns => ns
+notes ::= <note> | <drum> | <rest>
 
-chord ::= <token '<'> <notes>:ns <token '>'> => Chord(ns)
+chord ::= <token '<'> <notes>:n !( self.start_chord(n) ) <notes>*:ns
+          <token '>'> !( self.end_chord() )
+        => Chord([n] + ns)
 
 measure_marker ::= <token '|'> => Marker("measure")
 
@@ -104,7 +106,7 @@ tie_marker ::= <token "~"> => Marker("tie")
 
 marker ::= <measure_marker> | <partial_marker> | <tie_marker>
 
-protonote ::= <spaces>? (<marker> | <chord> | <note> | <drum> | <rest>)
+protonote ::= <spaces>? (<marker> | <chord> | <notes>)
 
 melody ::= <directive> <melody>+:m <close_brace> => concat(m)
          | <protonote>+
@@ -144,6 +146,12 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
 
     def close_brace(self):
         self.brace_stack.pop()(self)
+
+    def start_chord(self, note):
+        pass
+
+    def end_chord(self):
+        pass
 
     def undot_duration(self, duration, dots):
         """

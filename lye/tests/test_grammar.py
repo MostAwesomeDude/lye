@@ -93,7 +93,7 @@ class TestDrums(unittest.TestCase, ParsingMixin):
 class TestNotes(unittest.TestCase):
 
     def test_notes_spaced(self):
-        notes, error = LyGrammar("c4 d e  d  c").apply("notes")
+        notes, error = LyGrammar("c4 d e  d  c").apply("melody")
         for note, pitch in zip(notes, (48, 50, 52, 50, 48)):
             self.assertEqual(note.pitch, pitch)
             self.assertEqual(note.duration, 120)
