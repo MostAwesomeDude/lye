@@ -41,10 +41,6 @@ class Melody(object):
         other.instrument = self.instrument
         return other
 
-    def __imul__(self, value):
-        self.notes *= value
-        return self
-
     def fit(self, strategy=NEAREST):
         """
         Force this melody to be within the range of its instrument.
@@ -104,8 +100,20 @@ class Melody(object):
         partial_offset = 0
         scheduled = []
 
-        for note in self.notes:
-            if isinstance(note, Marker):
+        for i, note in enumerate(self.notes):
+            if isinstance(note, list):
+                nested = Melody(note).schedule_notes()
+                nested = [n._replace(begin=n.begin + relative_marker)
+                    for n in nested]
+                # If the next thing's not part of a voice, bump the relative
+                # marker.
+                if (len(self.notes) > i + 1 and
+                    not isinstance(self.notes[i + 1], list)):
+                        relative_marker = (nested[-1].begin +
+                            nested[-1].duration)
+                scheduled.extend(nested)
+
+            elif isinstance(note, Marker):
                 if note.name == "measure":
                     remainder = ((relative_marker - partial_offset) %
                         self.ticks_per_beat)
@@ -116,7 +124,6 @@ class Melody(object):
                     partial_offset = remainder
                 elif note.name == "partial":
                     partial = True
-                continue
 
             elif isinstance(note, Chord):
                 begin = relative_marker

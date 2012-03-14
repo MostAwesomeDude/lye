@@ -81,7 +81,7 @@ close_brace ::= <token "}"> => self.close_brace()
 
 rest ::= <token "r"> <duration>?:d => Rest(None, self.check_duration(d))
 
-kit ::= <token "bd"> | <token "sn">
+kit ::= <token "bd"> | <token "hhc"> | <token "sn">
 
 drum ::= ?( self.drums ) <kit>:k <duration>?:d
        => Note(drum_notes[k], None, self.check_duration(d))
@@ -112,7 +112,11 @@ marker ::= <measure_marker> | <partial_marker> | <tie_marker>
 
 protonote ::= <spaces>? (<marker> | <chord> | <notes>)
 
+scope ::= <token '{'> <melody>:m <token '}'> => m
+voices ::= <token "<<"> <scope>+:ss <token ">>"> => ss + [Marker("endvoice")]
+
 melody ::= <directive> <melody>+:m <close_brace> => concat(m)
+         | <voices>
          | <protonote>+
 """
 
