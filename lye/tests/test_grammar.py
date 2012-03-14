@@ -24,15 +24,15 @@ class TestPrimitives(unittest.TestCase):
 
     def test_flat(self):
         accidental, error = LyGrammar("es").apply("accidental")
-        self.assertEqual(accidental, "es")
+        self.assertEqual(accidental, -1)
 
     def test_sharp(self):
         accidental, error = LyGrammar("is").apply("accidental")
-        self.assertEqual(accidental, "is")
+        self.assertEqual(accidental, 1)
 
     def test_sharp_repeated(self):
         accidental, error = LyGrammar("isis").apply("accidental")
-        self.assertEqual(accidental, "isis")
+        self.assertEqual(accidental, 2)
 
 class TestNote(unittest.TestCase):
 

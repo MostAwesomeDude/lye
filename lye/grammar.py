@@ -70,7 +70,7 @@ begin_drums ::= <drums> <token "{"> => self.open_brace("drums", True)
 
 begin_relative ::= <relative> <spaces>
                    <pitch>:p <accidental>? <octave>?:o <token "{">
-                 => self.open_brace("relative", (p, o or 0))
+                 => self.start_relative((p, o if o else 0))
 
 begin_times ::= <times> <spaces> <int>:n '/' <int>:d <token "{">
               => self.open_brace("tuplet", Fraction(n, d))
@@ -86,7 +86,8 @@ kit ::= <token "bd"> | <token "sn">
 drum ::= ?( self.drums ) <kit>:k <duration>?:d
        => Note(drum_notes[k], None, self.check_duration(d))
 
-pitch ::= 'c' | 'd' | <flat> | 'e' | 'f' | 'g' | 'a' | 'b'
+es ::= 'e' 's' => "es"
+pitch ::= 'c' | 'd' | <es> | 'e' | 'f' | 'g' | 'a' | 'b'
 
 duration ::= <int>:i '.'*:dots => self.undot_duration(i, len(dots))
 
@@ -97,7 +98,7 @@ note ::= ?( not self.drums ) <spaces>? <pitch>:p <accidental>?:a <octave>?:o
 
 notes ::= <note> | <drum> | <rest>
 
-chord ::= <token '<'> <notes>:n !( self.start_chord(n) ) <notes>*:ns
+chord ::= <token '<'> <notes>:n !( self.start_chord() ) <notes>*:ns
           <token '>'> !( self.end_chord() )
         => Chord([n] + ns)
 
@@ -126,8 +127,11 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
     # Number of ticks per beat.
     ticks_per_beat = 120
 
-    # The relative pitch, or None if pitches are absolute.
-    relative = None
+    # The previous pitch parsed. Defaults to middle C.
+    last_pitch = ("c", 0)
+
+    # Whether we're in relative mode.
+    relative = False
 
     # Tuplet timing factor, or None if durations are not tupled.
     tuplet = None
@@ -150,11 +154,17 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
     def close_brace(self):
         self.brace_stack.pop()(self)
 
-    def start_chord(self, note):
-        pass
+    def start_relative(self, pitch):
+        self.last_pitch = pitch
+        self.relative = True
+        self.brace_stack.append(
+            lambda self: setattr(self, "relative", False))
+
+    def start_chord(self):
+        self._saved_last_pitch = self.last_pitch
 
     def end_chord(self):
-        pass
+        self.last_pitch = self._saved_last_pitch
 
     def undot_duration(self, duration, dots):
         """
@@ -179,14 +189,15 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
         octave = octave or 0
 
         if self.relative:
-            rel_pitch, rel_octave = self.relative
+            rel_pitch, rel_octave = self.last_pitch
             octave += rel_octave
             if abs(relative_dict[rel_pitch] - relative_dict[pitch]) > 3:
                 if relative_dict[pitch] > 4:
                     octave -= 1
                 else:
                     octave += 1
-            self.relative = pitch, octave
+
+        self.last_pitch = pitch, octave
 
         return pitch_to_number(pitch, accidental, octave)
 
