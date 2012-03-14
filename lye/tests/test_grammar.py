@@ -36,6 +36,10 @@ class TestPrimitives(unittest.TestCase):
 
 class TestNote(unittest.TestCase):
 
+    def test_rest(self):
+        rest, error = LyGrammar("r").apply("rest")
+        self.assertEqual(rest.duration, 120)
+
     def test_note(self):
         note, error = LyGrammar("c").apply("note")
         self.assertEqual(note.pitch, 48)
@@ -57,10 +61,6 @@ class TestNote(unittest.TestCase):
         note, error = LyGrammar(" c'2. ").apply("note")
         self.assertEqual(note.pitch, 60)
         self.assertEqual(note.duration, 360)
-
-    def test_rest(self):
-        note, error = LyGrammar("r").apply("note")
-        self.assertEqual(note.pitch, -1)
 
     def test_dotted(self):
         note, error = LyGrammar("c4.").apply("note")

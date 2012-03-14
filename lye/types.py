@@ -17,3 +17,5 @@ class Marker(object):
         return self.name == getattr(other, "name", None)
 
 Note = namedtuple("Note", "pitch, begin, duration")
+
+Rest = namedtuple("Rest", "begin, duration")

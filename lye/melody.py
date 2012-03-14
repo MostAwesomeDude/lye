@@ -2,9 +2,12 @@ from __future__ import division
 
 from fluidsynth import fluidsynth
 
+from pymeta.runtime import ParseError
+
 from lye.algos import simplify_ties
-from lye.grammar import Chord, Note, Marker, LyGrammar, LyeError
+from lye.grammar import Chord, LyGrammar, LyeError
 from lye.instruments import NEAREST, fit
+from lye.types import Note, Marker, Rest
 
 class Melody(object):
 
@@ -76,7 +79,7 @@ class Melody(object):
                     melodies[i].append(Note(pitch, None, o.duration))
                 for i in range(i + 1, len(melodies)):
                     # Create rests.
-                    melodies[i].append(Note(-1, None, o.duration))
+                    melodies[i].append(Rest(None, o.duration))
             else:
                 for melody in melodies:
                     melody.append(o)
@@ -128,9 +131,11 @@ class Melody(object):
                 # XXX fudge?
                 relative_marker = begin + note.duration
 
-                # If this note isn't a rest...
-                if note.pitch != -1:
-                    scheduled.append(note._replace(begin=begin))
+                scheduled.append(note._replace(begin=begin))
+
+            elif isinstance(note, Rest):
+                begin = relative_marker
+                relative_marker = begin + note.duration
 
         return scheduled
 
@@ -175,7 +180,10 @@ def melody_from_ly(s):
     Make a `Melody` from a ly string.
     """
 
-    melody = Melody(LyGrammar(s).apply("melody")[0])
-    if not melody:
-        raise LyeError("Failed melody %s" % s)
+    try:
+        melody = Melody(LyGrammar(s).apply("melody")[0])
+        if not melody:
+            raise LyeError("Failed melody %s" % s)
+    except ParseError, pe:
+        raise LyeError("Couldn't parse: %s" % pe.formatError(s))
     return melody

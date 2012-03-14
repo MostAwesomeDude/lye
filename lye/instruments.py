@@ -1,3 +1,5 @@
+from lye.types import Note
+
 instruments = [
     "acoustic grand",
     "bright acoustic",
@@ -265,11 +267,11 @@ bounds = {
 NEAREST, LOWEST, HIGHEST = range(3)
 
 def top_margin(melody, bound):
-    i = max(note.pitch for note in melody.notes if note.pitch != -1)
+    i = max(note.pitch for note in melody.notes if isinstance(note, Note))
     return bound - i
 
 def bottom_margin(melody, bound):
-    i = min(note.pitch for note in melody.notes if note.pitch != -1)
+    i = min(note.pitch for note in melody.notes if isinstance(note, Note))
     return i - bound
 
 def fit(melody, instrument, strategy=NEAREST):
@@ -287,7 +289,7 @@ def fit(melody, instrument, strategy=NEAREST):
         adjustment = octaves * 12
         notes = []
         for note in melody.notes:
-            if note.pitch != -1:
+            if isinstance(note, Note):
                 note = note._replace(pitch=note.pitch - adjustment)
             notes.append(note)
         melody.notes = notes
@@ -296,7 +298,7 @@ def fit(melody, instrument, strategy=NEAREST):
         adjustment = octaves * 12
         notes = []
         for note in melody.notes:
-            if note.pitch != -1:
+            if isinstance(note, Note):
                 note = note._replace(pitch=note.pitch + adjustment)
             notes.append(note)
         melody.notes = notes

@@ -4,7 +4,7 @@ import pymeta.grammar
 import pymeta.runtime
 
 from lye.drums import drum_notes
-from lye.types import Marker, Note
+from lye.types import Marker, Note, Rest
 
 class InternalParseError(Exception):
     """
@@ -70,16 +70,18 @@ directive ::= <begin_drums> | <begin_relative> | <begin_times>
 
 close_brace ::= <token "}"> => self.close_brace()
 
+rest ::= <token "r"> <duration>?:d => Rest(None, self.check_duration(d))
+
 kit ::= <token "bd"> | <token "sn">
 
-drum ::= ?( self.drums ) <spaces>? <kit>:k <duration>?:d
+drum ::= ?( self.drums ) <kit>:k <duration>?:d
        => Note(drum_notes[k], None, self.check_duration(d))
 
 sharp ::= 'i' 's' => "is"
 flat ::= 'e' 's' => "es"
 accidental ::= (<sharp> | <flat>)+:a => "".join(a)
 
-pitch ::= 'r' | 'c' | 'd' | <flat> | 'e' | 'f' | 'g' | 'a' | 'b'
+pitch ::= 'c' | 'd' | <flat> | 'e' | 'f' | 'g' | 'a' | 'b'
 
 octave ::= ('\'' | ',')+:o => "".join(o)
 
@@ -90,7 +92,7 @@ note ::= ?( not self.drums ) <spaces>? <pitch>:p <accidental>?:a <octave>?:o
        => Note(self.abs_pitch_to_number(p, a, o), None,
                self.check_duration(d))
 
-notes ::= (<note> | <drum>)*:ns => ns
+notes ::= (<note> | <drum> | <rest>)*:ns => ns
 
 chord ::= <token '<'> <notes>:ns <token '>'> => Chord(ns)
 
@@ -102,7 +104,7 @@ tie_marker ::= <token "~"> => Marker("tie")
 
 marker ::= <measure_marker> | <partial_marker> | <tie_marker>
 
-protonote ::= <spaces>? (<marker> | <chord> | <note> | <drum>)
+protonote ::= <spaces>? (<marker> | <chord> | <note> | <drum> | <rest>)
 
 melody ::= <directive> <melody>+:m <close_brace> => concat(m)
          | <protonote>+
@@ -162,9 +164,6 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
         Convert an absolute pitch to its MIDI/scientific number.
         """
 
-        if pitch == "r":
-            # Rests are forced to -1
-            return -1
         accidental = accidental if accidental else ""
         octave = octave if octave else ""
 
