@@ -1,9 +1,14 @@
 import unittest
 from warnings import catch_warnings, simplefilter
 
-from lye.algos import simplify_ties
+from lye.algos import pitch_to_number, simplify_ties
 from lye.grammar import Note
 from lye.types import Marker
+
+class TestPitchToNumber(unittest.TestCase):
+
+    def test_middle_c(self):
+        self.assertEqual(pitch_to_number("c", 0, 0), 48)
 
 class TestSimplifyTies(unittest.TestCase):
 

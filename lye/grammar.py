@@ -3,6 +3,7 @@ from fractions import Fraction
 import pymeta.grammar
 import pymeta.runtime
 
+from lye.algos import pitch_to_number
 from lye.drums import drum_notes
 from lye.types import Marker, Note, Rest
 
@@ -57,11 +58,19 @@ drums ::= <token "\\\\drums">
 relative ::= <token "\\\\relative">
 times ::= <token "\\\\times">
 
+sharp ::= 'i' 's' => 1
+flat ::= 'e' 's' => -1
+accidental ::= (<sharp> | <flat>)+:a => sum(a)
+
+octave_up ::= '\'' => 1
+octave_down ::= ',' => -1
+octave ::= (<octave_up> | <octave_down>)+:o => sum(o)
+
 begin_drums ::= <drums> <token "{"> => self.open_brace("drums", True)
 
 begin_relative ::= <relative> <spaces>
                    <pitch>:p <accidental>? <octave>?:o <token "{">
-                 => self.open_brace("relative", (p, o if o else ""))
+                 => self.open_brace("relative", (p, o or 0))
 
 begin_times ::= <times> <spaces> <int>:n '/' <int>:d <token "{">
               => self.open_brace("tuplet", Fraction(n, d))
@@ -77,13 +86,7 @@ kit ::= <token "bd"> | <token "sn">
 drum ::= ?( self.drums ) <kit>:k <duration>?:d
        => Note(drum_notes[k], None, self.check_duration(d))
 
-sharp ::= 'i' 's' => "is"
-flat ::= 'e' 's' => "es"
-accidental ::= (<sharp> | <flat>)+:a => "".join(a)
-
 pitch ::= 'c' | 'd' | <flat> | 'e' | 'f' | 'g' | 'a' | 'b'
-
-octave ::= ('\'' | ',')+:o => "".join(o)
 
 duration ::= <int>:i '.'*:dots => self.undot_duration(i, len(dots))
 
@@ -172,42 +175,20 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
         Convert an absolute pitch to its MIDI/scientific number.
         """
 
-        accidental = accidental if accidental else ""
-        octave = octave if octave else ""
+        accidental = accidental or 0
+        octave = octave or 0
 
         if self.relative:
             rel_pitch, rel_octave = self.relative
             octave += rel_octave
             if abs(relative_dict[rel_pitch] - relative_dict[pitch]) > 3:
                 if relative_dict[pitch] > 4:
-                    octave += ","
+                    octave -= 1
                 else:
-                    octave += "'"
+                    octave += 1
             self.relative = pitch, octave
 
-        n = pitch_dict[pitch]
-
-        while accidental:
-            if accidental.startswith("es"):
-                accidental = accidental[2:]
-                n -= 1
-            elif accidental.startswith("is"):
-                accidental = accidental[2:]
-                n += 1
-            else:
-                raise InternalParseError(
-                    "Unknown symbol %s while lexing accidental" % accidental)
-
-        for c in octave:
-            if c == ",":
-                n -= 12
-            elif c == "'":
-                n += 12
-            else:
-                raise InternalParseError(
-                    "Unknown symbol %s while lexing octave" % c)
-
-        return n
+        return pitch_to_number(pitch, accidental, octave)
 
     def check_duration(self, d):
         if d:
