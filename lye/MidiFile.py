@@ -379,22 +379,15 @@ class MIDITrack:
 
         This function will remove duplicates from the eventList. This is necessary
         because we the MIDI event stream can become confused otherwise.
+
+        All of the events need to be hashable and comparable.
         '''
 
-        # For this algorithm to work, the events in the eventList must be hashable
-        # (that is, they must have a __hash__() and __eq__() function defined).
+        # Get a unique set of the events...
+        s = set(self.eventList)
 
-        tempDict = {}
-        for item in self.eventList:
-            tempDict[item] = 1
-
-        self.eventList = tempDict.keys()
-
-        # Sort on type, them on time. Necessary because keys() has no requirement to return
-        # things in any order.
-
-        self.eventList.sort(lambda x, y: cmp(x.type ,  y.type))
-        self.eventList.sort(lambda x, y: int( 1000 * (x.time - y.time))) #A bit of a hack.
+        # ...And now sort them, primarily on time, secondarily on type.
+        self.eventList = sortByTimeAndType(s)
 
     def closeTrack(self):
         '''Called to close a track before writing
@@ -561,16 +554,7 @@ class MIDITrack:
             else:
                 tempEventList.append(event)
 
-        self.MIDIEventList = tempEventList
-
-        # A little trickery here. We want to make sure that NoteOff events appear
-        # before NoteOn events, so we'll do two sorts -- on on type, one on time.
-        # This may have to be revisited, as it makes assumptions about how
-        # the internal sort works, and is in essence creating a sort on a primary
-        # and secondary key.
-
-        self.MIDIEventList.sort(lambda x, y: cmp(x.type ,  y.type))
-        self.MIDIEventList.sort(lambda x, y: int( 1000 * (x.time - y.time)))
+        self.MIDIEventList = sortByTimeAndType(tempEventList)
 
     def adjustTime(self,origin):
         '''
@@ -986,3 +970,13 @@ def returnFrequency(freqBytes):
     frac = (float((int(freqBytes[1]) << 7) + int(freqBytes[2])) * 100.0) / resolution
     frequency = baseFrequency * pow(2.0, frac/1200.0)
     return frequency
+
+
+def sortByTimeAndType(i):
+    """
+    Sort an iterable and return a list.
+
+    The criteria: Primary sort by time, secondary sort by type.
+    """
+
+    return list(sorted(i, key=lambda x: (x.type, int(1000 * x.time))))
