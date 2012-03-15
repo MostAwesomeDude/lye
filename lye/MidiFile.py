@@ -933,26 +933,28 @@ def writeVarLength(i):
     significant bit is 1, then more bytes follow. If it is zero, then the
     byte in question is the last in the stream
     '''
-    input = int(i)
-    output = [0,0,0,0]
-    reversed = [0,0,0,0]
-    count = 0
-    result = input & 0x7F
-    output[count] = result
-    count = count + 1
-    input = input >> 7
-    while input > 0:
-        result = input & 0x7F
-        result = result | 0x80
-        output[count] = result
-        count = count + 1
-        input = input >> 7
 
-    reversed[0] = output[3]
-    reversed[1] = output[2]
-    reversed[2] = output[1]
-    reversed[3] = output[0]
-    return reversed[4-count:4]
+    i = int(i)
+
+    if i == 0:
+        return [0]
+
+    if not 0 < i <= 0xfffffff:
+        raise ValueError("%d is out of range" % i)
+
+    b = []
+
+    # Spool bits into the array.
+    while i:
+        b.append(0x80 | (i & 0x7f))
+        i >>= 7
+
+    # Clear that final bit.
+    b[0] &= ~0x80
+
+    # And we're finished.
+    b.reverse()
+    return b
 
 def frequencyTransform(freq):
     '''Returns a three-byte transform of a frequencyTransform
