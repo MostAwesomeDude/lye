@@ -10,7 +10,7 @@ class Song(object):
     """
 
     tempo = 120
-    ticks_per_beat = 480
+    ticks_per_beat = 120
 
     def __init__(self):
         self.melodies = {}
@@ -44,7 +44,7 @@ class Song(object):
         track = 0
 
         f.addTrackName(track, time, "Lye")
-        f.addTempo(track, time, self.tempo // 4)
+        f.addTempo(track, time, self.tempo)
 
         for channel, melody in self.melodies.iteritems():
             # Pan.

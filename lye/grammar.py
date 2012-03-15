@@ -1,3 +1,5 @@
+from __future__ import division
+
 from fractions import Fraction
 
 import pymeta.grammar
@@ -129,7 +131,7 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
     """
 
     # Number of ticks per beat.
-    ticks_per_beat = 120
+    tpb = 120
 
     # The previous pitch parsed. Defaults to middle C.
     last_pitch = ("c", 0)
@@ -146,7 +148,7 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
     def __init__(self, *args, **kwargs):
         super(LyGrammar, self).__init__(*args, **kwargs)
 
-        self.duration = self.ticks_per_beat
+        self.duration = self.tpb
 
         self.brace_stack = []
 
@@ -175,7 +177,9 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
         Turn duration into a number of ticks, and apply dots, if any.
         """
 
-        duration = self.ticks_per_beat * 4 / duration
+        # Multiply ticks per beat by four since ly assumes that "1" is a whole
+        # note, not a quarter note, but beats are quarter notes.
+        duration = self.tpb * 4 // duration
 
         dotted = duration
         while dots:

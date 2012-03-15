@@ -11,21 +11,20 @@ from lye.types import Note, Marker, Rest
 
 class Melody(object):
 
-    ticks_per_beat = 480
-
     instrument = None
     volume = 127
     pan = 63
 
-    def __init__(self, notes):
+    def __init__(self, notes, tpb):
         self.notes = notes
+        self.tpb = tpb
         simplify_ties(notes)
 
     def __nonzero__(self):
         return any(self.notes)
 
     def __repr__(self):
-        return "Melody(%r)" % self.notes
+        return "Melody(%r, %d)" % (self.notes, self.tpb)
 
     __str__ = __repr__
 
@@ -34,7 +33,7 @@ class Melody(object):
         Extend this melody.
         """
 
-        other = Melody(self.notes)
+        other = Melody(self.notes, self.tpb)
         other.notes *= value
         other.pan = self.pan
         other.volume = self.volume
@@ -82,7 +81,7 @@ class Melody(object):
 
         rv = []
         for m in melodies:
-            melody = Melody(m)
+            melody = Melody(m, self.tpb)
             melody.pan = self.pan
             melody.volume = self.volume
             rv.append(melody)
@@ -102,7 +101,7 @@ class Melody(object):
 
         for i, note in enumerate(self.notes):
             if isinstance(note, list):
-                nested = Melody(note).schedule_notes()
+                nested = Melody(note, self.tpb).schedule_notes()
                 nested = [n._replace(begin=n.begin + relative_marker)
                     for n in nested]
                 # If the next thing's not part of a voice, bump the relative
@@ -116,7 +115,7 @@ class Melody(object):
             elif isinstance(note, Marker):
                 if note.name == "measure":
                     remainder = ((relative_marker - partial_offset) %
-                        self.ticks_per_beat)
+                        self.tpb)
                     if remainder and not partial:
                         print "Marker is off by %d" % remainder
                     # Start the next bar.
@@ -178,8 +177,8 @@ class Melody(object):
         track = 0
 
         for pitch, begin, duration in scheduled:
-            begin = begin / self.ticks_per_beat
-            duration = duration / self.ticks_per_beat
+            begin = begin / self.tpb
+            duration = duration / self.tpb
             f.addNote(track, channel, pitch, begin, duration, self.volume)
 
 def melody_from_ly(s):
@@ -188,7 +187,8 @@ def melody_from_ly(s):
     """
 
     try:
-        melody = Melody(LyGrammar(s).apply("melody")[0])
+        g = LyGrammar(s)
+        melody = Melody(g.apply("melody")[0], g.tpb)
         if not melody:
             raise LyeError("Failed melody %s" % s)
     except ParseError, pe:
