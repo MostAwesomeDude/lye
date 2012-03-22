@@ -26,7 +26,7 @@ class Library(object):
 
     def snippets(self):
         d = {}
-        i = iglob(os.path.join(self.path, "*.snippet"))
+        i = iglob(os.path.join(self.path, "*.lye"))
         for fullname in i:
             name = os.path.splitext(os.path.basename(fullname))[0]
             d[name] = Snippet(fullname)
