@@ -1,0 +1,6 @@
+\relative e {
+    e4 e8 d16 e~ e2
+    r8 b d b g'4 g
+    g e8 d16 e~ e2
+    r4 d16 b8 a16~ a ais8 b16~ b d8 dis16
+}

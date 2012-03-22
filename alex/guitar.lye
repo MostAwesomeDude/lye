@@ -1,0 +1,6 @@
+\relative fis, {
+    fis16 fis \times 2/3 { bis cis bis } a fis a b cis b cis e fis e a fis~
+    fis fis, \times 2/3 { cis' d cis } b a b cis d e fis gis a cis, c b~
+    b b \times 2/3 { dis e dis } cis b cis dis e dis e fis a b a cis~
+    cis cis, \times 2/3 { eis fis eis } d cis b gis b cis d cis fis eis gis fis
+}

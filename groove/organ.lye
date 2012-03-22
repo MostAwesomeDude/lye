@@ -1,0 +1,6 @@
+\relative fis'' {
+    <fis1 cis' e a>
+    <gis cis e b'>
+    <d a' cis fis>
+    <cis fis b e>
+}

@@ -1,0 +1,6 @@
+\relative fis {
+    <fis8. cis' a' fis'> <fis cis' a' fis'> <fis8 cis' a' fis'> r2
+    <a8. cis a' fis'> <a cis a' fis'> <a8 cis a' fis'> r2
+    <d,8. cis' a' fis'> <d cis' a' fis'> <d8 cis' a' fis'> r2
+    <e8. cis' a' fis'> <e cis' a' fis'> <e8 cis' a' fis'> r2
+}

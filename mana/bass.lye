@@ -1,0 +1,10 @@
+\relative c, {
+    c1
+    d
+    e
+    cis
+    a
+    d
+    g,
+    fis2 b
+}

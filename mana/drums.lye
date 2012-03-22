@@ -1,0 +1,8 @@
+\drums {
+    <<
+        { bd16 r r  r sn r r r bd r r r sn r r  sn
+          r    r bd r sn r r r bd r r r sn r sn sn }
+        { hhc16 hhc hhc hhc hhc hhc hhc hhc hhc hhc hhc hhc hhc hhc hhc hhc
+          hhc   hhc hhc hhc hhc hhc hhc hhc hhc hhc hhc hhc hhc hhc hhc hhc }
+    >>
+}
