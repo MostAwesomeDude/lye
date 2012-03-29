@@ -57,8 +57,6 @@ kit ::= <token "bd"> | <token "hhc"> | <token "sn">
 es ::= 'e' 's' => "es"
 pitch ::= 'c' | 'd' | <es> | 'e' | 'f' | 'g' | 'a' | 'b'
 
-tie_marker ::= <token "~"> => TIE
-
 voices ::= <token "<<"> <scope>+:ss <token ">>"> => ss + [ENDVOICE]
 
 expr_chord    ::= <token "<"> <expr_note>+:ns <token ">"> => Chord(ns)
@@ -75,12 +73,81 @@ expr_tie      ::= <token "~"> => TIE
 expr_times    ::= <token "\\\\times"> <spaces> <int>:n '/' <int>:d
                   <expr_music>:e
                 => Times(Fraction(n, d), e)
+expr_voices   ::= <token "<<"> <expr_music>+:es <token ">>"> => Voices(es)
 expr ::= <spaces>? (<expr_chord> | <expr_drum> | <expr_drums> | <expr_music> |
          <expr_note> | <expr_relative> | <expr_rest> | <expr_tie> |
          <expr_times>)
 """
 
 class LyeGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
+    """
+    Simple grammar for Lye, a relatively strict subset of Lilypond useful for
+    declaring small snippets of music.
+
+    To use this grammar, instantiate it with text to parse, and then call its
+    ast() method.
+    """
+
+    def __init__(self, data):
+        super(LyeGrammar, self).__init__(data)
+        self._data = data
+
+    def ast(self):
+        try:
+            return self.apply("expr")[0]
+        except ParseError, pe:
+            raise LyeError("Couldn't parse: %s" % pe.formatError(self._data))
+
+class DurationWalker(object):
+    """
+    Tool for filling out durations in a Lye AST.
+    """
+
+    tpb = 120
+    duration = Duration(4, 0)
+
+    def undot_duration(self, duration, dots):
+        """
+        Turn duration into a number of ticks, and apply dots, if any.
+        """
+
+        # Multiply ticks per beat by four since ly assumes that "1" is a whole
+        # note, not a quarter note, but beats are quarter notes.
+        duration = self.tpb * 4 // duration
+
+        dotted = duration
+        while dots:
+            dotted /= 2
+            duration += dotted
+            dots -= 1
+        return duration
+
+    def fill_duration(self, d):
+        """
+        Fill durations forward.
+        """
+
+        if d is not None:
+            self.duration = d
+        return self.duration
+
+    def walk(self, ast):
+        """
+        Simplify and fill in durations along an AST.
+        """
+
+        if "duration" in ast._fields:
+            duration = self.fill_duration(ast.duration)
+            duration = self.undot_duration(duration.length, duration.dots)
+            ast = ast._replace(duration=duration)
+
+        if "exprs" in ast._fields:
+            exprs = [self.walk(expr) for expr in ast.exprs]
+            ast = ast._replace(exprs=exprs)
+
+        return ast
+
+class Remainder:
     """
     Class providing lexing and parsing of pseudo-Lilypond streams into data
     structures that can be passed to other high-level libraries.
@@ -129,22 +196,6 @@ class LyeGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
 
     def end_chord(self):
         self.last_pitch = self._saved_last_pitch
-
-    def undot_duration(self, duration, dots):
-        """
-        Turn duration into a number of ticks, and apply dots, if any.
-        """
-
-        # Multiply ticks per beat by four since ly assumes that "1" is a whole
-        # note, not a quarter note, but beats are quarter notes.
-        duration = self.tpb * 4 // duration
-
-        dotted = duration
-        while dots:
-            dotted /= 2
-            duration += dotted
-            dots -= 1
-        return duration
 
     def abs_pitch_to_number(self, pitch, accidental, octave):
         """
