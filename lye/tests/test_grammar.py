@@ -3,6 +3,7 @@ import unittest
 from pymeta.runtime import ParseError
 
 from lye.grammar import LyGrammar
+from lye.types import MEASURE, PARTIAL
 
 class ParsingMixin(object):
 
@@ -149,15 +150,15 @@ class TestCommands(unittest.TestCase):
 
 class TestMarker(unittest.TestCase):
 
-    def test_measure_name(self):
+    def test_measure(self):
         grammar = LyGrammar("|")
         marker, error = grammar.apply("marker")
-        self.assertEqual(marker.name, "measure")
+        self.assertEqual(marker, MEASURE)
 
-    def test_partial_name(self):
+    def test_partial(self):
         grammar = LyGrammar("\\partial")
         marker, error = grammar.apply("marker")
-        self.assertEqual(marker.name, "partial")
+        self.assertEqual(marker, PARTIAL)
 
 class TestDirectives(unittest.TestCase, ParsingMixin):
 

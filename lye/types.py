@@ -1,8 +1,13 @@
 from collections import namedtuple
 
+ENDVOICE = object()
+MEASURE = object()
+PARTIAL = object()
+TIE = object()
+
 class Marker(object):
     """
-    A singleton representing a measure marker.
+    A singleton representing a syntax marker.
     """
 
     def __init__(self, name):

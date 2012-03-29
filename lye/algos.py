@@ -1,6 +1,6 @@
 from warnings import warn
 
-from lye.types import Marker
+from lye.types import TIE
 
 class LyeParseWarning(Warning):
     """
@@ -30,7 +30,7 @@ def simplify_ties(notes):
     pos = 0
     while True:
         try:
-            pos = notes.index(Marker("tie"), pos)
+            pos = notes.index(TIE, pos)
         except ValueError:
             break
 

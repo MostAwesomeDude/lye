@@ -7,7 +7,7 @@ from pymeta.runtime import ParseError
 from lye.algos import simplify_ties
 from lye.grammar import Chord, LyGrammar, LyeError
 from lye.instruments import NEAREST, fit
-from lye.types import Note, Marker, Rest
+from lye.types import MEASURE, PARTIAL, Note, Rest
 
 class Melody(object):
 
@@ -112,17 +112,16 @@ class Melody(object):
                             nested[-1].duration)
                 scheduled.extend(nested)
 
-            elif isinstance(note, Marker):
-                if note.name == "measure":
-                    remainder = ((relative_marker - partial_offset) %
-                        self.tpb)
-                    if remainder and not partial:
-                        print "Marker is off by %d" % remainder
-                    # Start the next bar.
-                    partial = False
-                    partial_offset = remainder
-                elif note.name == "partial":
-                    partial = True
+            elif note is MEASURE:
+                remainder = ((relative_marker - partial_offset) % self.tpb)
+                if remainder and not partial:
+                    print "Marker is off by %d" % remainder
+                # Start the next bar.
+                partial = False
+                partial_offset = remainder
+
+            elif note is PARTIAL:
+                partial = True
 
             elif isinstance(note, Chord):
                 begin = relative_marker
@@ -153,7 +152,7 @@ class Melody(object):
         scheduled = self.schedule_notes()
 
         # XXX
-        tpb = sequencer.ticks_per_beat
+        # tpb = sequencer.ticks_per_beat
         # Each item in the seq is (fluidsynth.FS, (dest, destname))
         # We just want the dest
         dest = sequencer.items()[0][1][0]

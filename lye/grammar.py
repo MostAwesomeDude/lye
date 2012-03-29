@@ -7,7 +7,7 @@ import pymeta.runtime
 
 from lye.algos import pitch_to_number
 from lye.drums import drum_notes
-from lye.types import Marker, Note, Rest
+from lye.types import ENDVOICE, MEASURE, PARTIAL, TIE, Note, Rest
 
 class InternalParseError(Exception):
     """
@@ -68,6 +68,8 @@ octave_up ::= '\'' => 1
 octave_down ::= ',' => -1
 octave ::= (<octave_up> | <octave_down>)+:o => sum(o)
 
+expr_notes ::= <token "{"> <expr>+:e <token "}"> => e
+
 begin_drums ::= <drums> <token "{"> => self.open_brace("drums", True)
 
 begin_relative ::= <relative> <spaces>
@@ -104,18 +106,18 @@ chord ::= <token '<'> <notes>:n !( self.start_chord() ) <notes>*:ns
           <token '>'> !( self.end_chord() )
         => Chord([n] + ns)
 
-measure_marker ::= <token '|'> => Marker("measure")
+measure_marker ::= <token '|'> => MEASURE
 
-partial_marker ::= <token "\\\\partial"> => Marker("partial")
+partial_marker ::= <token "\\\\partial"> => PARTIAL
 
-tie_marker ::= <token "~"> => Marker("tie")
+tie_marker ::= <token "~"> => TIE
 
 marker ::= <measure_marker> | <partial_marker> | <tie_marker>
 
 protonote ::= <spaces>? (<marker> | <chord> | <notes>)
 
 scope ::= <token '{'> <melody>:m <token '}'> => m
-voices ::= <token "<<"> <scope>+:ss <token ">>"> => ss + [Marker("endvoice")]
+voices ::= <token "<<"> <scope>+:ss <token ">>"> => ss + [ENDVOICE]
 
 melody ::= <directive> <melody>+:m <close_brace> => concat(m)
          | <voices>
