@@ -98,7 +98,40 @@ class LyeGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
         except ParseError, pe:
             raise LyeError("Couldn't parse: %s" % pe.formatError(self._data))
 
-class DurationWalker(object):
+class Visitor(object):
+    """
+    An object that visits every node in an AST.
+    """
+
+    def visit_generic(self, node):
+        """
+        Visit a node with no type information.
+
+        This method is a good point for polymorphic or duck-typed
+        transformations.
+        """
+
+        return node
+
+    def visit(self, node):
+        """
+        Recursively visit every node in an AST.
+        """
+
+        method = getattr(self, "visit_%s" % node.__class__.__name__,
+            self.visit_generic)
+        node = method(node)
+
+        if "expr" in node._fields:
+            node = node._replace(expr=self.visit(node.expr))
+
+        if "exprs" in node._fields:
+            exprs = [self.visit(expr) for expr in node.exprs]
+            node = node._replace(exprs=exprs)
+
+        return node
+
+class DurationWalker(Visitor):
     """
     Tool for filling out durations in a Lye AST.
     """
@@ -131,7 +164,7 @@ class DurationWalker(object):
             self.duration = d
         return self.duration
 
-    def walk(self, ast):
+    def visit_generic(self, ast):
         """
         Simplify and fill in durations along an AST.
         """
@@ -140,10 +173,6 @@ class DurationWalker(object):
             duration = self.fill_duration(ast.duration)
             duration = self.undot_duration(duration.length, duration.dots)
             ast = ast._replace(duration=duration)
-
-        if "exprs" in ast._fields:
-            exprs = [self.walk(expr) for expr in ast.exprs]
-            ast = ast._replace(exprs=exprs)
 
         return ast
 
