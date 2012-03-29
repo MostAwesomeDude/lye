@@ -6,8 +6,9 @@ import pymeta.grammar
 import pymeta.runtime
 
 from lye.algos import pitch_to_number
+from lye.ast import (TIE, Chord, Drum, Drums, Duration, Music, Note, Relative,
+                     Rest, Times)
 from lye.drums import drum_notes
-from lye.types import ENDVOICE, MEASURE, PARTIAL, TIE, Note, Rest
 
 class InternalParseError(Exception):
     """
@@ -20,24 +21,6 @@ class LyeError(Exception):
     """
     Something happened when parsing, and it's your fault.
     """
-
-class Chord(object):
-    """
-    A Note list.
-    """
-
-    def __init__(self, notes):
-        self.pitches = [note.pitch for note in notes]
-        self.duration = notes[0].duration
-
-    def __repr__(self):
-        return "Chord(%r, %d)" % (self.pitches, self.duration)
-
-    __str__ = __repr__
-
-    def __eq__(self, other):
-        return (self.pitches == getattr(other, "pitches", None) and
-            self.duration == getattr(other, "duration", None))
 
 # es requires a special case, because it can either be spelled es or ees.
 pitch_dict = dict(zip("cxdxefxgxaxb", range(48, 60)))
@@ -56,7 +39,6 @@ def concat(l):
 grammar = """
 int ::= <digit>+:d => int("".join(d))
 
-drums ::= <token "\\\\drums">
 relative ::= <token "\\\\relative">
 times ::= <token "\\\\times">
 
@@ -68,65 +50,39 @@ octave_up ::= '\'' => 1
 octave_down ::= ',' => -1
 octave ::= (<octave_up> | <octave_down>)+:o => sum(o)
 
-expr_notes ::= <token "{"> <expr>+:e <token "}"> => e
-
-begin_drums ::= <drums> <token "{"> => self.open_brace("drums", True)
-
-begin_relative ::= <relative> <spaces>
-                   <pitch>:p <accidental>? <octave>?:o <token "{">
-                 => self.start_relative((p, o if o else 0))
-
-begin_times ::= <times> <spaces> <int>:n '/' <int>:d <token "{">
-              => self.open_brace("tuplet", Fraction(n, d))
-
-directive ::= <begin_drums> | <begin_relative> | <begin_times>
-
-close_brace ::= <token "}"> => self.close_brace()
-
-rest ::= <token "r"> <duration>?:d => Rest(None, self.check_duration(d))
+duration ::= <int>:i '.'*:dots => Duration(i, len(dots))
 
 kit ::= <token "bd"> | <token "hhc"> | <token "sn">
-
-drum ::= ?( self.drums ) <kit>:k <duration>?:d
-       => Note(drum_notes[k], None, self.check_duration(d))
 
 es ::= 'e' 's' => "es"
 pitch ::= 'c' | 'd' | <es> | 'e' | 'f' | 'g' | 'a' | 'b'
 
-duration ::= <int>:i '.'*:dots => self.undot_duration(i, len(dots))
-
-note ::= ?( not self.drums ) <spaces>? <pitch>:p <accidental>?:a <octave>?:o
-         <duration>?:d
-       => Note(self.abs_pitch_to_number(p, a, o), None,
-               self.check_duration(d))
-
-notes ::= <note> | <drum> | <rest>
-
-chord ::= <token '<'> <notes>:n !( self.start_chord() ) <notes>*:ns
-          <token '>'> !( self.end_chord() )
-        => Chord([n] + ns)
-
-measure_marker ::= <token '|'> => MEASURE
-
-partial_marker ::= <token "\\\\partial"> => PARTIAL
-
 tie_marker ::= <token "~"> => TIE
 
-marker ::= <measure_marker> | <partial_marker> | <tie_marker>
-
-protonote ::= <spaces>? (<marker> | <chord> | <notes>)
-
-scope ::= <token '{'> <melody>:m <token '}'> => m
 voices ::= <token "<<"> <scope>+:ss <token ">>"> => ss + [ENDVOICE]
 
-melody ::= <directive> <melody>+:m <close_brace> => concat(m)
-         | <voices>
-         | <protonote>+
+expr_chord    ::= <token "<"> <expr_note>+:ns <token ">"> => Chord(ns)
+expr_drum     ::= <kit> <duration>?:d => Drum(drum_notes[k], d)
+expr_drums    ::= <token "\\\\drums"> <expr>:e => Drums(e)
+expr_music    ::= <token "{"> <expr>+:e <token "}"> => Music(e)
+expr_note     ::= <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
+                => Note(p, a, o, d)
+expr_relative ::= <token "\\\\relative"> <spaces> <pitch>:p <accidental>?
+                  <octave>?:o <expr_music>:e
+                => Relative(p, o, e)
+expr_rest     ::= <token "r"> <duration>?:d => Rest(d)
+expr_tie      ::= <token "~"> => TIE
+expr_times    ::= <token "\\\\times"> <spaces> <int>:n '/' <int>:d
+                  <expr_music>:e
+                => Times(Fraction(n, d), e)
+expr ::= <spaces>? (<expr_chord> | <expr_drum> | <expr_drums> | <expr_music> |
+         <expr_note> | <expr_relative> | <expr_rest> | <expr_tie> |
+         <expr_times>)
 """
 
-class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
+class LyeGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
     """
-    Class providing parsing and lexing of pseudo-Lilypond streams into data
+    Class providing lexing and parsing of pseudo-Lilypond streams into data
     structures that can be passed to other high-level libraries.
 
     Like with standard Lilypond, the default octave starts at C3 (48).
@@ -148,7 +104,7 @@ class LyGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
     drums = None
 
     def __init__(self, *args, **kwargs):
-        super(LyGrammar, self).__init__(*args, **kwargs)
+        super(LyeGrammar, self).__init__(*args, **kwargs)
 
         self.duration = self.tpb
 
@@ -224,7 +180,7 @@ def chords_from_ly(s):
     Make a `Chords` from a ly string.
     """
 
-    chords = LyGrammar(s).apply("chords")
+    chords = LyeGrammar(s).apply("chords")
     if not chords:
         raise LyeError("Failed chords %s" % s)
     return chords
