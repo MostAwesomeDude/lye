@@ -2,8 +2,8 @@ from __future__ import division
 
 from fractions import Fraction
 
-import pymeta.grammar
-import pymeta.runtime
+from pymeta.grammar import OMeta
+from pymeta.runtime import ParseError
 
 from lye.algos import pitch_to_number
 from lye.ast import (TIE, Chord, Drum, Drums, Duration, Music, Note, Relative,
@@ -38,9 +38,6 @@ def concat(l):
 
 grammar = """
 int ::= <digit>+:d => int("".join(d))
-
-relative ::= <token "\\\\relative">
-times ::= <token "\\\\times">
 
 sharp ::= 'i' 's' => 1
 flat ::= 'e' 's' => -1
@@ -79,7 +76,7 @@ expr ::= <spaces>? (<expr_chord> | <expr_drum> | <expr_drums> | <expr_music> |
          <expr_times>)
 """
 
-class LyeGrammar(pymeta.grammar.OMeta.makeGrammar(grammar, globals())):
+class LyeGrammar(OMeta.makeGrammar(grammar, globals())):
     """
     Simple grammar for Lye, a relatively strict subset of Lilypond useful for
     declaring small snippets of music.
