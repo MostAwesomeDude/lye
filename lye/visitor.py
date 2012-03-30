@@ -1,4 +1,7 @@
-from lye.ast import Duration
+from fractions import Fraction
+from operator import mul
+
+from lye.ast import Duration, Music
 
 class Visitor(object):
     """
@@ -13,7 +16,7 @@ class Visitor(object):
         transformations.
         """
 
-        return node
+        return node, True
 
     def visit(self, node):
         """
@@ -22,18 +25,18 @@ class Visitor(object):
 
         method = getattr(self, "visit_%s" % node.__class__.__name__,
             self.visit_generic)
-        node = method(node)
+        node, recurse = method(node)
 
-        if "expr" in node._fields:
+        if recurse and "expr" in node._fields:
             node = node._replace(expr=self.visit(node.expr))
 
-        if "exprs" in node._fields:
+        if recurse and "exprs" in node._fields:
             exprs = [self.visit(expr) for expr in node.exprs]
             node = node._replace(exprs=exprs)
 
         return node
 
-class DurationWalker(Visitor):
+class DurationVisitor(Visitor):
     """
     Tool for filling out durations in a Lye AST.
     """
@@ -76,4 +79,69 @@ class DurationWalker(Visitor):
             duration = self.undot_duration(duration.length, duration.dots)
             ast = ast._replace(duration=duration)
 
-        return ast
+        return ast, True
+
+class TimesVisitor(Visitor):
+    """
+    Apply Times nodes and turn them into Music nodes.
+    """
+
+    def __init__(self):
+        self.tuplets = [Fraction(1, 1)]
+        self.refresh_scale()
+
+    def refresh_scale(self):
+        self.scale = reduce(mul, self.tuplets)
+
+    def push_tuplet(self, tuplet):
+        self.tuplets.append(tuplet)
+        self.refresh_scale()
+
+    def pop_tuplet(self):
+        retval = self.tuplets.pop()
+        self.refresh_scale()
+        return retval
+
+    def visit_Times(self, times):
+        """
+        Turn Times into Music.
+        """
+
+        self.push_tuplet(times.fraction)
+        node = self.visit(Music([times.expr]))
+        self.pop_tuplet()
+        return node, False
+
+    def visit_generic(self, ast):
+        """
+        Apply Times across Durations.
+        """
+
+        if "duration" in ast._fields and self.scale != Fraction(1, 1):
+            duration = int(ast.duration * self.scale)
+            ast = ast._replace(duration=duration)
+
+        return ast, True
+
+class MusicFlattener(Visitor):
+    """
+    Flatten Music expressions.
+    """
+
+    def visit_Music(self, music):
+        # Flatten singleton Music expressions.
+        while len(music.exprs) == 1:
+            music = music.exprs[0]
+        # Inline Music within Music.
+        flattening = True
+        while flattening:
+            flattening = False
+            exprs = []
+            for expr in music.exprs:
+                if isinstance(expr, Music):
+                    exprs.extend(expr.exprs)
+                    flattening = True
+                else:
+                    exprs.append(expr)
+            music = music._replace(exprs=exprs)
+        return music, True
