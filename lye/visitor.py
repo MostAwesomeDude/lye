@@ -123,6 +123,44 @@ class TimesVisitor(Visitor):
 
         return ast, True
 
+class Relativizer(Visitor):
+    """
+    Apply Relative octaves to Notes.
+    """
+
+    previous = None
+
+    relative_dict = dict(zip("cdefgab", range(7)))
+    relative_dict["es"] = relative_dict["e"]
+
+    def visit_Note(self, note):
+        if self.previous:
+            # Unpack the note, relativize it, repack it.
+            ppitch, poctave = self.previous
+            octave = note.octave + poctave
+
+            if abs(self.relative_dict[ppitch] -
+                self.relative_dict[note.pitch]) > 3:
+                if self.relative_dict[note.pitch] > 4:
+                    octave -= 1
+                else:
+                    octave += 1
+
+            self.previous = note.pitch, octave
+            note = note._replace(octave=octave)
+
+        return note, True
+
+    def visit_Relative(self, relative):
+        if self.previous:
+            raise Exception("Nested Relative nodes!")
+
+        self.previous = relative.pitch, relative.octave
+        expr = self.visit(relative.expr)
+        self.previous = None
+
+        return expr, False
+
 class MusicFlattener(Visitor):
     """
     Flatten Music expressions.
