@@ -1,7 +1,8 @@
 from fractions import Fraction
 from operator import mul
 
-from lye.ast import Duration, Music
+from lye.algos import pitch_to_number
+from lye.ast import Duration, Music, SciNote
 
 class Visitor(object):
     """
@@ -183,3 +184,12 @@ class MusicFlattener(Visitor):
                     exprs.append(expr)
             music = music._replace(exprs=exprs)
         return music, True
+
+class NoteTransformer(Visitor):
+    """
+    Turn Notes into SciNotes.
+    """
+
+    def visit_Note(self, note):
+        number = pitch_to_number(note.pitch, note.accidental, note.octave)
+        return SciNote(number, note.duration), True

@@ -6,8 +6,8 @@ from pymeta.grammar import OMeta
 from pymeta.runtime import ParseError
 
 from lye.algos import pitch_to_number
-from lye.ast import (TIE, Chord, Drum, Drums, Duration, Music, Note, Relative,
-                     Rest, Times)
+from lye.ast import (TIE, Chord, Drums, Duration, Music, Note, Relative, Rest,
+                     SciNote, Times)
 from lye.drums import drum_notes
 
 class InternalParseError(Exception):
@@ -54,7 +54,7 @@ pitch ::= 'c' | 'd' | <es> | 'e' | 'f' | 'g' | 'a' | 'b'
 voices ::= <token "<<"> <scope>+:ss <token ">>"> => ss + [ENDVOICE]
 
 expr_chord    ::= <token "<"> <expr_note>+:ns <token ">"> => Chord(ns)
-expr_drum     ::= <kit> <duration>?:d => Drum(drum_notes[k], d)
+expr_drum     ::= <kit> <duration>?:d => SciNote(drum_notes[k], d)
 expr_drums    ::= <token "\\\\drums"> <expr>:e => Drums(e)
 expr_music    ::= <token "{"> <expr>+:e <token "}"> => Music(e)
 expr_note     ::= <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
