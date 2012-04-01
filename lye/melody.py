@@ -30,8 +30,9 @@ class Melody(object):
         Extend this melody.
         """
 
-        other = Melody(self.music, self.tpb)
-        other.music.exprs *= value
+        m = Music(exprs=self.music.exprs * value)
+
+        other = Melody(m, self.tpb)
         other.pan = self.pan
         other.volume = self.volume
         other.instrument = self.instrument

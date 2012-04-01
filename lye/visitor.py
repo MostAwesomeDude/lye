@@ -136,15 +136,15 @@ class Relativizer(Visitor):
     Apply Relative octaves to Notes.
     """
 
-    previous = None
+    previous = []
 
     relative_dict = dict(zip("cdefgab", range(7)))
     relative_dict["es"] = relative_dict["e"]
 
-    def visit_Note(self, note):
+    def relativize(self, note):
         if self.previous:
             # Unpack the note, relativize it, repack it.
-            ppitch, poctave = self.previous
+            ppitch, poctave = self.previous[-1]
             octave = note.octave + poctave
 
             if abs(self.relative_dict[ppitch] -
@@ -154,18 +154,32 @@ class Relativizer(Visitor):
                 else:
                     octave += 1
 
-            self.previous = note.pitch, octave
+            self.previous[-1] = note.pitch, octave
             note = note._replace(octave=octave)
+        return note
 
+    def visit_Chord(self, chord):
+        if chord.notes:
+            notes = chord.notes
+            if self.previous:
+                # Relativize the first note ahead of time.
+                notes[0] = self.relativize(notes[0])
+
+            # Push a new relative context just for this chord, and relativize.
+            self.previous.append((notes[0].pitch, notes[0].octave))
+            for i, note in enumerate(notes[1:]):
+                notes[i] = self.relativize(note)
+            self.previous.pop()
+        return chord, False
+
+    def visit_Note(self, note):
+        note = self.relativize(note)
         return note, True
 
     def visit_Relative(self, relative):
-        if self.previous:
-            raise Exception("Nested Relative nodes!")
-
-        self.previous = relative.pitch, relative.octave
+        self.previous.append((relative.pitch, relative.octave))
         expr = self.visit(relative.expr)
-        self.previous = None
+        self.previous.pop()
 
         return expr, False
 
