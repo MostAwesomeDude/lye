@@ -48,8 +48,8 @@ duration ::= <int>:i '.'*:dots => Duration(i, len(dots))
 
 kit ::= <token "bd"> | <token "hhc"> | <token "sn">
 
-es ::= 'e' 's' => "es"
-pitch ::= 'c' | 'd' | <es> | 'e' | 'f' | 'g' | 'a' | 'b'
+pitch ::= <token "c"> | <token "d"> | <token "es"> | <token "e"> |
+          <token "f"> | <token "g"> | <token "a"> | <token "b">
 
 expr_chord    ::= <token "<"> <expr_note>+:ns <token ">"> => Chord(ns)
 expr_drum     ::= <kit>:k <duration>?:d => SciNote(drum_notes[k], d)
@@ -67,9 +67,9 @@ expr_times    ::= <token "\\\\times"> <spaces> <int>:n '/' <int>:d
                   <expr_music>:e
                 => Times(Fraction(n, d), e)
 expr_voices   ::= <token "<<"> <expr_music>+:es <token ">>"> => Voices(es)
-expr ::= <spaces>? (<expr_chord> | <expr_drum> | <expr_drums> |
-         <expr_measure> | <expr_music> | <expr_note> | <expr_relative> |
-         <expr_rest> | <expr_tie> | <expr_times>)
+expr ::= <expr_chord> | <expr_drum> | <expr_drums> | <expr_measure> |
+         <expr_music> | <expr_note> | <expr_relative> | <expr_rest> |
+         <expr_tie> | <expr_times>
 """
 
 class LyeGrammar(OMeta.makeGrammar(grammar, globals())):
