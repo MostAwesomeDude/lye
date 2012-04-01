@@ -7,7 +7,7 @@ from pymeta.runtime import ParseError
 
 from lye.algos import pitch_to_number
 from lye.ast import (MEASURE, TIE, Chord, Drums, Duration, Music, Note,
-                     Relative, Rest, SciNote, Times)
+                     Relative, Rest, SciNote, Times, Voices)
 from lye.drums import drum_notes
 
 class InternalParseError(Exception):
@@ -69,7 +69,7 @@ expr_times    ::= <token "\\\\times"> <spaces> <int>:n '/' <int>:d
 expr_voices   ::= <token "<<"> <expr_music>+:es <token ">>"> => Voices(es)
 expr ::= <expr_chord> | <expr_drum> | <expr_drums> | <expr_measure> |
          <expr_music> | <expr_note> | <expr_relative> | <expr_rest> |
-         <expr_tie> | <expr_times>
+         <expr_tie> | <expr_times> | <expr_voices>
 """
 
 class LyeGrammar(OMeta.makeGrammar(grammar, globals())):
