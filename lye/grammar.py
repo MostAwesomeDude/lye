@@ -6,8 +6,8 @@ from pymeta.grammar import OMeta
 from pymeta.runtime import ParseError
 
 from lye.algos import pitch_to_number
-from lye.ast import (TIE, Chord, Drums, Duration, Music, Note, Relative, Rest,
-                     SciNote, Times)
+from lye.ast import (MEASURE, TIE, Chord, Drums, Duration, Music, Note,
+                     Relative, Rest, SciNote, Times)
 from lye.drums import drum_notes
 
 class InternalParseError(Exception):
@@ -51,11 +51,10 @@ kit ::= <token "bd"> | <token "hhc"> | <token "sn">
 es ::= 'e' 's' => "es"
 pitch ::= 'c' | 'd' | <es> | 'e' | 'f' | 'g' | 'a' | 'b'
 
-voices ::= <token "<<"> <scope>+:ss <token ">>"> => ss + [ENDVOICE]
-
 expr_chord    ::= <token "<"> <expr_note>+:ns <token ">"> => Chord(ns)
-expr_drum     ::= <kit> <duration>?:d => SciNote(drum_notes[k], d)
+expr_drum     ::= <kit>:k <duration>?:d => SciNote(drum_notes[k], d)
 expr_drums    ::= <token "\\\\drums"> <expr>:e => Drums(e)
+expr_measure  ::= <token "|"> => MEASURE
 expr_music    ::= <token "{"> <expr>+:e <token "}"> => Music(e)
 expr_note     ::= <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
                 => Note(p, a or 0, o or 0, d)
@@ -68,9 +67,9 @@ expr_times    ::= <token "\\\\times"> <spaces> <int>:n '/' <int>:d
                   <expr_music>:e
                 => Times(Fraction(n, d), e)
 expr_voices   ::= <token "<<"> <expr_music>+:es <token ">>"> => Voices(es)
-expr ::= <spaces>? (<expr_chord> | <expr_drum> | <expr_drums> | <expr_music> |
-         <expr_note> | <expr_relative> | <expr_rest> | <expr_tie> |
-         <expr_times>)
+expr ::= <spaces>? (<expr_chord> | <expr_drum> | <expr_drums> |
+         <expr_measure> | <expr_music> | <expr_note> | <expr_relative> |
+         <expr_rest> | <expr_tie> | <expr_times>)
 """
 
 class LyeGrammar(OMeta.makeGrammar(grammar, globals())):
