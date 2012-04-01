@@ -2,38 +2,10 @@ import unittest
 
 from pymeta.runtime import ParseError
 
-from lye.melody import melody_from_ly
+from lye.grammar import LyeGrammar
+from lye.tests.helpers import ParsingMixin
 
-class TestMelody(unittest.TestCase):
-
-    def test_melody_marker(self):
-        melody = melody_from_ly("c e g c' |")
-        notes = melody.schedule_notes()
-        self.assertEqual(notes[0], (48, 0, 120))
-        self.assertEqual(notes[1], (52, 120, 120))
-        self.assertEqual(notes[2], (55, 240, 120))
-        self.assertEqual(notes[3], (60, 360, 120))
-
-    def test_melody_multiple_markers(self):
-        melody_from_ly("e4 d c2 | e4 d c2 |")
-
-    def test_melody_rests(self):
-        melody = melody_from_ly("f4 a b r | f4 a b r")
-        notes = melody.schedule_notes()
-        self.assertEqual(notes[3], (53, 480, 120))
-
-    def test_melody_chords(self):
-        melody = melody_from_ly("<c e> <d f>")
-        self.assertEqual(len(melody.notes), 2)
-        self.assertEqual(len(melody.schedule_notes()), 4)
-
-class TestSalsaSnippets(unittest.TestCase):
-
-    def assertParses(self, data):
-        try:
-            melody_from_ly(data)
-        except ParseError, pe:
-            assert False, pe.formatError(data)
+class TestSalsaSnippets(unittest.TestCase, ParsingMixin):
 
     def test_shady_snippet(self):
         snippet = """\\relative d'' {
@@ -43,7 +15,7 @@ class TestSalsaSnippets(unittest.TestCase):
             d2.. c8 | d1
         }
         """
-        self.assertParses(snippet)
+        self.assertParses(snippet, LyeGrammar, "expr")
 
     def test_shiny_snippet_one(self):
         snippet = """\\relative c' {
@@ -51,7 +23,7 @@ class TestSalsaSnippets(unittest.TestCase):
             r4 c, d e | g f c d | c1
         }
         """
-        self.assertParses(snippet)
+        self.assertParses(snippet, LyeGrammar, "expr")
 
     def test_shiny_snippet_two(self):
         snippet = """\\relative b' {
@@ -60,4 +32,4 @@ class TestSalsaSnippets(unittest.TestCase):
             d1 | dis8. b dis8 c8. es c8 | b1
         }
         """
-        self.assertParses(snippet)
+        self.assertParses(snippet, LyeGrammar, "expr")
