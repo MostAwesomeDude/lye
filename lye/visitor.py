@@ -38,6 +38,10 @@ class Visitor(object):
             exprs = [self.visit(expr) for expr in node.exprs]
             node = node._replace(exprs=exprs)
 
+        if recurse and hasfield(node, "notes"):
+            notes = [self.visit(note) for note in node.notes]
+            node = node._replace(notes=notes)
+
         return node
 
 class DurationVisitor(Visitor):

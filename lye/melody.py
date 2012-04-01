@@ -2,7 +2,7 @@ from __future__ import division
 
 from fluidsynth import fluidsynth
 
-from lye.ast import MEASURE, PARTIAL, Note, SciNote, Rest
+from lye.ast import MEASURE, PARTIAL, Music, Note, SciNote, Rest
 from lye.grammar import Chord, LyeGrammar
 from lye.instruments import NEAREST, fit
 from lye.visitor import simplify_ast
@@ -59,22 +59,23 @@ class Melody(object):
 
         count = 0
 
-        for o in self.notes:
-            if isinstance(o, Chord):
-                count = max(count, len(o.pitches))
+        for expr in self.music.exprs:
+            if isinstance(expr, Chord):
+                count = max(count, len(expr.notes))
 
-        melodies = [[] for i in range(count)]
+        melodies = [Music([]) for i in range(count)]
 
-        for o in self.notes:
-            if isinstance(o, Chord):
-                for i, pitch in enumerate(sorted(o.pitches, reverse=True)):
-                    melodies[i].append(SciNote(pitch, o.duration))
+        for expr in self.music.exprs:
+            if isinstance(expr, Chord):
+                for i, note in enumerate(sorted(expr.notes, reverse=True)):
+                    melodies[i].exprs.append(note)
                 for i in range(i + 1, len(melodies)):
-                    # Create rests.
-                    melodies[i].append(Rest(None, o.duration))
+                    # Create rests. Rely on the leaked note name from the
+                    # previous loop.
+                    melodies[i].exprs.append(Rest(note.duration))
             else:
                 for melody in melodies:
-                    melody.append(o)
+                    melody.exprs.append(expr)
 
         rv = []
         for m in melodies:

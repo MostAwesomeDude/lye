@@ -60,7 +60,7 @@ expr_note     ::= <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
                 => Note(p, a or 0, o or 0, d)
 expr_relative ::= <token "\\\\relative"> <spaces> <pitch>:p <accidental>?
                   <octave>?:o <expr_music>:e
-                => Relative(p, o, e)
+                => Relative(p, o or 0, e)
 expr_rest     ::= <token "r"> <duration>?:d => Rest(d)
 expr_tie      ::= <token "~"> => TIE
 expr_times    ::= <token "\\\\times"> <spaces> <int>:n '/' <int>:d
