@@ -267,11 +267,11 @@ bounds = {
 NEAREST, LOWEST, HIGHEST = range(3)
 
 def top_margin(melody, bound):
-    i = max(note.pitch for note in melody.notes if isinstance(note, SciNote))
+    i = max(note.pitch for note in melody.exprs if isinstance(note, SciNote))
     return bound - i
 
 def bottom_margin(melody, bound):
-    i = min(note.pitch for note in melody.notes if isinstance(note, SciNote))
+    i = min(note.pitch for note in melody.exprs if isinstance(note, SciNote))
     return i - bound
 
 def fit(melody, instrument, strategy=NEAREST):
@@ -288,17 +288,19 @@ def fit(melody, instrument, strategy=NEAREST):
         octaves = bottom // 12
         adjustment = octaves * 12
         notes = []
-        for note in melody.notes:
+        for note in melody.exprs:
             if isinstance(note, SciNote):
                 note = note._replace(pitch=note.pitch - adjustment)
             notes.append(note)
-        melody.notes = notes
+        melody = melody._replace(exprs=notes)
     elif strategy == HIGHEST:
         octaves = top // 12
         adjustment = octaves * 12
         notes = []
-        for note in melody.notes:
+        for note in melody.exprs:
             if isinstance(note, SciNote):
                 note = note._replace(pitch=note.pitch + adjustment)
             notes.append(note)
-        melody.notes = notes
+        melody = melody._replace(exprs=notes)
+
+    return melody

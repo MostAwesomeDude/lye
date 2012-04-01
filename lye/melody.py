@@ -13,15 +13,15 @@ class Melody(object):
     volume = 127
     pan = 63
 
-    def __init__(self, exprs, tpb):
-        self.exprs = exprs
+    def __init__(self, music, tpb):
+        self.music = music
         self.tpb = tpb
 
     def __nonzero__(self):
-        return any(self.exprs)
+        return any(self.music)
 
     def __repr__(self):
-        return "Melody(%r, %d)" % (self.exprs, self.tpb)
+        return "Melody(%r, %d)" % (self.music, self.tpb)
 
     __str__ = __repr__
 
@@ -30,8 +30,8 @@ class Melody(object):
         Extend this melody.
         """
 
-        other = Melody(self.notes, self.tpb)
-        other.notes *= value
+        other = Melody(self.music, self.tpb)
+        other.music.exprs *= value
         other.pan = self.pan
         other.volume = self.volume
         other.instrument = self.instrument
@@ -43,7 +43,7 @@ class Melody(object):
         """
 
         if self.instrument:
-            fit(self, self.instrument, strategy)
+            fit(self.music, self.instrument, strategy)
 
     def split(self):
         """
