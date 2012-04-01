@@ -4,6 +4,9 @@ from operator import mul
 from lye.algos import pitch_to_number, simplify_ties
 from lye.ast import Duration, Music, SciNote
 
+def hasfield(obj, name):
+    return hasattr(obj, "_fields") and name in obj._fields
+
 class Visitor(object):
     """
     An object that visits every node in an AST.
@@ -28,10 +31,10 @@ class Visitor(object):
             self.visit_generic)
         node, recurse = method(node)
 
-        if recurse and "expr" in node._fields:
+        if recurse and hasfield(node, "expr"):
             node = node._replace(expr=self.visit(node.expr))
 
-        if recurse and "exprs" in node._fields:
+        if recurse and hasfield(node, "exprs"):
             exprs = [self.visit(expr) for expr in node.exprs]
             node = node._replace(exprs=exprs)
 
@@ -75,7 +78,7 @@ class DurationVisitor(Visitor):
         Simplify and fill in durations along an AST.
         """
 
-        if "duration" in ast._fields:
+        if hasfield(ast, "duration"):
             duration = self.fill_duration(ast.duration)
             duration = self.undot_duration(duration.length, duration.dots)
             ast = ast._replace(duration=duration)
@@ -118,7 +121,7 @@ class TimesVisitor(Visitor):
         Apply Times across Durations.
         """
 
-        if "duration" in ast._fields and self.scale != Fraction(1, 1):
+        if hasfield(ast, "duration") and self.scale != Fraction(1, 1):
             duration = int(ast.duration * self.scale)
             ast = ast._replace(duration=duration)
 
@@ -200,11 +203,8 @@ class TieRemover(Visitor):
     """
 
     def visit_generic(self, node):
-        if "expr" in node._fields:
-            simplify_ties(node.expr)
-        elif "exprs" in node._fields:
-            for expr in node.exprs:
-                simplify_ties(expr)
+        if hasfield(node, "exprs"):
+            simplify_ties(node.exprs)
         return node, True
 
 def simplify_ast(ast):

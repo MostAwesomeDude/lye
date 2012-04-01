@@ -1,6 +1,6 @@
 from warnings import warn
 
-from lye.ast import TIE
+from lye.ast import TIE, SciNote
 
 class LyeParseWarning(Warning):
     """

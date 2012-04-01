@@ -2,10 +2,8 @@ from __future__ import division
 
 from fluidsynth import fluidsynth
 
-from pymeta.runtime import ParseError
-
-from lye.ast import MEASURE, PARTIAL, SciNote, Rest
-from lye.grammar import Chord, LyeGrammar, LyeError
+from lye.ast import MEASURE, PARTIAL, Note, SciNote, Rest
+from lye.grammar import Chord, LyeGrammar
 from lye.instruments import NEAREST, fit
 from lye.visitor import simplify_ast
 
