@@ -24,6 +24,8 @@ def simplify_ties(notes):
     """
     Find ties in a stream of notes and simplify them.
 
+    The notes must be SciNotes.
+
     The simplification is done in-place, in linear time.
     """
 
@@ -32,6 +34,7 @@ def simplify_ties(notes):
         try:
             pos = notes.index(TIE, pos)
         except ValueError:
+            # No more ties. We're done.
             break
 
         if pos == -1:
@@ -46,6 +49,9 @@ def simplify_ties(notes):
 
         before = notes[pos - 1]
         after = notes[pos + 1]
+
+        if not isinstance(before, SciNote) or not isinstance(after, SciNote):
+            continue
 
         if before.pitch == after.pitch:
             before = before._replace(

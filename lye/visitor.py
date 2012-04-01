@@ -1,7 +1,7 @@
 from fractions import Fraction
 from operator import mul
 
-from lye.algos import pitch_to_number
+from lye.algos import pitch_to_number, simplify_ties
 from lye.ast import Duration, Music, SciNote
 
 class Visitor(object):
@@ -193,3 +193,25 @@ class NoteTransformer(Visitor):
     def visit_Note(self, note):
         number = pitch_to_number(note.pitch, note.accidental, note.octave)
         return SciNote(number, note.duration), True
+
+class TieRemover(Visitor):
+    """
+    Find and remove ties from streams of notes.
+    """
+
+    def visit_generic(self, node):
+        if "expr" in node._fields:
+            simplify_ties(node.expr)
+        elif "exprs" in node._fields:
+            for expr in node.exprs:
+                simplify_ties(expr)
+        return node, True
+
+def simplify_ast(ast):
+    ast = DurationVisitor().visit(ast)
+    ast = TimesVisitor().visit(ast)
+    ast = Relativizer().visit(ast)
+    ast = MusicFlattener().visit(ast)
+    ast = NoteTransformer().visit(ast)
+    ast = TieRemover().visit(ast)
+    return ast

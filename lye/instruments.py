@@ -1,4 +1,4 @@
-from lye.types import Note
+from lye.ast import SciNote
 
 instruments = [
     "acoustic grand",
@@ -267,11 +267,11 @@ bounds = {
 NEAREST, LOWEST, HIGHEST = range(3)
 
 def top_margin(melody, bound):
-    i = max(note.pitch for note in melody.notes if isinstance(note, Note))
+    i = max(note.pitch for note in melody.notes if isinstance(note, SciNote))
     return bound - i
 
 def bottom_margin(melody, bound):
-    i = min(note.pitch for note in melody.notes if isinstance(note, Note))
+    i = min(note.pitch for note in melody.notes if isinstance(note, SciNote))
     return i - bound
 
 def fit(melody, instrument, strategy=NEAREST):
@@ -289,7 +289,7 @@ def fit(melody, instrument, strategy=NEAREST):
         adjustment = octaves * 12
         notes = []
         for note in melody.notes:
-            if isinstance(note, Note):
+            if isinstance(note, SciNote):
                 note = note._replace(pitch=note.pitch - adjustment)
             notes.append(note)
         melody.notes = notes
@@ -298,7 +298,7 @@ def fit(melody, instrument, strategy=NEAREST):
         adjustment = octaves * 12
         notes = []
         for note in melody.notes:
-            if isinstance(note, Note):
+            if isinstance(note, SciNote):
                 note = note._replace(pitch=note.pitch + adjustment)
             notes.append(note)
         melody.notes = notes

@@ -4,10 +4,10 @@ from fluidsynth import fluidsynth
 
 from pymeta.runtime import ParseError
 
-from lye.algos import simplify_ties
-from lye.grammar import Chord, LyGrammar, LyeError
+from lye.ast import MEASURE, PARTIAL, SciNote, Rest
+from lye.grammar import Chord, LyeGrammar, LyeError
 from lye.instruments import NEAREST, fit
-from lye.types import MEASURE, PARTIAL, Note, Rest
+from lye.visitor import simplify_ast
 
 class Melody(object):
 
@@ -15,16 +15,15 @@ class Melody(object):
     volume = 127
     pan = 63
 
-    def __init__(self, notes, tpb):
-        self.notes = notes
+    def __init__(self, exprs, tpb):
+        self.exprs = exprs
         self.tpb = tpb
-        simplify_ties(notes)
 
     def __nonzero__(self):
-        return any(self.notes)
+        return any(self.exprs)
 
     def __repr__(self):
-        return "Melody(%r, %d)" % (self.notes, self.tpb)
+        return "Melody(%r, %d)" % (self.exprs, self.tpb)
 
     __str__ = __repr__
 
@@ -71,7 +70,7 @@ class Melody(object):
         for o in self.notes:
             if isinstance(o, Chord):
                 for i, pitch in enumerate(sorted(o.pitches, reverse=True)):
-                    melodies[i].append(Note(pitch, None, o.duration))
+                    melodies[i].append(SciNote(pitch, o.duration))
                 for i in range(i + 1, len(melodies)):
                     # Create rests.
                     melodies[i].append(Rest(None, o.duration))
@@ -130,7 +129,7 @@ class Melody(object):
                 for pitch in note.pitches:
                     scheduled.append(Note(pitch, begin, note.duration))
 
-            elif isinstance(note, Note):
+            elif isinstance(note, SciNote):
                 # Note
                 begin = relative_marker
                 # XXX fudge?
@@ -185,11 +184,8 @@ def melody_from_ly(s):
     Make a `Melody` from a ly string.
     """
 
-    try:
-        g = LyGrammar(s)
-        melody = Melody(g.apply("melody")[0], g.tpb)
-        if not melody:
-            raise LyeError("Failed melody %s" % s)
-    except ParseError, pe:
-        raise LyeError("Couldn't parse: %s" % pe.formatError(s))
+    g = LyeGrammar(s)
+    ast = g.ast()
+    ast = simplify_ast(ast)
+    melody = Melody(ast, 120)
     return melody
