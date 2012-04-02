@@ -1,11 +1,15 @@
 from __future__ import division
 
+from collections import namedtuple
+
 from fluidsynth import fluidsynth
 
-from lye.ast import MEASURE, PARTIAL, Music, Note, SciNote, Rest
+from lye.ast import MEASURE, PARTIAL, Music, SciNote, Rest, Voice
 from lye.grammar import Chord, LyeGrammar
 from lye.instruments import NEAREST, fit
 from lye.visitor import simplify_ast
+
+ScheduledNote = namedtuple("ScheduledNote", "pitch, begin, duration")
 
 class Melody(object):
 
@@ -98,20 +102,8 @@ class Melody(object):
         partial_offset = 0
         scheduled = []
 
-        for i, note in enumerate(self.notes):
-            if isinstance(note, list):
-                nested = Melody(note, self.tpb).schedule_notes()
-                nested = [n._replace(begin=n.begin + relative_marker)
-                    for n in nested]
-                # If the next thing's not part of a voice, bump the relative
-                # marker.
-                if (len(self.notes) > i + 1 and
-                    not isinstance(self.notes[i + 1], list)):
-                        relative_marker = (nested[-1].begin +
-                            nested[-1].duration)
-                scheduled.extend(nested)
-
-            elif note is MEASURE:
+        for i, expr in enumerate(self.music.exprs):
+            if expr is MEASURE:
                 remainder = ((relative_marker - partial_offset) % self.tpb)
                 if remainder and not partial:
                     print "Marker is off by %d" % remainder
@@ -119,27 +111,39 @@ class Melody(object):
                 partial = False
                 partial_offset = remainder
 
-            elif note is PARTIAL:
+            elif expr is PARTIAL:
                 partial = True
 
-            elif isinstance(note, Chord):
+            elif isinstance(expr, Voice):
+                nested = Melody(expr, self.tpb).schedule_notes()
+                nested = [n._replace(begin=n.begin + relative_marker)
+                    for n in nested]
+                # If the next thing's not part of a voice, bump the relative
+                # marker.
+                if (len(self.music.exprs) > i + 1 and
+                    not isinstance(self.music.exprs[i + 1], Voice)):
+                        relative_marker = (nested[-1].begin +
+                            nested[-1].duration)
+                scheduled.extend(nested)
+
+            elif isinstance(expr, Chord):
                 begin = relative_marker
-                relative_marker = begin + note.duration
+                relative_marker = begin + expr.notes[0].duration
 
-                for pitch in note.pitches:
-                    scheduled.append(Note(pitch, begin, note.duration))
+                for note in expr.notes:
+                    scheduled.append(ScheduledNote(note.pitch, begin,
+                        note.duration))
 
-            elif isinstance(note, SciNote):
-                # Note
+            elif isinstance(expr, SciNote):
                 begin = relative_marker
-                # XXX fudge?
-                relative_marker = begin + note.duration
+                relative_marker = begin + expr.duration
 
-                scheduled.append(note._replace(begin=begin))
+                scheduled.append(ScheduledNote(expr.pitch, begin,
+                    expr.duration))
 
-            elif isinstance(note, Rest):
+            elif isinstance(expr, Rest):
                 begin = relative_marker
-                relative_marker = begin + note.duration
+                relative_marker = begin + expr.duration
 
         return scheduled
 

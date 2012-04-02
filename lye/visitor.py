@@ -2,7 +2,7 @@ from fractions import Fraction
 from operator import mul
 
 from lye.algos import pitch_to_number, simplify_ties
-from lye.ast import Duration, Music, SciNote
+from lye.ast import Duration, Music, SciNote, Voice
 
 def hasfield(obj, name):
     return hasattr(obj, "_fields") and name in obj._fields
@@ -43,6 +43,27 @@ class Visitor(object):
             node = node._replace(notes=notes)
 
         return node
+
+class DrumsTransformer(Visitor):
+    """
+    Drums aren't actually meaningful as a node at the moment, so simplify them
+    by returning their contents.
+    """
+
+    def visit_Drums(self, drums):
+        return drums.expr, True
+
+class VoicesTransformer(Visitor):
+    """
+    Children of Voices are always Music. Specializing them to Voice adds
+    semantic information which Music does not provide for later consumers.
+    """
+
+    def visit_Voices(self, voices):
+        for i, music in enumerate(voices.exprs):
+            voice = Voice(music.exprs)
+            voices.exprs[i] = voice
+        return voices, True
 
 class DurationVisitor(Visitor):
     """
@@ -226,6 +247,8 @@ class TieRemover(Visitor):
         return node, True
 
 def simplify_ast(ast):
+    ast = DrumsTransformer().visit(ast)
+    ast = VoicesTransformer().visit(ast)
     ast = DurationVisitor().visit(ast)
     ast = TimesVisitor().visit(ast)
     ast = Relativizer().visit(ast)
