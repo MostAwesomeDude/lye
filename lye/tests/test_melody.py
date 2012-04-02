@@ -1,7 +1,5 @@
 import unittest
 
-from pymeta.runtime import ParseError
-
 from lye.grammar import LyeGrammar
 from lye.tests.helpers import ParsingMixin
 

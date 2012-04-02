@@ -1,6 +1,6 @@
 import unittest
 
-from lye.ast import MEASURE, PARTIAL, Duration, SciNote
+from lye.ast import Duration, SciNote
 from lye.grammar import LyeGrammar
 from lye.tests.helpers import ParsingMixin
 
