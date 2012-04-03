@@ -29,7 +29,7 @@ class Melody(object):
         return any(self.music)
 
     def __repr__(self):
-        return "Melody(%r, %d)" % (self.music, self.tpb)
+        return "Melody(%d, %d, %r)" % (self.tpb, len(self), self.scheduled)
 
     __str__ = __repr__
 

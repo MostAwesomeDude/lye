@@ -1,7 +1,15 @@
-from pymeta.grammar import OMeta
-from pymeta.runtime import ParseError
+from fractions import gcd
+from operator import mul
 
 from lye.instruments import instruments as midi_instruments
+
+INSTRUMENT, LYNE = range(2)
+
+def multipliers(numbers):
+    denominator = reduce(gcd, numbers)
+    numerator = max(numbers) // denominator
+    lcm = denominator * numerator
+    return [lcm // number for number in numbers]
 
 def find_instrument(name):
     """
@@ -22,28 +30,6 @@ def find_instrument(name):
             % (name, found))
     return found[0]
 
-LYNE, INSTRUMENT = range(2)
-
-grammar = """
-punctuation ::= '(' | ')'
-word ::= (<letterOrDigit> | <punctuation>)+:w => "".join(w)
-bareWord ::= <spaces> <word>:w (<spaces> <word>)*:ws
-           => " ".join([w] + ws).strip()
-
-extras ::= (<token "|"> <bareWord>)*
-
-instrument ::= <token ">"> <bareWord>:word <extras>:words
-       => INSTRUMENT, [word] + words
-
-lyne ::= <token "&"> <bareWord>:word <extras>:words
-       => LYNE, [word] + words
-
-timelyne ::= (<instrument> | <lyne>)+
-"""
-
-class LyneGrammar(OMeta.makeGrammar(grammar, globals())):
-    pass
-
 class Timelyne(object):
     """
     A song assembled from Lye snippets.
@@ -54,26 +40,21 @@ class Timelyne(object):
         self.library = library
 
     @classmethod
-    def from_file(cls, library, data):
+    def from_lines(cls, library, lines):
         """
-        Parse a song from a file.
+        Parse a song from a series of lines.
         """
 
         self = cls(library)
-        try:
-            g = LyneGrammar(data)
-            parsed, error = g.apply("timelyne")
-        except ParseError, pe:
-            raise Exception("Couldn't parse: %s" % pe.formatError(data))
-        else:
-            print "Parsed!"
-            print error
-
-        for directive, tokens in parsed:
-            if directive == INSTRUMENT:
+        for line in lines:
+            marker, line = line[0], line[1:]
+            tokens = [i.strip() for i in line.split("|")]
+            if marker == ">":
                 self.set_instruments(tokens)
-            elif directive == LYNE:
+            elif marker == "&":
                 self.add_lynes(tokens)
+            else:
+                print "Unknown marker %s with line %r" % (marker, line)
 
         return self
 
@@ -84,8 +65,16 @@ class Timelyne(object):
             self.channels[i].append((INSTRUMENT, instrument))
 
     def add_lynes(self, names):
+        melodies = []
         for i, name in enumerate(names):
             snippet = self.library.snippets()[name]
-            melody = snippet.melody()
+            melodies.append(snippet.melody())
+
+        lengths = [len(m) for m in melodies]
+        muls = multipliers(lengths)
+
+        print "Using multipliers %r" % muls
+
+        for i, melody in enumerate(melodies):
             print "Setting %d to %s" % (i, melody)
             self.channels[i].append((LYNE, melody))
