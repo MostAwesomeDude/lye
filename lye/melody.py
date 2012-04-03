@@ -17,9 +17,13 @@ class Melody(object):
     volume = 127
     pan = 63
 
+    _len = None
+    _scheduled = None
+
     def __init__(self, music, tpb):
         self.music = music
         self.tpb = tpb
+        self._scheduled, self._len = self.schedule_notes()
 
     def __nonzero__(self):
         return any(self.music)
@@ -29,18 +33,12 @@ class Melody(object):
 
     __str__ = __repr__
 
-    def __mul__(self, value):
-        """
-        Extend this melody.
-        """
+    def __len__(self):
+        return self._len
 
-        m = Music(exprs=self.music.exprs * value)
-
-        other = Melody(m, self.tpb)
-        other.pan = self.pan
-        other.volume = self.volume
-        other.instrument = self.instrument
-        return other
+    @property
+    def scheduled(self):
+        return self._scheduled
 
     def fit(self, strategy=NEAREST):
         """
@@ -145,14 +143,12 @@ class Melody(object):
                 begin = relative_marker
                 relative_marker = begin + expr.duration
 
-        return scheduled
+        return scheduled, relative_marker
 
     def to_fs(self, sequencer):
         """
         Sends the melody to `sequencer`.
         """
-
-        scheduled = self.schedule_notes()
 
         # XXX
         # tpb = sequencer.ticks_per_beat
@@ -162,7 +158,7 @@ class Melody(object):
         # XXX this fudge value might not be needed?
         ticks = sequencer.ticks + 10
 
-        for pitch, begin, duration in scheduled:
+        for pitch, begin, duration in self.scheduled:
             event = fluidsynth.FluidEvent()
             event.dest = dest
             # XXX ? pitch vel duration
@@ -174,11 +170,9 @@ class Melody(object):
         Create a MIDI expression for this melody.
         """
 
-        scheduled = self.schedule_notes()
-
         track = 0
 
-        for pitch, begin, duration in scheduled:
+        for pitch, begin, duration in self.scheduled:
             begin = begin / self.tpb
             duration = duration / self.tpb
             f.addNote(track, channel, pitch, begin, duration, self.volume)
