@@ -9,6 +9,12 @@ import Text.Trifecta.Highlight.Prim
 
 type Fraction = Ratio Integer
 
+data Accidental = Flat | Sharp
+    deriving (Show)
+
+data Octave = OctaveDown | OctaveUp
+    deriving (Show)
+
 data Marker = EndVoice
             | Measure
             | Partial
@@ -19,7 +25,7 @@ data Expression = Chord [Expression]
                 | Drums Expression
                 | Duration Integer Integer
                 | Music [Expression]
-                | Note Integer Integer Integer Integer
+                | Note Integer [Accidental] [Octave] Integer
                 | Rest Integer
                 | SciNote Integer Integer
                 | Times Fraction Expression
@@ -27,6 +33,7 @@ data Expression = Chord [Expression]
                 | Voices [Expression]
     deriving (Show)
 
+-- From edwardk's stash-o-stuff.
 infixl 4 <$!>
 
 (<$!>) :: Monad m => (a -> b) -> m a -> m b
@@ -39,3 +46,30 @@ parseNumber = highlight Number decimal <?> "number"
 
 parseFraction :: MonadParser m => m Fraction
 parseFraction = (%) <$!> parseNumber <* char '/' <*> parseNumber <?> "fraction"
+
+parseDots :: MonadParser m => m Integer
+parseDots = do
+    ds <- many (oneOf ".")
+    return $ fromIntegral (length ds)
+
+parseDuration :: MonadParser m => m Expression
+parseDuration = Duration <$!> parseNumber <*> parseDots <?> "duration"
+
+_char2Octave :: Char -> Octave
+_char2Octave c = case c of
+    '\'' -> OctaveUp
+    ',' -> OctaveDown
+
+parseOctave :: MonadParser m => m Octave
+parseOctave = do
+    c <- oneOf "',"
+    return $ _char2Octave c
+
+parseFlat :: MonadParser m => m Accidental
+parseFlat = string "es" >> return Flat
+
+parseSharp :: MonadParser m => m Accidental
+parseSharp = string "is" >> return Sharp
+
+parseAccidental :: MonadParser m => m Accidental
+parseAccidental = parseFlat <|> parseSharp
