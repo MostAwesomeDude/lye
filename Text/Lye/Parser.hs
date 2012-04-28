@@ -28,6 +28,7 @@ data Expression = Chord [Expression]
                 | Duration Integer Integer
                 | Music [Expression]
                 | RawNote Char [Accidental] [Octave] (Maybe Expression)
+                | Relative Char [Octave] Expression
                 | Rest (Maybe Expression)
                 | SciNote Integer Integer
                 | Times Fraction Expression
@@ -100,6 +101,15 @@ parseNoteExpr = lexeme $ RawNote <$!>
     <*> many parseOctave
     <*> optional parseDuration
 
+parseRelativeExpr :: MonadParser m => m Expression
+parseRelativeExpr = do
+    lexstr "\\relative"
+    pitch <- parsePitch
+    many parseAccidental
+    octaves <- lexeme $ many parseOctave
+    expr <- parseExpr
+    return $! Relative pitch octaves expr
+
 parseRestExpr :: MonadParser m => m Expression
 parseRestExpr = do
     parseRest
@@ -110,6 +120,7 @@ parseExpr :: MonadParser m => m Expression
 parseExpr = choice
     [ parseMusicExpr
     , parseNoteExpr
+    , parseRelativeExpr
     , parseRestExpr
     , Chord <$!> angles (many parseNoteExpr)
     , Times <$!> (lexstr "\\times" *> parseFraction) <*> parseMusicExpr ]
