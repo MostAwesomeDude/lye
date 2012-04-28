@@ -28,7 +28,7 @@ data Expression = Chord [Expression]
                 | Duration Integer Integer
                 | Music [Expression]
                 | RawNote Char [Accidental] [Octave] (Maybe Expression)
-                | Rest Integer
+                | Rest (Maybe Expression)
                 | SciNote Integer Integer
                 | Times Fraction Expression
                 | Voice [Expression]
@@ -43,15 +43,22 @@ f <$!> ma = do
     a <- ma
     return $! f a
 
+lexstr :: MonadParser m => String -> m String
+lexstr = lexeme . string
+
 parseNumber :: MonadParser m => m Integer
-parseNumber = highlight Number decimal <?> "number"
+parseNumber = highlight Number (lexeme decimal) <?> "number"
 
 parseFraction :: MonadParser m => m Fraction
-parseFraction = (%) <$!> parseNumber <* char '/' <*> parseNumber <?> "fraction"
+parseFraction = (%) <$!>
+    parseNumber
+    <* char '/'
+    <*> parseNumber
+    <?> "fraction"
 
 parseDots :: MonadParser m => m Integer
 parseDots = do
-    ds <- many (oneOf ".")
+    ds <- lexeme $ many (oneOf ".")
     return $ fromIntegral (length ds)
 
 parseDuration :: MonadParser m => m Expression
@@ -77,17 +84,32 @@ parseAccidental :: MonadParser m => m Accidental
 parseAccidental = parseFlat <|> parseSharp
 
 parsePitch :: MonadParser m => m Char
-parsePitch = highlight ReservedOperator (oneOf "abcdefg") <?> "pitch"
+parsePitch = spaces
+    *> highlight ReservedOperator (oneOf "abcdefg") <?> "pitch"
+
+parseRest :: MonadParser m => m Char
+parseRest = highlight ReservedOperator (oneOf "r") <?> "rest"
+
+parseMusicExpr :: MonadParser m => m Expression
+parseMusicExpr = Music <$!> braces (many parseExpr)
 
 parseNoteExpr :: MonadParser m => m Expression
-parseNoteExpr = RawNote <$!>
+parseNoteExpr = lexeme $ RawNote <$!>
     parsePitch
     <*> many parseAccidental
     <*> many parseOctave
     <*> optional parseDuration
-    <* someSpace
+
+parseRestExpr :: MonadParser m => m Expression
+parseRestExpr = do
+    parseRest
+    duration <- optional parseDuration
+    return $! Rest duration
 
 parseExpr :: MonadParser m => m Expression
 parseExpr = choice
-    [ parseNoteExpr
-    , Music <$!> braces (many parseExpr) ]
+    [ parseMusicExpr
+    , parseNoteExpr
+    , parseRestExpr
+    , Chord <$!> angles (many parseNoteExpr)
+    , Times <$!> (lexstr "\\times" *> parseFraction) <*> parseMusicExpr ]
