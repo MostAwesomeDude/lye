@@ -4,7 +4,9 @@ import Control.Applicative
 import Data.Ratio
 import Text.Trifecta.Parser.Char
 import Text.Trifecta.Parser.Class
+import Text.Trifecta.Parser.Combinators
 import Text.Trifecta.Parser.Token.Prim (decimal)
+import Text.Trifecta.Parser.Token.Combinators
 import Text.Trifecta.Highlight.Prim
 
 type Fraction = Ratio Integer
@@ -25,7 +27,7 @@ data Expression = Chord [Expression]
                 | Drums Expression
                 | Duration Integer Integer
                 | Music [Expression]
-                | Note Integer [Accidental] [Octave] Integer
+                | RawNote Char [Accidental] [Octave] (Maybe Expression)
                 | Rest Integer
                 | SciNote Integer Integer
                 | Times Fraction Expression
@@ -73,3 +75,19 @@ parseSharp = string "is" >> return Sharp
 
 parseAccidental :: MonadParser m => m Accidental
 parseAccidental = parseFlat <|> parseSharp
+
+parsePitch :: MonadParser m => m Char
+parsePitch = highlight ReservedOperator (oneOf "abcdefg") <?> "pitch"
+
+parseNoteExpr :: MonadParser m => m Expression
+parseNoteExpr = RawNote <$!>
+    parsePitch
+    <*> many parseAccidental
+    <*> many parseOctave
+    <*> optional parseDuration
+    <* someSpace
+
+parseExpr :: MonadParser m => m Expression
+parseExpr = choice
+    [ parseNoteExpr
+    , Music <$!> braces (many parseExpr) ]
