@@ -246,6 +246,18 @@ class TieRemover(Visitor):
             simplify_ties(node.exprs)
         return node, True
 
+class Multiply(Visitor):
+    """
+    Repeat all sequences of notes by a given amount.
+    """
+
+    def __init__(self, multiplier):
+        self.multiplier = multiplier
+
+    def visit_Music(self, music):
+        music = music._replace(exprs=music.exprs * self.multiplier)
+        return music, True
+
 def simplify_ast(ast):
     ast = DrumsTransformer().visit(ast)
     ast = VoicesTransformer().visit(ast)

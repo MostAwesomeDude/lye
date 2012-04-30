@@ -61,7 +61,7 @@ class Timelyne(object):
     def set_instruments(self, instruments):
         for i, instrument in enumerate(instruments):
             instrument = find_instrument(instrument)
-            print "Setting %d to %s" % (i, instrument)
+            print "%d: Instrument %s" % (i, instrument)
             self.channels[i].append((INSTRUMENT, instrument))
 
     def add_lynes(self, names):
@@ -73,8 +73,7 @@ class Timelyne(object):
         lengths = [len(m) for m in melodies]
         muls = multipliers(lengths)
 
-        print "Using multipliers %r" % muls
-
         for i, melody in enumerate(melodies):
-            print "Setting %d to %s" % (i, melody)
-            self.channels[i].append((LYNE, melody))
+            new = melody * muls[i]
+            print "%d: Original %d, adjusted %d" % (i, len(melody), len(new))
+            self.channels[i].append((LYNE, new))

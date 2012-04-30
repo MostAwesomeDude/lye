@@ -7,7 +7,7 @@ from fluidsynth import fluidsynth
 from lye.ast import MEASURE, PARTIAL, Music, SciNote, Rest, Voice
 from lye.grammar import Chord, LyeGrammar
 from lye.instruments import NEAREST, fit
-from lye.visitor import simplify_ast
+from lye.visitor import Multiply, simplify_ast
 
 ScheduledNote = namedtuple("ScheduledNote", "pitch, begin, duration")
 
@@ -35,6 +35,10 @@ class Melody(object):
 
     def __len__(self):
         return self._len
+
+    def __mul__(self, other):
+        music = Multiply(other).visit(self.music)
+        return Melody(music, self.tpb)
 
     @property
     def scheduled(self):
