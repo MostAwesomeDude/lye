@@ -1,7 +1,11 @@
-from fractions import gcd
-from operator import mul
+from __future__ import division
 
-from lye.instruments import instruments as midi_instruments
+from fractions import gcd
+from StringIO import StringIO
+
+from lye.MidiFile import MIDIFile
+from lye.instruments import (instruments as midi_instruments,
+                             numbered_instruments)
 
 INSTRUMENT, LYNE = range(2)
 
@@ -34,6 +38,9 @@ class Timelyne(object):
     """
     A song assembled from Lye snippets.
     """
+
+    tempo = 120
+    ticks_per_beat = 120
 
     def __init__(self, library):
         self.channels = [[] for chaff in range(16)]
@@ -77,3 +84,29 @@ class Timelyne(object):
             new = melody * muls[i]
             print "%d: Original %d, adjusted %d" % (i, len(melody), len(new))
             self.channels[i].append((LYNE, new))
+
+    def to_midi(self):
+        f = MIDIFile(len(self.channels), ticksPerBeat=self.ticks_per_beat)
+
+        time = [0] * len(self.channels)
+        track = 0
+
+        f.addTrackName(track, 0, "Lye")
+        f.addTempo(track, 0, self.tempo)
+
+        for channel, l in enumerate(self.channels):
+            for t, data in l:
+                if t is INSTRUMENT:
+                    f.addProgramChange(track, channel, time[channel],
+                            numbered_instruments[data])
+                elif t is LYNE:
+                    for pitch, begin, duration in data.scheduled:
+                        begin = begin / data.tpb + time[channel]
+                        duration = duration / data.tpb
+                        f.addNote(track, channel, pitch, begin, duration,
+                                data.volume)
+                    time[channel] += len(data)
+
+        sio = StringIO()
+        f.writeFile(sio)
+        return sio.getvalue()

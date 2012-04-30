@@ -3,6 +3,10 @@ import sys
 from lye.timelyne import Timelyne
 from lye.library import Library
 
-f = open(sys.argv[1], "rb")
 library = Library("groove")
-lyne = Timelyne.from_lines(library, f)
+
+with open(sys.argv[1], "rb") as f:
+    lyne = Timelyne.from_lines(library, f)
+    data = lyne.to_midi()
+    with open(sys.argv[2], "wb") as out:
+        out.write(data)
