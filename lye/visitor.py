@@ -256,7 +256,15 @@ class Multiply(Visitor):
 
     def visit_Music(self, music):
         music = music._replace(exprs=music.exprs * self.multiplier)
-        return music, True
+        return music, False
+
+    def visit_Voices(self, voices):
+        exprs = []
+        for voice in voices.exprs:
+            voice = voice._replace(exprs=voice.exprs * self.multiplier)
+            exprs.append(voice)
+        voices = voices._replace(exprs=exprs)
+        return voices, False
 
 def simplify_ast(ast):
     ast = DrumsTransformer().visit(ast)
