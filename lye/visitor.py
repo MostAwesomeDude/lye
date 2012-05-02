@@ -275,6 +275,18 @@ class Multiply(Visitor):
         voices = voices._replace(exprs=exprs)
         return voices, False
 
+class Transposer(Visitor):
+    """
+    Adjust an entire expression's pitches by a given amount.
+    """
+
+    def __init__(self, adjustment):
+        self.adjustment = adjustment
+
+    def visit_SciNote(self, scinote):
+        scinote = scinote._replace(pitch=scinote.pitch + self.adjustment)
+        return scinote, False
+
 def simplify_ast(ast):
     ast = DrumsTransformer().visit(ast)
     ast = VoicesTransformer().visit(ast)
