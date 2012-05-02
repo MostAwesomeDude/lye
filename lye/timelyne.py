@@ -9,6 +9,8 @@ from lye.instruments import (instruments as midi_instruments,
 
 INSTRUMENT, LYNE = range(2)
 
+TACET = object()
+
 def multipliers(numbers):
     denominator = reduce(gcd, numbers)
     numerator = max(numbers) // denominator
@@ -42,6 +44,8 @@ class Timelyne(object):
     tempo = 120
     ticks_per_beat = 120
 
+    _previous_lynes = None
+
     def __init__(self, library):
         self.channels = [[] for chaff in range(16)]
         self.library = library
@@ -54,6 +58,7 @@ class Timelyne(object):
 
         self = cls(library)
         for line in lines:
+            print "==="
             line = line.strip()
             marker, line = line[0], line[1:]
             if marker == "\\":
@@ -87,16 +92,38 @@ class Timelyne(object):
     def add_lynes(self, names):
         melodies = []
         for i, name in enumerate(names):
-            snippet = self.library.snippets()[name]
-            melodies.append(snippet.melody())
+            if name == '"':
+                if self._previous_lynes:
+                    melodies.append(self._previous_lynes[i])
+                else:
+                    raise Exception("Can't use \" in first lyne!")
+            elif name == "-":
+                melodies.append(TACET)
+            else:
+                snippet = self.library.snippets()[name]
+                melodies.append(snippet.melody())
 
-        lengths = [len(m) for m in melodies]
+        self._previous_lynes = melodies
+
+        lengths = []
+        for m in melodies:
+            if m is TACET:
+                lengths.append(1)
+            else:
+                lengths.append(len(m))
+
         muls = multipliers(lengths)
+        total = lengths[0] * muls[0]
 
         for i, melody in enumerate(melodies):
-            new = melody * muls[i]
-            print "%d: Original %d, adjusted %d" % (i, len(melody), len(new))
-            self.channels[i].append((LYNE, new))
+            if melody is TACET:
+                print "%d: Tacet (%d)" % (i, total)
+                self.channels[i].append((TACET, total))
+            else:
+                new = melody * muls[i]
+                print "%d: Original %d, adjusted %d" % (i, len(melody),
+                    len(new))
+                self.channels[i].append((LYNE, new))
 
     def to_midi(self):
         f = MIDIFile(len(self.channels), ticksPerBeat=self.ticks_per_beat)
@@ -118,7 +145,9 @@ class Timelyne(object):
                         duration = duration / data.tpb
                         f.addNote(track, channel, pitch, begin, duration,
                                 data.volume)
-                    time[channel] += len(data)
+                    time[channel] += len(data) / self.ticks_per_beat
+                elif t is TACET:
+                    time[channel] += data / self.ticks_per_beat
 
         sio = StringIO()
         f.writeFile(sio)
