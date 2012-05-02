@@ -1,4 +1,5 @@
-from lye.ast import SciNote
+from lye.ast import Chord, SciNote
+from lye.visitor import Transposer
 
 instruments = [
     "acoustic grand",
@@ -267,11 +268,23 @@ bounds = {
 NEAREST, LOWEST, HIGHEST = range(3)
 
 def top_margin(melody, bound):
-    i = max(note.pitch for note in melody.exprs if isinstance(note, SciNote))
+    pitches = []
+    for expr in melody.exprs:
+        if isinstance(expr, SciNote):
+            pitches.append(expr.pitch)
+        elif isinstance(expr, Chord):
+            pitches.append(expr.notes[-1].pitch)
+    i = max(pitches)
     return bound - i
 
 def bottom_margin(melody, bound):
-    i = min(note.pitch for note in melody.exprs if isinstance(note, SciNote))
+    pitches = []
+    for expr in melody.exprs:
+        if isinstance(expr, SciNote):
+            pitches.append(expr.pitch)
+        elif isinstance(expr, Chord):
+            pitches.append(expr.notes[0].pitch)
+    i = min(pitches)
     return i - bound
 
 def fit(melody, instrument, strategy=NEAREST):
@@ -285,22 +298,10 @@ def fit(melody, instrument, strategy=NEAREST):
         strategy = HIGHEST if top < 0 else LOWEST
 
     if strategy == LOWEST:
-        octaves = bottom // 12
-        adjustment = octaves * 12
-        notes = []
-        for note in melody.exprs:
-            if isinstance(note, SciNote):
-                note = note._replace(pitch=note.pitch - adjustment)
-            notes.append(note)
-        melody = melody._replace(exprs=notes)
+        octaves = -bottom // 12
     elif strategy == HIGHEST:
         octaves = top // 12
-        adjustment = octaves * 12
-        notes = []
-        for note in melody.exprs:
-            if isinstance(note, SciNote):
-                note = note._replace(pitch=note.pitch + adjustment)
-            notes.append(note)
-        melody = melody._replace(exprs=notes)
 
+    adjustment = octaves * 12
+    melody = Transposer(adjustment).visit(melody)
     return melody
