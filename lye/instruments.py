@@ -211,7 +211,7 @@ bounds = {
     "recorder": (0, 88),
     "pan flute": (0, 88),
     "blown bottle": (0, 88),
-    "shakuhachi": (0, 88),
+    "shakuhachi": (57, 88), # A3 -- (WP)
     "whistle": (0, 88),
     "ocarina": (0, 88),
     "lead 1 (square)": (0, 88),
