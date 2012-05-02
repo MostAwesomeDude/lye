@@ -1,5 +1,5 @@
 from fractions import Fraction
-from operator import mul
+from operator import attrgetter, mul
 
 from lye.algos import pitch_to_number, simplify_ties
 from lye.ast import Duration, Music, SciNote, Voice
@@ -246,6 +246,15 @@ class TieRemover(Visitor):
             simplify_ties(node.exprs)
         return node, True
 
+class ChordSorter(Visitor):
+    """
+    Ensure Chords have their notes in strictly increasing order.
+    """
+
+    def visit_Chord(self, chord):
+        chord.notes.sort(key=attrgetter("pitch"))
+        return chord, False
+
 class Multiply(Visitor):
     """
     Repeat all sequences of notes by a given amount.
@@ -274,5 +283,6 @@ def simplify_ast(ast):
     ast = Relativizer().visit(ast)
     ast = MusicFlattener().visit(ast)
     ast = NoteTransformer().visit(ast)
+    ast = ChordSorter().visit(ast)
     ast = TieRemover().visit(ast)
     return ast
