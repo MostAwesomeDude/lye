@@ -1,15 +1,12 @@
 from __future__ import division
 
-from collections import namedtuple
-
 from fluidsynth import fluidsynth
 
-from lye.ast import MEASURE, PARTIAL, Music, SciNote, Rest, Voice
+from lye.algos import schedule_notes
+from lye.ast import Music, Rest
 from lye.grammar import Chord, LyeGrammar
 from lye.instruments import NEAREST, fit
 from lye.visitor import Multiply, simplify_ast
-
-ScheduledNote = namedtuple("ScheduledNote", "pitch, begin, duration")
 
 class Melody(object):
 
@@ -23,7 +20,7 @@ class Melody(object):
     def __init__(self, music, tpb):
         self.music = music
         self.tpb = tpb
-        self._scheduled, self._len = self.schedule_notes()
+        self._scheduled, self._len = schedule_notes(self.music, self.tpb)
 
     def __nonzero__(self):
         return any(self.music)
@@ -91,63 +88,6 @@ class Melody(object):
             melody.volume = self.volume
             rv.append(melody)
         return rv
-
-    def schedule_notes(self):
-        """
-        Attach correct beginning times to notes.
-
-        Additionally, this step discards rests.
-        """
-
-        relative_marker = 0
-        partial = False
-        partial_offset = 0
-        scheduled = []
-
-        for i, expr in enumerate(self.music.exprs):
-            if expr is MEASURE:
-                remainder = ((relative_marker - partial_offset) % self.tpb)
-                if remainder and not partial:
-                    print "Marker is off by %d" % remainder
-                # Start the next bar.
-                partial = False
-                partial_offset = remainder
-
-            elif expr is PARTIAL:
-                partial = True
-
-            elif isinstance(expr, Voice):
-                nested = Melody(expr, self.tpb).schedule_notes()
-                nested = [n._replace(begin=n.begin + relative_marker)
-                    for n in nested]
-                # If the next thing's not part of a voice, bump the relative
-                # marker.
-                if (len(self.music.exprs) > i + 1 and
-                    not isinstance(self.music.exprs[i + 1], Voice)):
-                        relative_marker = (nested[-1].begin +
-                            nested[-1].duration)
-                scheduled.extend(nested)
-
-            elif isinstance(expr, Chord):
-                begin = relative_marker
-                relative_marker = begin + expr.notes[0].duration
-
-                for note in expr.notes:
-                    scheduled.append(ScheduledNote(note.pitch, begin,
-                        note.duration))
-
-            elif isinstance(expr, SciNote):
-                begin = relative_marker
-                relative_marker = begin + expr.duration
-
-                scheduled.append(ScheduledNote(expr.pitch, begin,
-                    expr.duration))
-
-            elif isinstance(expr, Rest):
-                begin = relative_marker
-                relative_marker = begin + expr.duration
-
-        return scheduled, relative_marker
 
     def to_fs(self, sequencer):
         """
