@@ -89,11 +89,12 @@ class Timelyne(object):
             if instrument == "drums":
                 self._drum_channel = i
                 print "%d: Drums"
-                continue
-
-            instrument = find_instrument(instrument)
-            print "%d: Instrument %s" % (i, instrument)
-            self.channels[i].append((INSTRUMENT, instrument))
+            elif instrument in ("-", '"'):
+                print "%d: No change"
+            else:
+                instrument = find_instrument(instrument)
+                print "%d: Instrument %s" % (i, instrument)
+                self.channels[i].append((INSTRUMENT, instrument))
 
     def add_lynes(self, names):
         melodies = []
