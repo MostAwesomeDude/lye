@@ -46,7 +46,7 @@ octave ::= (<octave_up> | <octave_down>)+:o => sum(o)
 
 duration ::= <int>:i '.'*:dots => Duration(i, len(dots))
 
-kit ::= <token "bd"> | <token "hhc"> | <token "sn">
+kit ::= <token "bd"> | <token "hhc"> | <token "hho"> | <token "sn">
 
 pitch ::= <token "c"> | <token "d"> | <token "es"> | <token "e"> |
           <token "f"> | <token "g"> | <token "a"> | <token "b">

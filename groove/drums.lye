@@ -1,6 +1,6 @@
 \drums {
     <<
         { bd16 r r sn r r bd r r r bd r sn r r r }
-        { hhc8   hhc  hhc hhc  hhc hhc  hhc  hhc }
+        { hhc8   hhc  hhc hhc  hhc hhc  hhc  hho }
     >>
 }

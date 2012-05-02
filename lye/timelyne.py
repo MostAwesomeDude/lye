@@ -49,6 +49,7 @@ class Timelyne(object):
 
     def __init__(self, library):
         self.channels = [[] for chaff in range(16)]
+        self._previous_instruments = [None] * 16
         self.library = library
 
     @classmethod
@@ -88,11 +89,12 @@ class Timelyne(object):
         for i, instrument in enumerate(instruments):
             if instrument == "drums":
                 self._drum_channel = i
-                print "%d: Drums"
+                print "%d: Drums" % i
             elif instrument in ("-", '"'):
-                print "%d: No change"
+                print "%d: No change" % i
             else:
                 instrument = find_instrument(instrument)
+                self._previous_instruments[i] = instrument
                 print "%d: Instrument %s" % (i, instrument)
                 self.channels[i].append((INSTRUMENT, instrument))
 
@@ -127,7 +129,13 @@ class Timelyne(object):
                 print "%d: Tacet (%d)" % (i, total)
                 self.channels[i].append((TACET, total))
             else:
+                instrument = self._previous_instruments[i]
                 new = melody * muls[i]
+                new.instrument = instrument
+                try:
+                    new.fit()
+                except ValueError:
+                    print new.music
                 print "%d: Original %d, adjusted %d" % (i, len(melody),
                     len(new))
                 self.channels[i].append((LYNE, new))

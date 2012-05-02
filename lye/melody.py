@@ -48,6 +48,8 @@ class Melody(object):
 
         if self.instrument:
             fit(self.music, self.instrument, strategy)
+        # And reschedule.
+        self._scheduled, self._len = schedule_notes(self.music, self.tpb)
 
     def split(self):
         """
