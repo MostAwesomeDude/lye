@@ -54,7 +54,13 @@ class Timelyne(object):
 
         self = cls(library)
         for line in lines:
+            line = line.strip()
             marker, line = line[0], line[1:]
+            if marker == "\\":
+                # Directive. Add it and break.
+                self.directive(line)
+                continue
+
             tokens = [i.strip() for i in line.split("|")]
             if marker == ">":
                 self.set_instruments(tokens)
@@ -64,6 +70,13 @@ class Timelyne(object):
                 print "Unknown marker %s with line %r" % (marker, line)
 
         return self
+
+    def directive(self, d):
+        k, v = d.split("=")
+        k = k.strip()
+        v = int(v.strip())
+        print "Directive: %s = %d" % (k, v)
+        setattr(self, k, v)
 
     def set_instruments(self, instruments):
         for i, instrument in enumerate(instruments):
