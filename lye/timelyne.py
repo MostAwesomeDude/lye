@@ -44,6 +44,7 @@ class Timelyne(object):
     tempo = 120
     ticks_per_beat = 120
 
+    _drum_channel = None
     _previous_lynes = None
 
     def __init__(self, library):
@@ -85,6 +86,11 @@ class Timelyne(object):
 
     def set_instruments(self, instruments):
         for i, instrument in enumerate(instruments):
+            if instrument == "drums":
+                self._drum_channel = i
+                print "%d: Drums"
+                continue
+
             instrument = find_instrument(instrument)
             print "%d: Instrument %s" % (i, instrument)
             self.channels[i].append((INSTRUMENT, instrument))
@@ -135,6 +141,8 @@ class Timelyne(object):
         f.addTempo(track, 0, self.tempo)
 
         for channel, l in enumerate(self.channels):
+            if self._drum_channel == channel:
+                channel = 9
             for t, data in l:
                 if t is INSTRUMENT:
                     f.addProgramChange(track, channel, time[channel],
