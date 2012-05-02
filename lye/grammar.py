@@ -33,7 +33,11 @@ def concat(l):
         rv.extend(i)
     return rv
 
-grammar = """
+kit_rule = """
+kit ::= %s
+""" % (" | ".join("<token \"%s\">" % note for note in drum_notes))
+
+grammar = kit_rule + """
 int ::= <digit>+:d => int("".join(d))
 
 sharp ::= 'i' 's' => 1
@@ -45,8 +49,6 @@ octave_down ::= ',' => -1
 octave ::= (<octave_up> | <octave_down>)+:o => sum(o)
 
 duration ::= <int>:i '.'*:dots => Duration(i, len(dots))
-
-kit ::= <token "bd"> | <token "hhc"> | <token "hho"> | <token "sn">
 
 pitch ::= <token "c"> | <token "d"> | <token "es"> | <token "e"> |
           <token "f"> | <token "g"> | <token "a"> | <token "b">
