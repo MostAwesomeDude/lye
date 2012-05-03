@@ -7,7 +7,7 @@ from lye.MidiFile import MIDIFile
 from lye.instruments import (instruments as midi_instruments,
                              numbered_instruments)
 
-INSTRUMENT, LYNE = range(2)
+INSTRUMENT, LYNE, PAN = range(3)
 
 TACET = object()
 
@@ -71,6 +71,8 @@ class Timelyne(object):
             tokens = [i.strip() for i in line.split("|")]
             if marker == ">":
                 self.set_instruments(tokens)
+            elif marker == "%":
+                self.set_pan(tokens)
             elif marker == "&":
                 self.add_lynes(tokens)
             else:
@@ -97,6 +99,10 @@ class Timelyne(object):
                 self._previous_instruments[i] = instrument
                 print "%d: Instrument %s" % (i, instrument)
                 self.channels[i].append((INSTRUMENT, instrument))
+
+    def set_pan(self, pans):
+        for i, pan in enumerate(pans):
+            self.channels[i].append((PAN, int(pan)))
 
     def add_lynes(self, names):
         melodies = []
@@ -163,6 +169,9 @@ class Timelyne(object):
                         f.addNote(track, channel, pitch, begin, duration,
                                 data.volume)
                     time[channel] += len(data) / self.ticks_per_beat
+                elif t is PAN:
+                    f.addControllerEvent(track, channel, time[channel], 0x0a,
+                            data)
                 elif t is TACET:
                     time[channel] += data / self.ticks_per_beat
 
