@@ -273,7 +273,7 @@ def top_margin(melody, bound):
         if isinstance(expr, SciNote):
             pitches.append(expr.pitch)
         elif isinstance(expr, Chord):
-            pitches.append(expr.notes[-1].pitch)
+            pitches.append(expr.notes[0].pitch)
     i = max(pitches)
     return bound - i
 
@@ -283,7 +283,7 @@ def bottom_margin(melody, bound):
         if isinstance(expr, SciNote):
             pitches.append(expr.pitch)
         elif isinstance(expr, Chord):
-            pitches.append(expr.notes[0].pitch)
+            pitches.append(expr.notes[-1].pitch)
     i = min(pitches)
     return i - bound
 

@@ -115,8 +115,15 @@ class Timelyne(object):
             elif name == "-":
                 melodies.append(TACET)
             else:
-                snippet = self.library.snippets()[name]
-                melodies.append(snippet.melody())
+                if name.endswith("]"):
+                    name, chaff, voice = name.partition("[")
+                    voice = int(voice[:-1])
+                    snippet = self.library.snippets()[name]
+                    melody = snippet.melody().split()[voice]
+                else:
+                    snippet = self.library.snippets()[name]
+                    melody = snippet.melody()
+                melodies.append(melody)
 
         self._previous_lynes = melodies
 

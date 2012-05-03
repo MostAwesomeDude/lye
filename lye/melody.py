@@ -3,10 +3,9 @@ from __future__ import division
 from fluidsynth import fluidsynth
 
 from lye.algos import schedule_notes
-from lye.ast import Music, Rest
-from lye.grammar import Chord, LyeGrammar
+from lye.grammar import LyeGrammar
 from lye.instruments import NEAREST, fit
-from lye.visitor import Multiply, simplify_ast
+from lye.visitor import ChordCounter, HarmonySplitter, Multiply, simplify_ast
 
 class Melody(object):
 
@@ -63,29 +62,14 @@ class Melody(object):
         Returned melodies are high-to-low.
         """
 
-        count = 0
-
-        for expr in self.music.exprs:
-            if isinstance(expr, Chord):
-                count = max(count, len(expr.notes))
-
-        melodies = [Music([]) for i in range(count)]
-
-        for expr in self.music.exprs:
-            if isinstance(expr, Chord):
-                for i, note in enumerate(sorted(expr.notes, reverse=True)):
-                    melodies[i].exprs.append(note)
-                for i in range(i + 1, len(melodies)):
-                    # Create rests. Rely on the leaked note name from the
-                    # previous loop.
-                    melodies[i].exprs.append(Rest(note.duration))
-            else:
-                for melody in melodies:
-                    melody.exprs.append(expr)
+        counter = ChordCounter()
+        counter.visit(self.music)
+        voices = counter.length
 
         rv = []
-        for m in melodies:
-            melody = Melody(m, self.tpb)
+        for voice in range(voices):
+            melody = Melody(HarmonySplitter(voice).visit(self.music),
+                    self.tpb)
             melody.pan = self.pan
             melody.volume = self.volume
             rv.append(melody)

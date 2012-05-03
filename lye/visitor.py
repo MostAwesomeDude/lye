@@ -248,11 +248,11 @@ class TieRemover(Visitor):
 
 class ChordSorter(Visitor):
     """
-    Ensure Chords have their notes in strictly increasing order.
+    Ensure Chords have their notes in strictly decreasing order.
     """
 
     def visit_Chord(self, chord):
-        chord.notes.sort(key=attrgetter("pitch"))
+        chord.notes.sort(key=attrgetter("pitch"), reverse=True)
         return chord, False
 
 class Multiply(Visitor):
@@ -286,6 +286,34 @@ class Transposer(Visitor):
     def visit_SciNote(self, scinote):
         scinote = scinote._replace(pitch=scinote.pitch + self.adjustment)
         return scinote, False
+
+class ChordCounter(Visitor):
+    """
+    Determine the longest Chord in an expression.
+    """
+
+    length = 0
+
+    def visit_Chord(self, chord):
+        self.length = max(self.length, len(chord.notes))
+        return chord, False
+
+class HarmonySplitter(Visitor):
+    """
+    Split a harmony of chords into a single voice.
+
+    Extra voices are done in one of two ways. For single notes, the note is
+    doubled up by all voices. For chords with too few notes for the number of
+    voices, modulus math is used to evenly distribute the chord across all
+    participating voices. Don't forget to fit!
+    """
+
+    def __init__(self, voice):
+        self.voice = voice
+
+    def visit_Chord(self, chord):
+        index = self.voice % len(chord.notes)
+        return chord.notes[index], False
 
 def simplify_ast(ast):
     ast = DrumsTransformer().visit(ast)
