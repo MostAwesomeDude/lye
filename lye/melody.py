@@ -13,6 +13,8 @@ class Melody(object):
     volume = 127
     pan = 63
 
+    fit_method = NEAREST
+
     _len = None
     _scheduled = None
 
@@ -40,13 +42,13 @@ class Melody(object):
     def scheduled(self):
         return self._scheduled
 
-    def fit(self, strategy=NEAREST):
+    def fit(self):
         """
         Force this melody to be within the range of its instrument.
         """
 
         if self.instrument:
-            fit(self.music, self.instrument, strategy)
+            self.music = fit(self.music, self.instrument, self.fit_method)
         # And reschedule.
         self._scheduled, self._len = schedule_notes(self.music, self.tpb)
 

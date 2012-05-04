@@ -298,7 +298,7 @@ def fit(melody, instrument, strategy=NEAREST):
         strategy = HIGHEST if top < 0 else LOWEST
 
     if strategy == LOWEST:
-        octaves = -bottom // 12
+        octaves = -1 * (bottom // 12)
     elif strategy == HIGHEST:
         octaves = top // 12
 

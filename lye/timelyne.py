@@ -1,11 +1,12 @@
 from __future__ import division
 
-from fractions import gcd
 from StringIO import StringIO
+from fractions import gcd
+from itertools import takewhile
 
 from lye.MidiFile import MIDIFile
 from lye.instruments import (instruments as midi_instruments,
-                             numbered_instruments)
+                             numbered_instruments, HIGHEST, NEAREST, LOWEST)
 
 INSTRUMENT, LYNE, PAN = range(3)
 
@@ -115,14 +116,24 @@ class Timelyne(object):
             elif name == "-":
                 melodies.append(TACET)
             else:
-                if name.endswith("]"):
-                    name, chaff, voice = name.partition("[")
-                    voice = int(voice[:-1])
-                    snippet = self.library.snippets()[name]
-                    melody = snippet.melody().split()[voice]
-                else:
-                    snippet = self.library.snippets()[name]
-                    melody = snippet.melody()
+                basename = "".join(takewhile(lambda c: c not in "',[", name))
+                fit = NEAREST
+                voice = None
+                iterator = iter(name[len(basename):])
+                for c in iterator:
+                    if c == ",":
+                        fit = LOWEST
+                    elif c == "'":
+                        fit = HIGHEST
+                    elif c == "[":
+                        voice = takewhile(lambda c: c != "]", iterator)
+                        voice = int("".join(voice))
+
+                snippet = self.library.snippets()[basename]
+                melody = snippet.melody()
+                melody.fit_method = fit
+                if voice is not None:
+                    melody = melody.split()[voice]
                 melodies.append(melody)
 
         self._previous_lynes = melodies
@@ -145,12 +156,10 @@ class Timelyne(object):
                 instrument = self._previous_instruments[i]
                 new = melody * muls[i]
                 new.instrument = instrument
-                try:
-                    new.fit()
-                except ValueError:
-                    print new.music
-                print "%d: Original %d, adjusted %d" % (i, len(melody),
-                    len(new))
+                new.fit_method = melody.fit_method
+                new.fit()
+                print "%d: %d ticks (%d), %s %d" % (i, len(new), len(melody),
+                        instrument, new.fit_method)
                 self.channels[i].append((LYNE, new))
 
     def to_midi(self):
