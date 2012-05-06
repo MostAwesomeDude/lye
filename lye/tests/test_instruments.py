@@ -12,3 +12,6 @@ class TestSciToMidi(TestCase):
 
     def test_c8(self):
         self.assertEqual(sci_to_midi("C8"), 108)
+
+    def test_flat(self):
+        self.assertEqual(sci_to_midi("Cb4"), 59)

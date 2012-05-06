@@ -15,8 +15,20 @@ from lye.visitor import Transposer
 # 60. Keyboards go from 21 to 108.
 
 def sci_to_midi(s):
-    pitch, octave = s
-    return "CxDxEFxGxAxB".index(pitch) + (int(octave) * 12) + 12
+    accidental = 0
+    if len(s) == 3:
+        pitch, accidental, octave = s
+        if accidental == "#":
+            accidental = 1
+        elif accidental == "b":
+            accidental = -1
+        else:
+            raise Exception("Unknown accidental %s" % accidental)
+    elif len(s) == 2:
+        pitch, octave = s
+    else:
+        raise Exception("Weird length for %s" % s)
+    return "CxDxEFxGxAxB".index(pitch) + (int(octave) * 12) + 12 + accidental
 
 def pair_sci_to_midi(bottom, top):
     return sci_to_midi(bottom), sci_to_midi(top)
@@ -177,13 +189,13 @@ bounds.update({
     "synth bass 1": sci("E1", "G4"),
     "synth bass 2": sci("E1", "G4"),
     "trumpet": sci("C4", "C6"), # R-K
-    "trombone": (34, 70), # Bb1 - Bb4 (R-K)
+    "trombone": sci("Bb1", "Bb4"), # R-K
     "muted trumpet": sci("C4", "C6"), # R-K
-    "soprano sax": (56, 87), # Ab3 - Eb6
-    "alto sax": (49, 80), # Db3 - Ab5
-    "tenor sax": (44, 75), # Ab2 - Eb5
-    "baritone sax": (37, 68), # Db2 - Ab4
-    "shakuhachi": sci("A3", "C8"), # Unknown upper range
+    "soprano sax": sci("Ab3", "Eb6"), # WP
+    "alto sax": sci("Db3", "Ab5"), # WP
+    "tenor sax": sci("Ab2", "Eb5"), # WP
+    "baritone sax": sci("Db2", "Ab4"), # WP
+    "shakuhachi": sci("A3", "C8"), # WP, unknown upper range
 })
 
 NEAREST, LOWEST, HIGHEST = range(3)
