@@ -1,0 +1,10 @@
+\relative bes, {
+  bes4 c d f
+  c es d a
+  bes c d f
+  c es d a
+  bes bes es ges
+  d fis a aes
+  g es c es
+  d c f, a
+}
