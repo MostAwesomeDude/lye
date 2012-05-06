@@ -436,94 +436,65 @@ class MIDITrack:
         for event in self.MIDIEventList:
             if event.type == "NoteOn":
                 code = 0x9 << 4 | event.channel
-                varTime = writeVarLength(event.time)
-                for timeByte in varTime:
-                    self.MIDIdata = self.MIDIdata + struct.pack('>B',timeByte)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',code)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',event.pitch)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',event.volume)
+                self.MIDIdata += writeVarLength(event.time)
+                self.MIDIdata += struct.pack('>BBB', code, event.pitch,
+                        event.volume)
             elif event.type == "NoteOff":
                 code = 0x8 << 4 | event.channel
-                varTime = writeVarLength(event.time)
-                for timeByte in varTime:
-                    self.MIDIdata = self.MIDIdata + struct.pack('>B',timeByte)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',code)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',event.pitch)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',event.volume)
+                self.MIDIdata += writeVarLength(event.time)
+                self.MIDIdata += struct.pack('>BBB', code, event.pitch,
+                        event.volume)
             elif event.type == "Tempo":
                 code = 0xFF
                 subcode = 0x51
                 fourbite = struct.pack('>L', event.tempo)
                 threebite = fourbite[1:4]       # Just discard the MSB
-                varTime = writeVarLength(event.time)
-                for timeByte in varTime:
-                    self.MIDIdata = self.MIDIdata + struct.pack('>B',timeByte)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',code)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',subcode)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B', 0x03) # Data length: 3
-                self.MIDIdata = self.MIDIdata + threebite
+                self.MIDIdata += writeVarLength(event.time)
+                self.MIDIdata += struct.pack('>BBB', code,
+                        subcode, 0x03)
+                self.MIDIdata += threebite
             elif event.type == 'ProgramChange':
                 code = 0xC << 4 | event.channel
-                varTime = writeVarLength(event.time)
-                for timeByte in varTime:
-                    self.MIDIdata = self.MIDIdata + struct.pack('>B',timeByte)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',code)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',event.programNumber)
+                self.MIDIdata += writeVarLength(event.time)
+                self.MIDIdata += struct.pack('>BB', code, event.programNumber)
             elif event.type == 'TrackName':
-                varTime = writeVarLength(event.time)
-                for timeByte in varTime:
-                    self.MIDIdata = self.MIDIdata + struct.pack('>B',timeByte)
-                self.MIDIdata = self.MIDIdata + struct.pack('B',0xFF) # Meta-event
-                self.MIDIdata = self.MIDIdata + struct.pack('B',0X03) # Event Type
-                dataLength = len(event.trackName)
-                dataLenghtVar = writeVarLength(dataLength)
-                for i in range(0,len(dataLenghtVar)):
-                    self.MIDIdata = self.MIDIdata + struct.pack("b",dataLenghtVar[i])
-                self.MIDIdata = self.MIDIdata + event.trackName
+                self.MIDIdata += writeVarLength(event.time)
+                # Meta event 0xff, event type 0x03
+                self.MIDIdata += struct.pack('>BB', 0xFF, 0x03)
+                self.MIDIdata += writeVarLength(len(event.trackName))
+                self.MIDIdata += event.trackName
             elif event.type == "ControllerEvent":
                 code = 0xB << 4 | event.channel
-                varTime = writeVarLength(event.time)
-                for timeByte in varTime:
-                    self.MIDIdata = self.MIDIdata + struct.pack('>B',timeByte)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',code)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',event.eventType)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',event.paramerter1)
+                self.MIDIdata += writeVarLength(event.time)
+                self.MIDIdata += struct.pack('>BBB', code, event.eventType,
+                        event.paramerter1)
             elif event.type == "SysEx":
                 code = 0xF0
-                varTime = writeVarLength(event.time)
-                for timeByte in varTime:
-                    self.MIDIdata = self.MIDIdata + struct.pack('>B',timeByte)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B', code)
+                self.MIDIdata += writeVarLength(event.time)
+                self.MIDIdata += struct.pack('>B', code)
 
-                payloadLength = writeVarLength(len(event.payload)+2)
-                for lenByte in payloadLength:
-                    self.MIDIdata = self.MIDIdata + struct.pack('>B',lenByte)
+                self.MIDIdata += writeVarLength(len(event.payload) + 2)
 
-                self.MIDIdata = self.MIDIdata + struct.pack('>B', event.manID)
-                self.MIDIdata = self.MIDIdata + event.payload
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',0xF7)
+                self.MIDIdata += struct.pack('>B', event.manID)
+                self.MIDIdata += event.payload
+                self.MIDIdata += struct.pack('>B', 0xF7)
             elif event.type == "UniversalSysEx":
                 code = 0xF0
-                varTime = writeVarLength(event.time)
-                for timeByte in varTime:
-                    self.MIDIdata = self.MIDIdata + struct.pack('>B',timeByte)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B', code)
+                self.MIDIdata += writeVarLength(event.time)
+                self.MIDIdata += struct.pack('>B', code)
 
                 # Do we need to add a length?
-                payloadLength = writeVarLength(len(event.payload)+5)
-                for lenByte in payloadLength:
-                    self.MIDIdata = self.MIDIdata + struct.pack('>B',lenByte)
+                self.MIDIdata += writeVarLength(len(event.payload) + 5)
 
-                if event.realTime :
-                    self.MIDIdata = self.MIDIdata + struct.pack('>B', 0x7F)
+                if event.realTime:
+                    self.MIDIdata += struct.pack('>B', 0x7F)
                 else:
-                    self.MIDIdata = self.MIDIdata + struct.pack('>B', 0x7E)
+                    self.MIDIdata += struct.pack('>B', 0x7E)
 
-                self.MIDIdata = self.MIDIdata + struct.pack('>B', event.sysExChannel)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B', event.code)
-                self.MIDIdata = self.MIDIdata + struct.pack('>B', event.subcode)
-                self.MIDIdata = self.MIDIdata + event.payload
-                self.MIDIdata = self.MIDIdata + struct.pack('>B',0xF7)
+                self.MIDIdata += struct.pack('>BBB', event.sysExChannel,
+                    event.code, event.subcode)
+                self.MIDIdata += event.payload
+                self.MIDIdata += struct.pack('>B', 0xF7)
 
     def deInterleaveNotes(self):
         '''Correct Interleaved notes.
@@ -922,7 +893,7 @@ def writeVarLength(i):
     i = int(i)
 
     if i == 0:
-        return [0]
+        return "\x00"
 
     if not 0 < i <= 0xfffffff:
         raise ValueError("%d is out of range" % i)
@@ -938,8 +909,7 @@ def writeVarLength(i):
     b[0] &= ~0x80
 
     # And we're finished.
-    b.reverse()
-    return b
+    return "".join(chr(x) for x in reversed(b))
 
 def frequencyTransform(freq):
     '''Returns a three-byte transform of a frequencyTransform
