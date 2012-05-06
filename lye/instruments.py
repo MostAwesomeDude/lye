@@ -1,5 +1,27 @@
+from collections import defaultdict
+
 from lye.ast import Chord, SciNote
 from lye.visitor import Transposer
+
+# Here's how pitches work. I'm writing it down largely because I keep
+# forgetting.
+# There are three different notations for pitches. First, there's Lilypond's
+# notation. Octaves start at C. Middle C is c' and so c is actually Low C. In
+# this scheme, the lowest note on a keyboard is a,,, and the highest is
+# c'''''.
+# Next, there is scientific notation. In this, Middle C is C4. Octaves start
+# at C (mercifully). Keyboards start at A0 and go to C8.
+# Finally, MIDI's numbering notation. This is the confusing one. Middle C is
+# 60. Keyboards go from 21 to 108.
+
+def sci_to_midi(s):
+    pitch, octave = s
+    return "CxDxEFxGxAxB".index(pitch) + (int(octave) * 12) + 12
+
+def pair_sci_to_midi(bottom, top):
+    return sci_to_midi(bottom), sci_to_midi(top)
+
+sci = pair_sci_to_midi
 
 instruments = [
     "acoustic grand",
@@ -134,136 +156,35 @@ instruments = [
 
 numbered_instruments = dict((k, i) for i, k in enumerate(instruments))
 
-bounds = {
-    "acoustic grand": (0, 88),
-    "bright acoustic": (0, 88),
-    "electric grand": (0, 88),
-    "honky-tonk": (0, 88),
-    "electric piano 1": (0, 88),
-    "electric piano 2": (0, 88),
-    "harpsichord": (0, 88),
-    "clav": (0, 88),
-    "celesta": (0, 88),
-    "glockenspiel": (0, 88),
-    "music box": (0, 88),
-    "vibraphone": (0, 88),
-    "marimba": (0, 88),
-    "xylophone": (0, 88),
-    "tubular bells": (0, 88),
-    "dulcimer": (0, 88),
-    "drawbar organ": (0, 88),
-    "percussive organ": (0, 88),
-    "rock organ": (0, 88),
-    "church organ": (0, 88),
-    "reed organ": (0, 88),
-    "accordion": (0, 88),
-    "harmonica": (0, 88),
-    "concertina": (0, 88),
-    "acoustic guitar (nylon)": (40, 88), # E2 - E6
-    "acoustic guitar (steel)": (40, 88),
-    "electric guitar (jazz)": (40, 88),
-    "electric guitar (clean)": (40, 88),
-    "electric guitar (muted)": (40, 88),
-    "overdriven guitar": (35, 88), # B1 - E6 (seven string)
-    "distorted guitar": (35, 88),
-    "guitar harmonics": (52, 88), # E3 is the lowest one possible
-    "acoustic bass": (28, 67), # E1 - G4
-    "electric bass (finger)": (23, 67), # B0 - G4 (five string)
-    "electric bass (pick)": (23, 67),
-    "fretless bass": (28, 67),
-    "slap bass 1": (23, 67),
-    "slap bass 2": (23, 67),
-    "synth bass 1": (28, 67),
-    "synth bass 2": (28, 67),
-    "violin": (0, 88),
-    "viola": (0, 88),
-    "cello": (0, 88),
-    "contrabass": (0, 88),
-    "tremolo strings": (0, 88),
-    "pizzicato strings": (0, 88),
-    "orchestral strings": (0, 88),
-    "timpani": (0, 88),
-    "string ensemble 1": (0, 88),
-    "string ensemble 2": (0, 88),
-    "synthstrings 1": (0, 88),
-    "synthstrings 2": (0, 88),
-    "choir aahs": (0, 88),
-    "voice oohs": (0, 88),
-    "synth voice": (0, 88),
-    "orchestra hit": (0, 88),
-    "trumpet": (60, 84), # C4 - C6 (R-K)
+# Default to the normal bounds of a keyboard.
+bounds = defaultdict(lambda: sci("A0", "C8"))
+
+bounds.update({
+    "acoustic guitar (nylon)": sci("E2", "E6"),
+    "acoustic guitar (steel)": sci("E2", "E6"),
+    "electric guitar (jazz)": sci("E2", "E6"),
+    "electric guitar (clean)": sci("E2", "E6"),
+    "electric guitar (muted)": sci("E2", "E6"),
+    "overdriven guitar": sci("B1", "E6"),
+    "distorted guitar": sci("B1", "E6"),
+    "guitar harmonics": sci("E3", "E6"),
+    "acoustic bass": sci("E1", "G4"),
+    "electric bass (finger)": sci("B0", "G4"),
+    "electric bass (pick)": sci("B0", "G4"),
+    "fretless bass": sci("E1", "G4"),
+    "slap bass 1": sci("B0", "G4"),
+    "slap bass 2": sci("B0", "G4"),
+    "synth bass 1": sci("E1", "G4"),
+    "synth bass 2": sci("E1", "G4"),
+    "trumpet": sci("C4", "C6"), # R-K
     "trombone": (34, 70), # Bb1 - Bb4 (R-K)
-    "tuba": (0, 88),
-    "muted trumpet": (60, 84), # C4 - C6 (R-K)
-    "french horn": (0, 88),
-    "brass section": (0, 88),
-    "synthbrass 1": (0, 88),
-    "synthbrass 2": (0, 88),
+    "muted trumpet": sci("C4", "C6"), # R-K
     "soprano sax": (56, 87), # Ab3 - Eb6
     "alto sax": (49, 80), # Db3 - Ab5
     "tenor sax": (44, 75), # Ab2 - Eb5
     "baritone sax": (37, 68), # Db2 - Ab4
-    "oboe": (0, 88),
-    "english horn": (0, 88),
-    "bassoon": (0, 88),
-    "clarinet": (0, 88),
-    "piccolo": (0, 88),
-    "flute": (0, 88),
-    "recorder": (0, 88),
-    "pan flute": (0, 88),
-    "blown bottle": (0, 88),
-    "shakuhachi": (57, 88), # A3 -- (WP)
-    "whistle": (0, 88),
-    "ocarina": (0, 88),
-    "lead 1 (square)": (0, 88),
-    "lead 2 (sawtooth)": (0, 88),
-    "lead 3 (calliope)": (0, 88),
-    "lead 4 (chiff)": (0, 88),
-    "lead 5 (charang)": (0, 88),
-    "lead 6 (voice)": (0, 88),
-    "lead 7 (fifths)": (0, 88),
-    "lead 8 (bass+lead)": (0, 88),
-    "pad 1 (new age)": (0, 88),
-    "pad 2 (warm)": (0, 88),
-    "pad 3 (polysynth)": (0, 88),
-    "pad 4 (choir)": (0, 88),
-    "pad 5 (bowed)": (0, 88),
-    "pad 6 (metallic)": (0, 88),
-    "pad 7 (halo)": (0, 88),
-    "pad 8 (sweep)": (0, 88),
-    "fx 1 (rain)": (0, 88),
-    "fx 2 (soundtrack)": (0, 88),
-    "fx 3 (crystal)": (0, 88),
-    "fx 4 (atmosphere)": (0, 88),
-    "fx 5 (brightness)": (0, 88),
-    "fx 6 (goblins)": (0, 88),
-    "fx 7 (echoes)": (0, 88),
-    "fx 8 (sci-fi)": (0, 88),
-    "sitar": (0, 88),
-    "banjo": (0, 88),
-    "shamisen": (0, 88),
-    "koto": (0, 88),
-    "kalimba": (0, 88),
-    "bagpipe": (0, 88),
-    "fiddle": (0, 88),
-    "shanai": (0, 88),
-    "tinkle bell": (0, 88),
-    "agogo": (0, 88),
-    "steel drums": (0, 88),
-    "woodblock": (0, 88),
-    "taiko drum": (0, 88),
-    "melodic tom": (0, 88),
-    "synth drum": (0, 88),
-    "reverse cymbal": (0, 88),
-    "guitar fret noise": (0, 88),
-    "breath noise": (0, 88),
-    "seashore": (0, 88),
-    "bird tweet": (0, 88),
-    "telephone ring": (0, 88),
-    "helicopter": (0, 88),
-    "applause": (0, 88),
-    "gunshot": (0, 88),
-}
+    "shakuhachi": sci("A3", "C8"), # Unknown upper range
+})
 
 NEAREST, LOWEST, HIGHEST = range(3)
 
@@ -295,7 +216,12 @@ def fit(melody, instrument, strategy=NEAREST):
         raise Exception("Couldn't ever fit this melody!")
 
     if strategy == NEAREST:
-        strategy = HIGHEST if top < 0 else LOWEST
+        if top > 0 and bottom > 0:
+            return melody
+        elif top < 0:
+            strategy = HIGHEST
+        else:
+            strategy = LOWEST
 
     if strategy == LOWEST:
         octaves = -1 * (bottom // 12)
@@ -303,5 +229,6 @@ def fit(melody, instrument, strategy=NEAREST):
         octaves = top // 12
 
     adjustment = octaves * 12
-    melody = Transposer(adjustment).visit(melody)
+    if adjustment:
+        melody = Transposer(adjustment).visit(melody)
     return melody
