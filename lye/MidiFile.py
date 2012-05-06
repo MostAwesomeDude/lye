@@ -10,11 +10,14 @@
 #              software is distributed.
 #-----------------------------------------------------------------------------
 
-import struct,  sys,  math
+import math
+import struct
+import sys
 
 controllerEventTypes = {
-                        'pan' : 0x0a
-                        }
+    'pan' : 0x0a,
+}
+
 class MIDIEvent:
     '''
     The class to contain the MIDI Event (placed on MIDIEventList.
@@ -106,99 +109,97 @@ class GenericEvent():
 
         return hash(self.time)
 
+class Note(GenericEvent):
+    '''A class that encapsulates a note
+    '''
+    def __init__(self,channel, pitch,time,duration,volume):
+
+        GenericEvent.__init__(self,time)
+        self.pitch = pitch
+        self.duration = duration
+        self.volume = volume
+        self.type = 'note'
+        self.channel = channel
+
+    def compare(self, other):
+        '''Compare two notes for equality.
+        '''
+        if self.pitch == other.pitch and \
+            self.time == other.time and \
+            self.duration == other.duration and \
+            self.volume == other.volume and \
+            self.type == other.type and \
+            self.channel == other.channel:
+                return True
+        else:
+                return False
+
+
+class Tempo(GenericEvent):
+    '''A class that encapsulates a tempo meta-event
+    '''
+    def __init__(self,time,tempo):
+
+        GenericEvent.__init__(self,time)
+        self.type = 'tempo'
+        self.tempo = int(60000000 / tempo)
+
+class ProgramChange(GenericEvent):
+    '''A class that encapsulates a program change event.
+    '''
+
+    def __init__(self,  channel,  time,  programNumber):
+        GenericEvent.__init__(self, time,)
+        self.type = 'programChange'
+        self.programNumber = programNumber
+        self.channel = channel
+
+class SysExEvent(GenericEvent):
+    '''A class that encapsulates a System Exclusive  event.
+    '''
+
+    def __init__(self,  time,  manID,  payload):
+        GenericEvent.__init__(self, time,)
+        self.type = 'SysEx'
+        self.manID = manID
+        self.payload = payload
+
+class UniversalSysExEvent(GenericEvent):
+    '''A class that encapsulates a Universal System Exclusive  event.
+    '''
+
+    def __init__(self,  time,  realTime,  sysExChannel,  code,  subcode,  payload):
+        GenericEvent.__init__(self, time,)
+        self.type = 'UniversalSysEx'
+        self.realTime = realTime
+        self.sysExChannel = sysExChannel
+        self.code = code
+        self.subcode = subcode
+        self.payload = payload
+
+class ControllerEvent(GenericEvent):
+    '''A class that encapsulates a program change event.
+    '''
+
+    def __init__(self,  channel,  time,  eventType,  parameter1,):
+        GenericEvent.__init__(self, time,)
+        self.type = 'controllerEvent'
+        self.parameter1 = parameter1
+        self.channel = channel
+        self.eventType = eventType
+
+class TrackName(GenericEvent):
+    '''A class that encapsulates a program change event.
+    '''
+
+    def __init__(self,  time,  trackName):
+        GenericEvent.__init__(self, time,)
+        self.type = 'trackName'
+        self.trackName = trackName
+
 class MIDITrack:
     '''A class that encapsulates a MIDI track
     '''
-    # Nested class definitions.
-
-    class note(GenericEvent):
-        '''A class that encapsulates a note
-        '''
-        def __init__(self,channel, pitch,time,duration,volume):
-
-            GenericEvent.__init__(self,time)
-            self.pitch = pitch
-            self.duration = duration
-            self.volume = volume
-            self.type = 'note'
-            self.channel = channel
-
-        def compare(self, other):
-            '''Compare two notes for equality.
-            '''
-            if self.pitch == other.pitch and \
-                self.time == other.time and \
-                self.duration == other.duration and \
-                self.volume == other.volume and \
-                self.type == other.type and \
-                self.channel == other.channel:
-                    return True
-            else:
-                    return False
-
-
-    class tempo(GenericEvent):
-        '''A class that encapsulates a tempo meta-event
-        '''
-        def __init__(self,time,tempo):
-
-            GenericEvent.__init__(self,time)
-            self.type = 'tempo'
-            self.tempo = int(60000000 / tempo)
-
-    class programChange(GenericEvent):
-        '''A class that encapsulates a program change event.
-        '''
-
-        def __init__(self,  channel,  time,  programNumber):
-            GenericEvent.__init__(self, time,)
-            self.type = 'programChange'
-            self.programNumber = programNumber
-            self.channel = channel
-
-    class SysExEvent(GenericEvent):
-        '''A class that encapsulates a System Exclusive  event.
-        '''
-
-        def __init__(self,  time,  manID,  payload):
-            GenericEvent.__init__(self, time,)
-            self.type = 'SysEx'
-            self.manID = manID
-            self.payload = payload
-
-    class UniversalSysExEvent(GenericEvent):
-        '''A class that encapsulates a Universal System Exclusive  event.
-        '''
-
-        def __init__(self,  time,  realTime,  sysExChannel,  code,  subcode,  payload):
-            GenericEvent.__init__(self, time,)
-            self.type = 'UniversalSysEx'
-            self.realTime = realTime
-            self.sysExChannel = sysExChannel
-            self.code = code
-            self.subcode = subcode
-            self.payload = payload
-
-    class ControllerEvent(GenericEvent):
-        '''A class that encapsulates a program change event.
-        '''
-
-        def __init__(self,  channel,  time,  eventType,  parameter1,):
-            GenericEvent.__init__(self, time,)
-            self.type = 'controllerEvent'
-            self.parameter1 = parameter1
-            self.channel = channel
-            self.eventType = eventType
-
-    class trackName(GenericEvent):
-        '''A class that encapsulates a program change event.
-        '''
-
-        def __init__(self,  time,  trackName):
-            GenericEvent.__init__(self, time,)
-            self.type = 'trackName'
-            self.trackName = trackName
-
 
     def __init__(self, ticksPerBeat, removeDuplicates,  deinterleave):
         '''Initialize the MIDITrack object.
@@ -218,47 +219,47 @@ class MIDITrack:
     def addNoteByNumber(self,channel, pitch,time,duration,volume):
         '''Add a note by chromatic MIDI number
         '''
-        self.eventList.append(MIDITrack.note(channel, pitch,time,duration,volume))
+        self.eventList.append(Note(channel, pitch,time,duration,volume))
 
     def addControllerEvent(self,channel,time,eventType, paramerter1):
         '''
         Add a controller event.
         '''
 
-        self.eventList.append(MIDITrack.ControllerEvent(channel,time,eventType, \
+        self.eventList.append(ControllerEvent(channel,time,eventType, \
                                              paramerter1))
 
     def addTempo(self,time,tempo):
         '''
         Add a tempo change (or set) event.
         '''
-        self.eventList.append(MIDITrack.tempo(time,tempo))
+        self.eventList.append(Tempo(time,tempo))
 
     def addSysEx(self,time,manID, payload):
         '''
         Add a SysEx event.
         '''
-        self.eventList.append(MIDITrack.SysExEvent(time, manID,  payload))
+        self.eventList.append(SysExEvent(time, manID,  payload))
 
     def addUniversalSysEx(self,time,code, subcode, payload,  sysExChannel=0x7F,  \
         realTime=False):
         '''
         Add a Universal SysEx event.
         '''
-        self.eventList.append(MIDITrack.UniversalSysExEvent(time, realTime,  \
+        self.eventList.append(UniversalSysExEvent(time, realTime,  \
             sysExChannel,  code,  subcode, payload))
 
     def addProgramChange(self,channel, time, program):
         '''
         Add a program change event.
         '''
-        self.eventList.append(MIDITrack.programChange(channel, time, program))
+        self.eventList.append(ProgramChange(channel, time, program))
 
     def addTrackName(self,time,trackName):
         '''
         Add a track name event.
         '''
-        self.eventList.append(MIDITrack.trackName(time,trackName))
+        self.eventList.append(TrackName(time,trackName))
 
     def changeNoteTuning(self,  tunings,   sysExChannel=0x7F,  realTime=False,  \
         tuningProgam=0):
@@ -272,7 +273,7 @@ class MIDITrack:
             for byte in MIDIFreqency:
                 payload = payload + struct.pack('>B',  byte)
 
-        self.eventList.append(MIDITrack.UniversalSysExEvent(0, realTime,  sysExChannel,\
+        self.eventList.append(UniversalSysExEvent(0, realTime,  sysExChannel,\
             8,  2, payload))
 
     def processEventList(self):
@@ -980,3 +981,11 @@ def sortByTimeAndType(i):
     """
 
     return list(sorted(i, key=lambda x: (x.type, int(1000 * x.time))))
+
+
+__all__ = (
+    "MIDIEvent",
+    "MIDIFile",
+    "MIDIHeader",
+    "MIDITrack",
+)
