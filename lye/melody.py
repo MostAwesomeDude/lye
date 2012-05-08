@@ -5,7 +5,8 @@ from fluidsynth import fluidsynth
 from lye.algos import schedule_notes
 from lye.grammar import LyeGrammar
 from lye.instruments import NEAREST, fit
-from lye.visitor import ChordCounter, HarmonySplitter, Multiply, simplify_ast
+from lye.visitors.folds import ChordCounter
+from lye.visitors.maps import HarmonySplitter, Multiply, simplify_ast
 
 class Melody(object):
 

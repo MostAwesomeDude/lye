@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from lye.ast import Chord, SciNote
-from lye.visitor import Transposer
+from lye.visitors.maps import Transposer
 
 # Here's how pitches work. I'm writing it down largely because I keep
 # forgetting.

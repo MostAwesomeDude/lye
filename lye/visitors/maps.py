@@ -3,46 +3,8 @@ from operator import attrgetter, mul
 
 from lye.algos import pitch_to_number, simplify_ties
 from lye.ast import Duration, Music, SciNote, Voice
+from lye.visitors.visitor import Visitor, hasfield
 
-def hasfield(obj, name):
-    return hasattr(obj, "_fields") and name in obj._fields
-
-class Visitor(object):
-    """
-    An object that visits every node in an AST.
-    """
-
-    def visit_generic(self, node):
-        """
-        Visit a node with no type information.
-
-        This method is a good point for polymorphic or duck-typed
-        transformations.
-        """
-
-        return node, True
-
-    def visit(self, node):
-        """
-        Recursively visit every node in an AST.
-        """
-
-        method = getattr(self, "visit_%s" % node.__class__.__name__,
-            self.visit_generic)
-        node, recurse = method(node)
-
-        if recurse and hasfield(node, "expr"):
-            node = node._replace(expr=self.visit(node.expr))
-
-        if recurse and hasfield(node, "exprs"):
-            exprs = [self.visit(expr) for expr in node.exprs]
-            node = node._replace(exprs=exprs)
-
-        if recurse and hasfield(node, "notes"):
-            notes = [self.visit(note) for note in node.notes]
-            node = node._replace(notes=notes)
-
-        return node
 
 class DrumsTransformer(Visitor):
     """
@@ -52,6 +14,7 @@ class DrumsTransformer(Visitor):
 
     def visit_Drums(self, drums):
         return drums.expr, True
+
 
 class VoicesTransformer(Visitor):
     """
@@ -64,6 +27,7 @@ class VoicesTransformer(Visitor):
             voice = Voice(music.exprs)
             voices.exprs[i] = voice
         return voices, True
+
 
 class DurationVisitor(Visitor):
     """
@@ -110,6 +74,7 @@ class DurationVisitor(Visitor):
 
         return ast, True
 
+
 class TimesVisitor(Visitor):
     """
     Apply Times nodes and turn them into Music nodes.
@@ -151,6 +116,7 @@ class TimesVisitor(Visitor):
             ast = ast._replace(duration=duration)
 
         return ast, True
+
 
 class Relativizer(Visitor):
     """
@@ -204,6 +170,7 @@ class Relativizer(Visitor):
 
         return expr, False
 
+
 class MusicFlattener(Visitor):
     """
     Flatten Music expressions.
@@ -227,6 +194,7 @@ class MusicFlattener(Visitor):
             music = music._replace(exprs=exprs)
         return music, True
 
+
 class NoteTransformer(Visitor):
     """
     Turn Notes into SciNotes.
@@ -235,6 +203,7 @@ class NoteTransformer(Visitor):
     def visit_Note(self, note):
         number = pitch_to_number(note.pitch, note.accidental, note.octave)
         return SciNote(number, note.duration), True
+
 
 class TieRemover(Visitor):
     """
@@ -246,6 +215,7 @@ class TieRemover(Visitor):
             simplify_ties(node.exprs)
         return node, True
 
+
 class ChordSorter(Visitor):
     """
     Ensure Chords have their notes in strictly decreasing order.
@@ -254,6 +224,7 @@ class ChordSorter(Visitor):
     def visit_Chord(self, chord):
         chord.notes.sort(key=attrgetter("pitch"), reverse=True)
         return chord, False
+
 
 class Multiply(Visitor):
     """
@@ -275,6 +246,7 @@ class Multiply(Visitor):
         voices = voices._replace(exprs=exprs)
         return voices, False
 
+
 class Transposer(Visitor):
     """
     Adjust an entire expression's pitches by a given amount.
@@ -287,16 +259,6 @@ class Transposer(Visitor):
         scinote = scinote._replace(pitch=scinote.pitch + self.adjustment)
         return scinote, False
 
-class ChordCounter(Visitor):
-    """
-    Determine the longest Chord in an expression.
-    """
-
-    length = 0
-
-    def visit_Chord(self, chord):
-        self.length = max(self.length, len(chord.notes))
-        return chord, False
 
 class HarmonySplitter(Visitor):
     """
@@ -314,6 +276,7 @@ class HarmonySplitter(Visitor):
     def visit_Chord(self, chord):
         index = self.voice % len(chord.notes)
         return chord.notes[index], False
+
 
 def simplify_ast(ast):
     ast = DrumsTransformer().visit(ast)
