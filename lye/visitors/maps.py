@@ -136,7 +136,7 @@ class Relativizer(Visitor):
 
             if abs(self.relative_dict[ppitch] -
                 self.relative_dict[note.pitch]) > 3:
-                if self.relative_dict[note.pitch] > 4:
+                if self.relative_dict[note.pitch] >= 4:
                     octave -= 1
                 else:
                     octave += 1
