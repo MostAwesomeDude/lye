@@ -176,23 +176,40 @@ class MusicFlattener(Visitor):
     Flatten Music expressions.
     """
 
-    def visit_Music(self, music):
-        # Flatten singleton Music expressions.
-        while len(music.exprs) == 1:
-            music = music.exprs[0]
-        # Inline Music within Music.
+    @staticmethod
+    def flatten_inner(node):
+        """
+        Flatten all Music expressions within this node.
+
+        The node must have an "exprs" attribute.
+        """
+
         flattening = True
         while flattening:
             flattening = False
             exprs = []
-            for expr in music.exprs:
+            for expr in node.exprs:
                 if isinstance(expr, Music):
                     exprs.extend(expr.exprs)
                     flattening = True
                 else:
                     exprs.append(expr)
-            music = music._replace(exprs=exprs)
+            node = node._replace(exprs=exprs)
+        return node
+
+    def visit_Music(self, music):
+        # Flatten singleton Music expressions.
+        while len(music.exprs) == 1:
+            music = music.exprs[0]
+        # Inline Music within Music.
+        music = self.flatten_inner(music)
         return music, True
+
+    def visit_Voice(self, voice):
+        # Flatten Music inside Voice because Voice is just Music with a
+        # fancier name.
+        voice = self.flatten_inner(voice)
+        return voice, True
 
 
 class NoteTransformer(Visitor):
