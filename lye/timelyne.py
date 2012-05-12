@@ -49,9 +49,11 @@ class Timelyne(object):
     _previous_lynes = None
 
     def __init__(self, library):
-        self.channels = [[] for chaff in range(16)]
-        self._previous_instruments = [None] * 16
         self.library = library
+
+        self.channels = [[] for chaff in range(16)]
+        self.marks = [[] for chaff in range(16)]
+        self._previous_instruments = [None] * 16
 
     @classmethod
     def from_lines(cls, library, lines):
@@ -67,6 +69,9 @@ class Timelyne(object):
             if marker == "\\":
                 # Directive. Add it and break.
                 self.directive(line)
+                continue
+            elif marker == '"':
+                self.set_marks()
                 continue
 
             tokens = [i.strip() for i in line.split("|")]
@@ -89,6 +94,16 @@ class Timelyne(object):
         v = int(v.strip())
         print "Directive: %s = %d" % (k, v)
         setattr(self, k, v)
+
+    def set_marks(self):
+        for i, channel in enumerate(self.channels):
+            if self.marks[i]:
+                previous = self.marks[-1][1]
+            else:
+                previous = 0
+            mark = slice(previous, len(channel))
+            self.marks[i].append(mark)
+            print "%d: Mark %r" % (i, mark)
 
     def set_instruments(self, instruments):
         for i, instrument in enumerate(instruments):
