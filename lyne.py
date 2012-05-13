@@ -1,7 +1,7 @@
 import sys
 
-from lye.timelyne import Timelyne
 from lye.library import Library
+from lye.lyne import Timelyne
 
 library = Library(sys.argv[1])
 
