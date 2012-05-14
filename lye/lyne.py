@@ -4,6 +4,8 @@ from StringIO import StringIO
 from fractions import gcd
 from itertools import takewhile
 
+from fluidsynth.fluidsynth import FluidEvent
+
 from lye.MidiFile import MIDIFile
 from lye.instruments import (instruments as midi_instruments,
                              numbered_instruments, HIGHEST, NEAREST, LOWEST)
@@ -186,6 +188,28 @@ class Timelyne(object):
                 print "%d: %d ticks (%d), %s %d" % (i, len(new), len(melody),
                         instrument, new.fit_method)
                 self.channels[i].append((LYNE, new))
+
+    def to_fs(self, sequencer):
+        ticks = sequencer.ticks
+        time = [0] * len(self.channels)
+
+        # Each item in the seq is (fluidsynth.FS, (dest, destname))
+        # We just want the dest
+        dest = sequencer.items()[0][1][0]
+
+        for channel, l in enumerate(self.channels):
+            for t, data in l:
+                if t is LYNE:
+                    for pitch, begin, duration in data.scheduled:
+                        begin += time[channel]
+                        event = FluidEvent()
+                        event.dest = dest
+                        event.note(0, pitch, 127, duration)
+                        sequencer.send(event, ticks + begin)
+                    time[channel] += len(data)
+
+        elapsed = sequencer.ticks - ticks
+        print "Took", elapsed, "ticks"
 
     def to_midi(self):
         f = MIDIFile(len(self.channels), ticksPerBeat=self.ticks_per_beat)
