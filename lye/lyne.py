@@ -89,11 +89,15 @@ class Timelyne(object):
         return self
 
     def directive(self, d):
-        k, v = d.split("=")
-        k = k.strip()
-        v = int(v.strip())
-        print "Directive: %s = %d" % (k, v)
-        setattr(self, k, v)
+        name, arguments = d.split(" ", 1)
+        try:
+            getattr(self, "directive_%s" % name)(arguments)
+        except AttributeError:
+            raise Exception("Unknown directive %s" % name)
+
+    def directive_tempo(self, args):
+        self.tempo = int(args)
+        print "Tempo: %d" % self.tempo
 
     def set_marks(self):
         for i, channel in enumerate(self.channels):
