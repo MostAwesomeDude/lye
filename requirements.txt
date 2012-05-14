@@ -1,0 +1,1 @@
+fluidsynth>=0.2
