@@ -219,7 +219,7 @@ class Timelyne(object):
                         begin += time[channel]
                         event = FluidEvent()
                         event.dest = dest
-                        event.note(0, pitch, 127, duration)
+                        event.note(channel, pitch, 127, duration)
                         sequencer.send(event, ticks + begin)
                     time[channel] += len(data)
                 elif t is TACET:
