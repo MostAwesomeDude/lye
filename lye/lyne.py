@@ -116,15 +116,17 @@ class Timelyne(object):
     def set_instruments(self, instruments):
         for i, instrument in enumerate(instruments):
             if instrument == "drums":
-                self._drum_channel = i
                 print "%d: Drums" % i
+                self._drum_channel = i
+                self.channels[i].append((INSTRUMENT, 0))
             elif instrument in ("-", '"'):
                 print "%d: No change" % i
             else:
                 instrument = find_instrument(instrument)
                 self._previous_instruments[i] = instrument
                 print "%d: Instrument %s" % (i, instrument)
-                self.channels[i].append((INSTRUMENT, instrument))
+                self.channels[i].append((INSTRUMENT,
+                    numbered_instruments[instrument]))
 
     def set_pan(self, pans):
         for i, pan in enumerate(pans):
@@ -214,7 +216,12 @@ class Timelyne(object):
 
         for channel, l in enumerate(self.channels):
             for t, data in l:
-                if t is LYNE:
+                if t is INSTRUMENT:
+                    event = FluidEvent()
+                    event.dest = dest
+                    event.pc(channel, data)
+                    sequencer.send(event, ticks + time[channel])
+                elif t is LYNE:
                     for pitch, begin, duration in data.scheduled:
                         begin += time[channel]
                         event = FluidEvent()
@@ -240,8 +247,7 @@ class Timelyne(object):
         for channel, l in enumerate(self.channels):
             for t, data in l:
                 if t is INSTRUMENT:
-                    f.addProgramChange(track, channel, time[channel],
-                            numbered_instruments[data])
+                    f.addProgramChange(track, channel, time[channel], data)
                 elif t is LYNE:
                     for pitch, begin, duration in data.scheduled:
                         begin = begin / data.tpb + time[channel]
