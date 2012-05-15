@@ -88,6 +88,8 @@ class Timelyne(object):
             else:
                 print "Unknown marker %s with line %r" % (marker, line)
 
+        self.reorder()
+
         return self
 
     def directive(self, d):
@@ -189,9 +191,22 @@ class Timelyne(object):
                         instrument, new.fit_method)
                 self.channels[i].append((LYNE, new))
 
+    def reorder(self):
+        dc = self._drum_channel
+        drums = 9
+        cs = self.channels
+        if dc != drums:
+            print "Moving drums", dc, "->", drums
+            cs[dc], cs[drums] = cs[drums], cs[dc]
+
     def to_fs(self, sequencer):
-        ticks = sequencer.ticks
         time = [0] * len(self.channels)
+
+        sequencer.beats_per_minute = self.tempo
+        sequencer.ticks_per_beat = self.ticks_per_beat
+
+        ticks = sequencer.ticks
+        ticks += self.ticks_per_beat
 
         # Each item in the seq is (fluidsynth.FS, (dest, destname))
         # We just want the dest
@@ -207,9 +222,11 @@ class Timelyne(object):
                         event.note(0, pitch, 127, duration)
                         sequencer.send(event, ticks + begin)
                     time[channel] += len(data)
+                elif t is TACET:
+                    time[channel] += data
 
         elapsed = sequencer.ticks - ticks
-        print "Took", elapsed, "ticks"
+        print "Spare ticks", elapsed
 
     def to_midi(self):
         f = MIDIFile(len(self.channels), ticksPerBeat=self.ticks_per_beat)
@@ -221,8 +238,6 @@ class Timelyne(object):
         f.addTempo(track, 0, self.tempo)
 
         for channel, l in enumerate(self.channels):
-            if self._drum_channel == channel:
-                channel = 9
             for t, data in l:
                 if t is INSTRUMENT:
                     f.addProgramChange(track, channel, time[channel],

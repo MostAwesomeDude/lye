@@ -33,4 +33,4 @@ with open(sys.argv[2], "rb") as f:
 
     data = lyne.to_fs(sequencer)
 
-    time.sleep(10)
+    time.sleep(200)
