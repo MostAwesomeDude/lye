@@ -88,6 +88,9 @@ class Timelyne(object):
             else:
                 print "Unknown marker %s with line %r" % (marker, line)
 
+        # Last-minute things. Set a final mark, because of the fencepost
+        # problem. Also, reorder tracks so that the drum channel is relocated.
+        self.set_marks()
         self.reorder()
 
         return self
@@ -106,7 +109,7 @@ class Timelyne(object):
     def set_marks(self):
         for i, channel in enumerate(self.channels):
             if self.marks[i]:
-                previous = self.marks[-1][1]
+                previous = self.marks[i][-1].stop
             else:
                 previous = 0
             mark = slice(previous, len(channel))
@@ -201,7 +204,7 @@ class Timelyne(object):
             print "Moving drums", dc, "->", drums
             cs[dc], cs[drums] = cs[drums], cs[dc]
 
-    def to_fs(self, sequencer):
+    def to_fs(self, mark, sequencer):
         time = [0] * len(self.channels)
 
         sequencer.beats_per_minute = self.tempo
@@ -214,8 +217,9 @@ class Timelyne(object):
         # We just want the dest
         dest = sequencer.items()[0][1][0]
 
-        for channel, l in enumerate(self.channels):
-            for t, data in l:
+        for channel, (marks, l) in enumerate(zip(self.marks, self.channels)):
+            m = marks[mark]
+            for t, data in l[m]:
                 if t is INSTRUMENT:
                     event = FluidEvent()
                     event.dest = dest
@@ -234,6 +238,8 @@ class Timelyne(object):
 
         elapsed = sequencer.ticks - ticks
         print "Spare ticks", elapsed
+
+        return max(time)
 
     def to_midi(self):
         f = MIDIFile(len(self.channels), ticksPerBeat=self.ticks_per_beat)

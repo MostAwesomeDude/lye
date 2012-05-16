@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+from __future__ import division
+
 import sys
-import time
+
+from twisted.internet import reactor
 
 from lye.library import Library
 from lye.lyne import Timelyne
@@ -31,6 +34,17 @@ with open(sys.argv[2], "rb") as f:
 
     sequencer.add_synth(synth)
 
-    data = lyne.to_fs(sequencer)
+    def fill(mark):
+        length = lyne.to_fs(mark, sequencer)
+        mark += 1
 
-    time.sleep(200)
+        length /= lyne.ticks_per_beat * lyne.tempo / 60
+
+        if mark >= len(lyne.marks[0]):
+            reactor.callLater(length, reactor.stop)
+        else:
+            reactor.callLater(length, fill, mark)
+
+    reactor.callLater(0, fill, 0)
+
+    reactor.run()
