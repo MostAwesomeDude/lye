@@ -13,10 +13,33 @@ later playback.
 Fluidsynth is required, along with my Python bindings for Fluidsynth. The
 bindings can be found on PyPI under "fluidsynth".
 
+The Lye Language
+================
+
+Lye is a strict subset of Lilypond. The following features are supported:
+
+ * Notes
+
+   * Pitches
+   * Accidentals
+   * Octaves
+   * Durations
+   * Ties (``~``)
+
+ * Rests (``r4``)
+ * Chords (``<c e g>``)
+ * Voices (``<< { c d e d } { e f g f } >>``)
+ * Tuplets (``\\times``)
+ * Drums mode (``\\drums``)
+ * Relative mode (``\\relative``)
+
+Embedded Scheme is **not** supported, and will not be supported. Lye is not
+for typesetting, it is for performance.
+
 lyne.py
 =======
 
-lyne.py is the main entrypoint for Lye at the moment. It reads in a timelyne
+lyne.py is the main entry point for Lye at the moment. It reads in a timelyne
 and produces a MIDI file. To run it, try:
 
  $ ./lyne.py <library> <lyne> <midi>
@@ -24,3 +47,11 @@ and produces a MIDI file. To run it, try:
 For example, to compile the example groove, try:
 
  $ ./lyne.py groove groove.lyne groove.mid
+
+lyne-fs.py
+==========
+
+lyne-fs.py is an experimental Twisted-Fluidsynth blend which renders a
+timelyne to Fluidsynth.
+
+ $ ./lyne-fs.py <library> <lyne> <soundfont>
