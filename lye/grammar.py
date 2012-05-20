@@ -5,7 +5,6 @@ from fractions import Fraction
 from pymeta.grammar import OMeta
 from pymeta.runtime import ParseError
 
-from lye.algos import pitch_to_number
 from lye.ast import (MEASURE, TIE, Chord, Drums, Duration, Music, Note,
                      Relative, Rest, SciNote, Times, Voices)
 from lye.drums import drum_notes

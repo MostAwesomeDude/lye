@@ -11,7 +11,7 @@ from lye.visitors.maps import HarmonySplitter, Multiply, simplify_ast
 class Melody(object):
 
     instrument = None
-    volume = 127
+    volume = 100
     pan = 63
 
     fit_method = NEAREST
