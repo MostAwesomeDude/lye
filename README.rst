@@ -29,6 +29,7 @@ Lye is a strict subset of Lilypond. The following features are supported:
  * Rests (``r4``)
  * Chords (``<c e g>``)
  * Voices (``<< { c d e d } { e f g f } >>``)
+ * Dynamics (``\\ff``)
  * Tuplets (``\\times``)
  * Drums mode (``\\drums``)
  * Relative mode (``\\relative``)
