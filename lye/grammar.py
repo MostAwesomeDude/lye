@@ -5,8 +5,8 @@ from fractions import Fraction
 from pymeta.grammar import OMeta
 from pymeta.runtime import ParseError
 
-from lye.ast import (MEASURE, TIE, Chord, Drums, Duration, Music, Note,
-                     Relative, Rest, SciNote, Times, Voices)
+from lye.ast import (MEASURE, TIE, Chord, Drums, Duration, Dynamic, Music,
+                     Note, Relative, Rest, SciNote, Times, Voices)
 from lye.drums import drum_notes
 
 class InternalParseError(Exception):
@@ -32,11 +32,17 @@ def concat(l):
         rv.extend(i)
     return rv
 
+dynamics = "pp p mp mf f ff".split()
+
+dynamic_rule = """
+expr_dynamic ::= (%s):d => Dynamic(d[1:])
+""" % (" | ".join("<token \"\\\\%s\">" % mark for mark in dynamics))
+
 kit_rule = """
 kit ::= %s
 """ % (" | ".join("<token \"%s\">" % note for note in drum_notes))
 
-grammar = kit_rule + """
+grammar = dynamic_rule + kit_rule + """
 int ::= <digit>+:d => int("".join(d))
 
 sharp ::= 'i' 's' => 1
@@ -68,9 +74,9 @@ expr_times    ::= <token "\\\\times"> <spaces> <int>:n '/' <int>:d
                   <expr_music>:e
                 => Times(Fraction(n, d), e)
 expr_voices   ::= <token "<<"> <expr_music>+:es <token ">>"> => Voices(es)
-expr ::= <expr_chord> | <expr_drum> | <expr_drums> | <expr_measure> |
-         <expr_music> | <expr_note> | <expr_relative> | <expr_rest> |
-         <expr_tie> | <expr_times> | <expr_voices>
+expr ::= <expr_chord> | <expr_drum> | <expr_drums> | <expr_dynamic> |
+         <expr_measure> | <expr_music> | <expr_note> | <expr_relative> |
+         <expr_rest> | <expr_tie> | <expr_times> | <expr_voices>
 """
 
 class LyeGrammar(OMeta.makeGrammar(grammar, globals())):
