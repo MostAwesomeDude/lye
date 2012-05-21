@@ -60,7 +60,7 @@ class TestDrums(unittest.TestCase, ParsingMixin):
     def test_drum_mode(self):
         expr = self.assertParses("\\drums { sn }", LyeGrammar, "expr_drums")
         self.assertEqual(len(expr.expr.exprs), 1)
-        self.assertEqual(expr.expr.exprs[0], SciNote(40, None))
+        self.assertEqual(expr.expr.exprs[0], SciNote(40, None, None))
 
 class TestChords(unittest.TestCase, ParsingMixin):
 

@@ -53,7 +53,7 @@ pitch ::= <token "c"> | <token "d"> | <token "es"> | <token "e"> |
           <token "f"> | <token "g"> | <token "a"> | <token "b">
 
 expr_chord    ::= <token "<"> <expr_note>+:ns <token ">"> => Chord(ns)
-expr_drum     ::= <kit>:k <duration>?:d => SciNote(drum_notes[k], d)
+expr_drum     ::= <kit>:k <duration>?:d => SciNote(drum_notes[k], d, None)
 expr_drums    ::= <token "\\\\drums"> <expr>:e => Drums(e)
 expr_measure  ::= <token "|"> => MEASURE
 expr_music    ::= <token "{"> <expr>+:e <token "}"> => Music(e)

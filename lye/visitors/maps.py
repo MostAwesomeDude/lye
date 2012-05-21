@@ -219,7 +219,7 @@ class NoteTransformer(Visitor):
 
     def visit_Note(self, note):
         number = pitch_to_number(note.pitch, note.accidental, note.octave)
-        return SciNote(number, note.duration), True
+        return SciNote(number, note.duration, None), True
 
 
 class TieRemover(Visitor):
