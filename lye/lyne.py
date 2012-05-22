@@ -14,6 +14,12 @@ INSTRUMENT, LYNE, PAN, VOLUME = range(4)
 
 TACET = object()
 
+def make_velocity(s):
+    l = "pp p mp mf f ff".split()
+    i = l.index(s)
+    i = i * 18 + 19
+    return i
+
 def multipliers(numbers):
     denominator = reduce(gcd, numbers)
     numerator = max(numbers) // denominator
@@ -226,7 +232,8 @@ class Timelyne(object):
                     event.pc(channel, data)
                     sequencer.send(event, ticks + time[channel])
                 elif t is LYNE:
-                    for pitch, begin, duration in data.scheduled:
+                    for pitch, velocity, begin, duration in data.scheduled:
+                        velocity = make_velocity(velocity)
                         begin += time[channel]
                         event = FluidEvent()
                         event.dest = dest
@@ -255,7 +262,8 @@ class Timelyne(object):
                 if t is INSTRUMENT:
                     f.addProgramChange(track, channel, time[channel], data)
                 elif t is LYNE:
-                    for pitch, begin, duration in data.scheduled:
+                    for pitch, velocity, begin, duration in data.scheduled:
+                        velocity = make_velocity(velocity)
                         begin = begin / data.tpb + time[channel]
                         duration = duration / data.tpb
                         f.addNote(track, channel, pitch, begin, duration,

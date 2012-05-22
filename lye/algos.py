@@ -3,7 +3,7 @@ from warnings import warn
 
 from lye.ast import MEASURE, PARTIAL, TIE, Chord, SciNote, Rest, Voices
 
-ScheduledNote = namedtuple("ScheduledNote", "pitch, begin, duration")
+ScheduledNote = namedtuple("ScheduledNote", "pitch, velocity, begin, duration")
 
 class LyeParseWarning(Warning):
     """
@@ -102,15 +102,15 @@ def schedule_notes(node, tpb, beginning=0):
                 relative_marker = begin + expr.notes[0].duration
 
                 for note in expr.notes:
-                    scheduled.append(ScheduledNote(note.pitch, begin,
-                        note.duration))
+                    scheduled.append(ScheduledNote(note.pitch, note.velocity,
+                        begin, note.duration))
 
             elif isinstance(expr, SciNote):
                 begin = relative_marker
                 relative_marker = begin + expr.duration
 
-                scheduled.append(ScheduledNote(expr.pitch, begin,
-                    expr.duration))
+                scheduled.append(ScheduledNote(expr.pitch, expr.velocity,
+                    begin, expr.duration))
 
             elif isinstance(expr, Rest):
                 begin = relative_marker
