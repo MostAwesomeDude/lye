@@ -222,6 +222,25 @@ class NoteTransformer(Visitor):
         return SciNote(number, note.duration, None), True
 
 
+class DynamicRemover(Visitor):
+    """
+    Apply Dynamics to SciNotes, consuming the Dynamics.
+    """
+
+    volume = "mf"
+
+    dynamics = "pp p mp mf f ff".split()
+
+    def visit_SciNote(self, scinote):
+        scinote = scinote._replace(velocity=self.volume)
+        return scinote, False
+
+    def visit_Dynamic(self, dynamic):
+        self.volume = dynamic.mark
+
+        return None, False
+
+
 class TieRemover(Visitor):
     """
     Find and remove ties from streams of notes.
@@ -303,6 +322,7 @@ def simplify_ast(ast):
     ast = Relativizer().visit(ast)
     ast = MusicFlattener().visit(ast)
     ast = NoteTransformer().visit(ast)
+    ast = DynamicRemover().visit(ast)
     ast = ChordSorter().visit(ast)
     ast = TieRemover().visit(ast)
     return ast
