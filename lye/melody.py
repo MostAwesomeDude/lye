@@ -78,38 +78,6 @@ class Melody(object):
             rv.append(melody)
         return rv
 
-    def to_fs(self, sequencer):
-        """
-        Sends the melody to `sequencer`.
-        """
-
-        # XXX
-        # tpb = sequencer.ticks_per_beat
-        # Each item in the seq is (fluidsynth.FS, (dest, destname))
-        # We just want the dest
-        dest = sequencer.items()[0][1][0]
-        # XXX this fudge value might not be needed?
-        ticks = sequencer.ticks + 10
-
-        for pitch, begin, duration in self.scheduled:
-            event = fluidsynth.FluidEvent()
-            event.dest = dest
-            # XXX ? pitch vel duration
-            event.note(0, pitch, self.volume, duration)
-            sequencer.send(event, ticks + begin)
-
-    def to_midi(self, f, channel):
-        """
-        Create a MIDI expression for this melody.
-        """
-
-        track = 0
-
-        for pitch, begin, duration in self.scheduled:
-            begin = begin / self.tpb
-            duration = duration / self.tpb
-            f.addNote(track, channel, pitch, begin, duration, self.volume)
-
 def melody_from_ly(s):
     """
     Make a `Melody` from a ly string.
