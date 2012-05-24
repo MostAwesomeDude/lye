@@ -56,3 +56,13 @@ lyne-fs.py is an experimental Twisted-Fluidsynth blend which renders a
 timelyne to Fluidsynth.
 
  $ ./lyne-fs.py <library> <lyne> <soundfont>
+
+Bugs
+====
+
+Lynes can't be rewound. The information in lynes about instrument changes only
+goes forwards, not backwards. This isn't considered super-important yet and
+would be easy to address.
+
+Fluidsynth is a fickle mistress. Drums don't play, some melodies are rendered
+staccato, etc.
