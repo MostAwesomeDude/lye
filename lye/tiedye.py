@@ -7,6 +7,10 @@ Also contains Fluidsynth stuff.
 from __future__ import division
 
 from collections import namedtuple
+import sys
+
+from lye.library import Library
+from lye.lyne import Timelyne
 
 Seq = namedtuple("Seq", "sequencer, synthesizer, driver")
 
@@ -24,7 +28,7 @@ def create_sequencer(*soundfonts):
     settings["audio.realtime-prio"] = 0
     settings["synth.audio-groups"] = 1
     settings["synth.ladspa.active"] = False
-    settings["synth.verbose"] = True
+    settings["synth.verbose"] = False
 
     synth = fluidsynth.FluidSynth(settings)
     for soundfont in soundfonts:
@@ -65,3 +69,11 @@ class MarkedLyne(object):
         length = self.lyne.to_fs(self.mark, self.seq.sequencer)
         length /= self.lyne.ticks_per_beat * self.lyne.tempo / 60
         return length
+
+def just_go_already(lib, lyne, *soundfonts):
+    library = Library(lib)
+
+    with open(lyne, "rb") as f:
+        lyne = Timelyne.from_lines(library, f)
+        seq = create_sequencer(*soundfonts)
+        return MarkedLyne(lyne, seq)
