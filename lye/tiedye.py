@@ -4,6 +4,8 @@ Twisted-specific Lye support functions and objects.
 Also contains Fluidsynth stuff.
 """
 
+from __future__ import division
+
 from collections import namedtuple
 
 Seq = namedtuple("Seq", "sequencer, synthesizer, driver")
@@ -37,3 +39,29 @@ def create_sequencer(*soundfonts):
     seq.add_synth(synth)
 
     return Seq(seq, synth, driver)
+
+class MarkedLyne(object):
+
+    delayed = None
+    mark = 0
+
+    def __init__(self, lyne, seq):
+        self.lyne = lyne
+        self.seq = seq
+
+    def start(self, reactor):
+        self.reactor = reactor
+        self.refill()
+
+    def stop(self):
+        if self.delayed:
+            self.delayed.cancel()
+
+    def refill(self):
+        time = self.fill()
+        self.delayed = self.reactor.callLater(time, self.refill)
+
+    def fill(self):
+        length = self.lyne.to_fs(self.mark, self.seq.sequencer)
+        length /= self.lyne.ticks_per_beat * self.lyne.tempo / 60
+        return length

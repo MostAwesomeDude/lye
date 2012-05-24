@@ -8,7 +8,7 @@ from twisted.internet import reactor
 
 from lye.library import Library
 from lye.lyne import Timelyne
-from lye.tiedye import create_sequencer
+from lye.tiedye import create_sequencer, MarkedLyne
 
 if len(sys.argv) < 4:
     print "Usage:", sys.argv[0], "<library> <lyne> <soundfont>"
@@ -20,17 +20,7 @@ with open(sys.argv[2], "rb") as f:
     lyne = Timelyne.from_lines(library, f)
     seq = create_sequencer(sys.argv[3])
 
-    def fill(mark):
-        length = lyne.to_fs(mark, seq.sequencer)
-        mark += 1
-
-        length /= lyne.ticks_per_beat * lyne.tempo / 60
-
-        if mark >= len(lyne.marks[0]):
-            reactor.callLater(length, reactor.stop)
-        else:
-            reactor.callLater(length, fill, mark)
-
-    reactor.callLater(0, fill, 0)
+    marked = MarkedLyne(lyne, seq)
+    marked.start(reactor)
 
     reactor.run()
