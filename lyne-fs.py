@@ -18,10 +18,10 @@ library = Library(sys.argv[1])
 
 with open(sys.argv[2], "rb") as f:
     lyne = Timelyne.from_lines(library, f)
-    synth, seq = create_sequencer(sys.argv[3])
+    seq = create_sequencer(sys.argv[3])
 
     def fill(mark):
-        length = lyne.to_fs(mark, seq)
+        length = lyne.to_fs(mark, seq.sequencer)
         mark += 1
 
         length /= lyne.ticks_per_beat * lyne.tempo / 60
