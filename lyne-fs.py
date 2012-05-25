@@ -5,6 +5,7 @@ from __future__ import division
 import sys
 
 from twisted.internet import reactor
+from twisted.internet.task import LoopingCall
 
 from lye.library import Library
 from lye.lyne import Timelyne
@@ -22,5 +23,11 @@ with open(sys.argv[2], "rb") as f:
 
     marked = MarkedLyne(lyne, seq)
     marked.start(reactor)
+
+    def inc():
+        marked.mark += 1
+
+    lc = LoopingCall(inc)
+    lc.start(20)
 
     reactor.run()
