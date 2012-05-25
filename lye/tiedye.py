@@ -24,17 +24,16 @@ def create_sequencer(*soundfonts):
     from fluidsynth import fluidsynth
 
     settings = fluidsynth.FluidSettings()
-    settings.quality = "low"
+    # settings.quality = "low"
     settings["audio.realtime-prio"] = 0
-    settings["synth.audio-groups"] = 1
-    settings["synth.ladspa.active"] = False
-    settings["synth.verbose"] = False
+    settings["synth.threadsafe-api"] = True
+    settings["synth.verbose"] = True
 
     synth = fluidsynth.FluidSynth(settings)
     for soundfont in soundfonts:
         synth.load_soundfont(soundfont)
 
-    driver = fluidsynth.FluidAudioDriver(settings, synth)
+    driver = fluidsynth.FluidAudioDriver(synth)
 
     seq = fluidsynth.FluidSequencer()
     seq.beats_per_minute = 120
