@@ -39,7 +39,7 @@ def create_sequencer(*soundfonts):
     # settings.quality = "low"
     settings["audio.realtime-prio"] = 0
     settings["synth.threadsafe-api"] = True
-    settings["synth.verbose"] = True
+    # settings["synth.verbose"] = True
 
     synth = fluidsynth.FluidSynth(settings)
     for soundfont in soundfonts:
@@ -94,12 +94,12 @@ class MarkedLyne(object):
         # that took. Weight of 10 is pretty decent.
         new_offset = mma(self.offset, elapsed, 10)
 
-        print "length", length, "offset", self.offset, "elapsed", elapsed
-        print "new_offset", new_offset
-
         # And now determine how long we should wait, in ticks, for the next
         # fill.
         time = length - elapsed + (self.offset - new_offset)
+
+        print "Latency: %d/%d ticks (%d taken)" % (
+                self.offset, new_offset, elapsed)
 
         # Ticks -> seconds.
         time /= self.lyne.ticks_per_beat * self.lyne.tempo / 60
