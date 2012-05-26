@@ -47,12 +47,14 @@ class DurationVisitor(Visitor):
         # note, not a quarter note, but beats are quarter notes.
         duration = self.tpb * 4 // duration
 
-        dotted = duration
-        while dots:
-            dotted /= 2
-            duration += dotted
-            dots -= 1
-        return duration
+        f = Fraction(1, 2 ** dots)
+        f = Fraction(2, 1) - f
+        duration *= f
+
+        if duration.denominator != 1:
+            raise Exception("Couldn't simplify %s" % duration)
+
+        return duration.numerator
 
     def fill_duration(self, d):
         """
