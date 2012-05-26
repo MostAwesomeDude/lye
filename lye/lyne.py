@@ -215,9 +215,6 @@ class Timelyne(object):
     def to_fs(self, mark, sequencer):
         time = [0] * len(self.channels)
 
-        sequencer.beats_per_minute = self.tempo
-        sequencer.ticks_per_beat = self.ticks_per_beat
-
         ticks = sequencer.ticks
         ticks += self.ticks_per_beat
 

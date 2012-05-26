@@ -54,11 +54,16 @@ class MarkedLyne(object):
 
     def start(self, reactor):
         self.reactor = reactor
+        self.attune()
         self.refill()
 
     def stop(self):
         if self.delayed:
             self.delayed.cancel()
+
+    def attune(self):
+        self.seq.sequencer.beats_per_minute = self.lyne.tempo
+        self.seq.sequencer.ticks_per_beat = self.lyne.ticks_per_beat
 
     def refill(self):
         time = self.fill()
