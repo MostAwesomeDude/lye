@@ -212,11 +212,17 @@ class Timelyne(object):
             cs[dc], cs[drums] = cs[drums], cs[dc]
             ms[dc], ms[drums] = ms[drums], ms[dc]
 
-    def to_fs(self, mark, sequencer):
+    def to_fs(self, mark, sequencer, offset=0):
+        """
+        Write the given mark to the given sequencer.
+
+        Optionally, offset all writes by a given number of ticks.
+        """
+
         time = [0] * len(self.channels)
 
         ticks = sequencer.ticks
-        ticks += self.ticks_per_beat
+        ticks += offset
 
         # Each item in the seq is (fluidsynth.FS, (dest, destname))
         # We just want the dest
@@ -246,10 +252,10 @@ class Timelyne(object):
                 elif t is TACET:
                     time[channel] += data
 
+        ticks -= offset
         elapsed = sequencer.ticks - ticks
-        print "Spare ticks", elapsed
 
-        return max(time)
+        return max(time), elapsed
 
     def to_midi(self):
         f = MIDIFile(len(self.channels), ticksPerBeat=self.ticks_per_beat)
