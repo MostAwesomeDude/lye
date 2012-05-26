@@ -236,11 +236,15 @@ class Timelyne(object):
                 elif t is LYNE:
                     for pitch, velocity, begin, duration in data.scheduled:
                         velocity = make_velocity(velocity)
-                        begin += time[channel]
+                        start = ticks + time[channel] + begin
                         event = FluidEvent()
                         event.dest = dest
-                        event.note(channel, pitch, 100, duration)
-                        sequencer.send(event, ticks + begin)
+                        event.noteon(channel, pitch, 100)
+                        sequencer.send(event, start)
+                        event = FluidEvent()
+                        event.dest = dest
+                        event.noteoff(channel, pitch)
+                        sequencer.send(event, start + duration)
                     time[channel] += len(data)
                 elif t is TACET:
                     time[channel] += data
