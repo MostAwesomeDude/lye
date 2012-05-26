@@ -26,6 +26,8 @@ with open(sys.argv[2], "rb") as f:
 
     def inc():
         marked.mark += 1
+        if marked.mark >= len(lyne.marks[0]):
+            reactor.stop()
 
     lc = LoopingCall(inc)
     lc.start(20)
