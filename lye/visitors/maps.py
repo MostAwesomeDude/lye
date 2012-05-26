@@ -1,8 +1,9 @@
 from fractions import Fraction
 from operator import attrgetter, mul
 
-from lye.algos import pitch_to_number, simplify_ties
+from lye.algos import pitch_to_number
 from lye.ast import Duration, Music, SciNote, Voice
+from lye.visitors.peephole import TieSimplifier
 from lye.visitors.visitor import Visitor, hasfield
 
 
@@ -241,17 +242,6 @@ class DynamicRemover(Visitor):
         return None, False
 
 
-class TieRemover(Visitor):
-    """
-    Find and remove ties from streams of notes.
-    """
-
-    def visit_generic(self, node):
-        if hasfield(node, "exprs"):
-            simplify_ties(node.exprs)
-        return node, True
-
-
 class ChordSorter(Visitor):
     """
     Ensure Chords have their notes in strictly decreasing order.
@@ -324,5 +314,5 @@ def simplify_ast(ast):
     ast = NoteTransformer().visit(ast)
     ast = DynamicRemover().visit(ast)
     ast = ChordSorter().visit(ast)
-    ast = TieRemover().visit(ast)
+    ast = TieSimplifier().visit(ast)
     return ast
