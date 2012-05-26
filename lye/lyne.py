@@ -206,9 +206,11 @@ class Timelyne(object):
         dc = self._drum_channel
         drums = 9
         cs = self.channels
+        ms = self.marks
         if dc != drums:
             print "Moving drums", dc, "->", drums
             cs[dc], cs[drums] = cs[drums], cs[dc]
+            ms[dc], ms[drums] = ms[drums], ms[dc]
 
     def to_fs(self, mark, sequencer):
         time = [0] * len(self.channels)
