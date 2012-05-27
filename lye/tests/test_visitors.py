@@ -1,8 +1,10 @@
 from unittest import TestCase
 
-from lye.ast import TIE, Drums, Music, Rest, SciNote
+from lye.ast import (CLOSE_SLUR, OPEN_SLUR, TIE, Drums, Music, Rest, SciNote,
+                     Slur)
 from lye.visitors.maps import DrumsTransformer
 from lye.visitors.peephole import RestMerger, TieRemover
+from lye.visitors.pegs import SlurMaker
 
 class TestDrumsTransformer(TestCase):
 
@@ -30,4 +32,18 @@ class TestRestMerger(TestCase):
         rests = Music([Rest(100), Rest(20)])
         expected = Music([Rest(120)])
         result = RestMerger().visit(rests)
+        self.assertEqual(result, expected)
+
+class TestSlurMaker(TestCase):
+
+    def test_make_slur(self):
+        notes = Music(["a", OPEN_SLUR, "b", CLOSE_SLUR])
+        expected = Music([Slur(["a", "b"])])
+        result = SlurMaker().visit(notes)
+        self.assertEqual(result, expected)
+
+    def test_make_slur_multiple(self):
+        notes = Music(["a", OPEN_SLUR, "b", "c", CLOSE_SLUR])
+        expected = Music([Slur(["a", "b", "c"])])
+        result = SlurMaker().visit(notes)
         self.assertEqual(result, expected)
