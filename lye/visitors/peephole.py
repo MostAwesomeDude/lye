@@ -1,6 +1,6 @@
 from warnings import warn
 
-from lye.ast import TIE, SciNote
+from lye.ast import TIE, Rest, SciNote
 from lye.visitors.visitor import hasfield, Visitor
 
 class LyeParseWarning(Warning):
@@ -44,3 +44,7 @@ def TieRemover(before, tie, after):
     else:
         warn("Tie between differing pitches", LyeParseWarning)
         return [], False
+
+@peephole(Rest, Rest)
+def RestMerger(first, second):
+    return [first._replace(duration=first.duration + second.duration)], True

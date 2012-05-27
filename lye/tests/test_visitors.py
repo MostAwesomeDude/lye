@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from lye.ast import TIE, Drums, Music, SciNote
+from lye.ast import TIE, Drums, Music, Rest, SciNote
 from lye.visitors.maps import DrumsTransformer
-from lye.visitors.peephole import TieRemover
+from lye.visitors.peephole import RestMerger, TieRemover
 
 class TestDrumsTransformer(TestCase):
 
@@ -22,4 +22,12 @@ class TestTieRemover(TestCase):
         notes = Music([SciNote(42, 120, None), TIE, SciNote(42, 120, None)])
         expected = Music([SciNote(42, 240, None)])
         result = TieRemover().visit(notes)
+        self.assertEqual(result, expected)
+
+class TestRestMerger(TestCase):
+
+    def test_merge_rests(self):
+        rests = Music([Rest(100), Rest(20)])
+        expected = Music([Rest(120)])
+        result = RestMerger().visit(rests)
         self.assertEqual(result, expected)
