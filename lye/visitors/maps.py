@@ -2,8 +2,8 @@ from fractions import Fraction
 from operator import attrgetter, mul
 
 from lye.algos import pitch_to_number
-from lye.ast import (CLOSE_SLUR, OPEN_SLUR, Duration, Music, Rest, SciNote,
-                     Voice)
+from lye.ast import (CLOSE_SLUR, OPEN_SLUR, Duration, Music, PitchBend, Rest,
+                     SciNote, Voice)
 from lye.visitors.visitor import Visitor, hasfield
 
 
@@ -179,6 +179,9 @@ class MusicFlattener(Visitor):
     Flatten Music expressions.
     """
 
+    def __init__(self, instrument=None):
+        pass
+
     @staticmethod
     def flatten_inner(node):
         """
@@ -315,6 +318,9 @@ class Express(Visitor):
     In the process, swallow up things like slurs.
     """
 
+    def __init__(self, instrument):
+        self.inst = instrument
+
     def traverse(self, exprs):
         # Oh boy~
         in_slur = False
@@ -342,6 +348,31 @@ class Express(Visitor):
 
         return out
 
-    def visit_Music(self, music):
-        music = music._replace(exprs=self.traverse(music.exprs))
-        return music, True
+    def visit_Slur(self, slur):
+        """
+        Attempt to pitch-bend to victory.
+        """
+
+        print slur
+
+        first = slur.exprs[0]
+        exprs = slur.exprs[1:]
+
+        for expr in exprs:
+            if abs(expr.pitch - first.pitch) > 2:
+                # Bail.
+                return slur, True
+
+        first = first._replace(
+                duration=sum(expr.duration for expr in slur.exprs))
+        offset = 0
+        out = [first]
+
+        for expr in exprs:
+            offset += expr.duration
+            out.append(PitchBend(offset,
+                (8191 // 2) * (expr.pitch - first.pitch)))
+
+        print out
+
+        return Music(out), False

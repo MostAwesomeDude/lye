@@ -1,7 +1,8 @@
 from collections import namedtuple
 from warnings import warn
 
-from lye.ast import MEASURE, PARTIAL, TIE, Chord, SciNote, Rest, Voices
+from lye.ast import (MEASURE, PARTIAL, TIE, Chord, PitchBend, SciNote, Rest,
+                     Voices)
 
 ScheduledNote = namedtuple("ScheduledNote", "pitch, velocity, begin, duration")
 
@@ -66,9 +67,13 @@ def schedule_notes(node, tpb, beginning=0):
             elif isinstance(expr, SciNote):
                 begin = relative_marker
                 relative_marker = begin + expr.duration
+                prev_note = begin
 
                 scheduled.append(ScheduledNote(expr.pitch, expr.velocity,
                     begin, expr.duration))
+
+            elif isinstance(expr, PitchBend):
+                scheduled.append((0, expr.value, prev_note + expr.offset, 0))
 
             elif isinstance(expr, Rest):
                 begin = relative_marker

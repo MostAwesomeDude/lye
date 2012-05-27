@@ -238,6 +238,14 @@ class Timelyne(object):
                     sequencer.send(event, ticks + time[channel])
                 elif t is LYNE:
                     for pitch, velocity, begin, duration in data.scheduled:
+                        if pitch == 0 and duration == 0:
+                            # Hax'd pitch bend data.
+                            start = ticks + time[channel] + begin
+                            event = FluidEvent()
+                            event.dest = dest
+                            event.pitch_bend(channel, velocity + 8192)
+                            sequencer.send(event, start + duration)
+                            continue
                         velocity = make_velocity(velocity)
                         start = ticks + time[channel] + begin
                         event = FluidEvent()
