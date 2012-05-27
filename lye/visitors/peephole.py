@@ -34,7 +34,7 @@ def peephole(*types):
     return inner
 
 @peephole(SciNote, object, SciNote)
-def TieSimplifier(before, tie, after):
+def TieRemover(before, tie, after):
     if tie is not TIE:
         return [before, tie, after], False
 

@@ -3,7 +3,6 @@ from operator import attrgetter, mul
 
 from lye.algos import pitch_to_number
 from lye.ast import Duration, Music, SciNote, Voice
-from lye.visitors.peephole import TieSimplifier
 from lye.visitors.visitor import Visitor, hasfield
 
 
@@ -304,17 +303,3 @@ class HarmonySplitter(Visitor):
     def visit_Chord(self, chord):
         index = self.voice % len(chord.notes)
         return chord.notes[index], False
-
-
-def simplify_ast(ast):
-    ast = DrumsTransformer().visit(ast)
-    ast = VoicesTransformer().visit(ast)
-    ast = DurationVisitor().visit(ast)
-    ast = TimesVisitor().visit(ast)
-    ast = Relativizer().visit(ast)
-    ast = MusicFlattener().visit(ast)
-    ast = NoteTransformer().visit(ast)
-    ast = DynamicRemover().visit(ast)
-    ast = ChordSorter().visit(ast)
-    ast = TieSimplifier().visit(ast)
-    return ast
