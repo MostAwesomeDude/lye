@@ -3,6 +3,7 @@ from lye.visitors.maps import (ChordSorter, DrumsTransformer, DurationVisitor,
                                NoteTransformer, Relativizer, TimesVisitor,
                                VoicesTransformer)
 from lye.visitors.peephole import RestMerger, TieRemover
+from lye.visitors.pegs import SlurMaker
 
 stages = (
     # Get our ASTs into the shape we want. Mostly, do our folds and eliminate
@@ -25,8 +26,8 @@ stages = (
     DynamicRemover,
     # Sort Chord contents. Must come after SciNotes.
     ChordSorter,
-    # Add expressions.
-    Express,
+    # Add Slurs.
+    SlurMaker,
     # Peepholes!
     # Remove TIEs.
     TieRemover,
