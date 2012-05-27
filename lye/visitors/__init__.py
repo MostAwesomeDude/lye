@@ -1,5 +1,5 @@
 from lye.visitors.maps import (ChordSorter, DrumsTransformer, DurationVisitor,
-                               DynamicRemover, MusicFlattener,
+                               DynamicRemover, Express, MusicFlattener,
                                NoteTransformer, Relativizer, TimesVisitor,
                                VoicesTransformer)
 from lye.visitors.peephole import RestMerger, TieRemover
@@ -25,6 +25,8 @@ stages = (
     DynamicRemover,
     # Sort Chord contents. Must come after SciNotes.
     ChordSorter,
+    # Add expressions.
+    Express,
     # Peepholes!
     # Remove TIEs.
     TieRemover,

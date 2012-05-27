@@ -2,7 +2,8 @@ from fractions import Fraction
 from operator import attrgetter, mul
 
 from lye.algos import pitch_to_number
-from lye.ast import Duration, Music, SciNote, Voice
+from lye.ast import (CLOSE_SLUR, OPEN_SLUR, Duration, Music, Rest, SciNote,
+                     Voice)
 from lye.visitors.visitor import Visitor, hasfield
 
 
@@ -303,3 +304,44 @@ class HarmonySplitter(Visitor):
     def visit_Chord(self, chord):
         index = self.voice % len(chord.notes)
         return chord.notes[index], False
+
+
+class Express(Visitor):
+    """
+    Alter lengths of notes in order to make them more expressive.
+
+    Only works on SciNotes.
+
+    In the process, swallow up things like slurs.
+    """
+
+    def traverse(self, exprs):
+        # Oh boy~
+        in_slur = False
+        out = []
+
+        for expr in exprs:
+            if isinstance(expr, SciNote):
+                if in_slur:
+                    out.append(expr)
+                else:
+                    on = expr.duration * 9 // 10
+                    off = expr.duration - on
+                    out.append(expr._replace(duration=on))
+                    out.append(Rest(off))
+            elif expr is OPEN_SLUR:
+                if in_slur:
+                    raise Exception("Nested slurs!")
+                in_slur = True
+            elif expr is CLOSE_SLUR:
+                if not in_slur:
+                    raise Exception("Lone closing slur!")
+                in_slur = False
+            else:
+                out.append(expr)
+
+        return out
+
+    def visit_Music(self, music):
+        music = music._replace(exprs=self.traverse(music.exprs))
+        return music, True
