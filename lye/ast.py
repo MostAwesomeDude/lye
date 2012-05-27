@@ -1,7 +1,9 @@
 from collections import namedtuple
 
+CLOSE_SLUR = object()
 ENDVOICE = object()
 MEASURE = object()
+OPEN_SLUR = object()
 PARTIAL = object()
 TIE = object()
 

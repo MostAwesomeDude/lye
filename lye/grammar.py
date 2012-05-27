@@ -5,8 +5,9 @@ from fractions import Fraction
 from pymeta.grammar import OMeta
 from pymeta.runtime import ParseError
 
-from lye.ast import (MEASURE, TIE, Chord, Drums, Duration, Dynamic, Music,
-                     Note, Relative, Rest, SciNote, Times, Voices)
+from lye.ast import (CLOSE_SLUR, MEASURE, OPEN_SLUR, TIE, Chord, Drums,
+                     Duration, Dynamic, Music, Note, Relative, Rest, SciNote,
+                     Times, Voices)
 from lye.drums import drum_notes
 
 class InternalParseError(Exception):
@@ -58,10 +59,15 @@ duration ::= <int>:i '.'*:dots => Duration(i, len(dots))
 pitch ::= <token "c"> | <token "d"> | <token "es"> | <token "e"> |
           <token "f"> | <token "g"> | <token "a"> | <token "b">
 
+open_slur  ::= <token "("> => OPEN_SLUR
+close_slur ::= <token ")"> => CLOSE_SLUR
+measure    ::= <token "|"> => MEASURE
+tie        ::= <token "~"> => TIE
+
 expr_chord    ::= <token "<"> <expr_note>+:ns <token ">"> => Chord(ns)
 expr_drum     ::= <kit>:k <duration>?:d => SciNote(drum_notes[k], d, None)
 expr_drums    ::= <token "\\\\drums"> <expr>:e => Drums(e)
-expr_measure  ::= <token "|"> => MEASURE
+expr_marker   ::= <open_slur> | <close_slur> | <measure> | <tie>
 expr_music    ::= <token "{"> <expr>+:e <token "}"> => Music(e)
 expr_note     ::= <pitch>:p <accidental>?:a <octave>?:o <duration>?:d
                 => Note(p, a or 0, o or 0, d)
@@ -69,14 +75,13 @@ expr_relative ::= <token "\\\\relative"> <spaces> <pitch>:p <accidental>?
                   <octave>?:o <expr_music>:e
                 => Relative(p, o or 0, e)
 expr_rest     ::= <token "r"> <duration>?:d => Rest(d)
-expr_tie      ::= <token "~"> => TIE
 expr_times    ::= <token "\\\\times"> <spaces> <int>:n '/' <int>:d
                   <expr_music>:e
                 => Times(Fraction(n, d), e)
 expr_voices   ::= <token "<<"> <expr_music>+:es <token ">>"> => Voices(es)
 expr ::= <expr_chord> | <expr_drum> | <expr_drums> | <expr_dynamic> |
-         <expr_measure> | <expr_music> | <expr_note> | <expr_relative> |
-         <expr_rest> | <expr_tie> | <expr_times> | <expr_voices>
+         <expr_marker> | <expr_music> | <expr_note> | <expr_relative> |
+         <expr_rest> | <expr_times> | <expr_voices>
 """
 
 class LyeGrammar(OMeta.makeGrammar(grammar, globals())):
