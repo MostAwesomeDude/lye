@@ -1,10 +1,7 @@
 from __future__ import division
 
-from StringIO import StringIO
 from fractions import gcd
 from itertools import takewhile
-
-from fluidsynth.fluidsynth import FluidEvent
 
 from lye.MidiFile import MIDIFile
 from lye.instruments import (instruments as midi_instruments,
@@ -212,89 +209,30 @@ class Timelyne(object):
             cs[dc], cs[drums] = cs[drums], cs[dc]
             ms[dc], ms[drums] = ms[drums], ms[dc]
 
-    def to_fs(self, mark, sequencer, offset=0):
+    def export(self, mark, exporter):
         """
-        Write the given mark to the given sequencer.
-
-        Optionally, offset all writes by a given number of ticks.
+        Export a mark.
         """
 
         time = [0] * len(self.channels)
-
-        ticks = sequencer.ticks
-        ticks += offset
-
-        # Each item in the seq is (fluidsynth.FS, (dest, destname))
-        # We just want the dest
-        dest = sequencer.items()[0][1][0]
 
         for channel, (marks, l) in enumerate(zip(self.marks, self.channels)):
             m = marks[mark]
             for t, data in l[m]:
                 if t is INSTRUMENT:
-                    event = FluidEvent()
-                    event.dest = dest
-                    event.pc(channel, data)
-                    sequencer.send(event, ticks + time[channel])
+                    exporter.pc(channel, time[channel], data)
                 elif t is LYNE:
                     for pitch, velocity, begin, duration in data.scheduled:
                         if pitch == 0 and duration == 0:
                             # Hax'd pitch bend data.
-                            start = ticks + time[channel] + begin
-                            event = FluidEvent()
-                            event.dest = dest
-                            event.pitch_bend(channel, velocity + 8192)
-                            sequencer.send(event, start + duration)
-                            continue
-                        velocity = make_velocity(velocity)
-                        start = ticks + time[channel] + begin
-                        event = FluidEvent()
-                        event.dest = dest
-                        event.noteon(channel, pitch, 100)
-                        sequencer.send(event, start)
-                        event = FluidEvent()
-                        event.dest = dest
-                        event.noteoff(channel, pitch)
-                        sequencer.send(event, start + duration)
+                            exporter.bend(channel, time[channel] + duration,
+                                    velocity)
+                        else:
+                            velocity = make_velocity(velocity)
+                            exporter.note(channel, time[channel], duration,
+                                    pitch, velocity)
                     time[channel] += len(data)
                 elif t is TACET:
                     time[channel] += data
 
-        ticks -= offset
-        elapsed = sequencer.ticks - ticks
-
-        return max(time), elapsed
-
-    def to_midi(self):
-        f = MIDIFile(len(self.channels), ticksPerBeat=self.ticks_per_beat)
-
-        time = [0] * len(self.channels)
-        track = 0
-
-        f.addTrackName(track, 0, "Lye")
-        f.addTempo(track, 0, self.tempo)
-
-        for channel, l in enumerate(self.channels):
-            for t, data in l:
-                if t is INSTRUMENT:
-                    f.addProgramChange(track, channel, time[channel], data)
-                elif t is LYNE:
-                    for pitch, velocity, begin, duration in data.scheduled:
-                        velocity = make_velocity(velocity)
-                        begin = begin / data.tpb + time[channel]
-                        duration = duration / data.tpb
-                        f.addNote(track, channel, pitch, begin, duration,
-                                data.volume)
-                    time[channel] += len(data) / self.ticks_per_beat
-                elif t is PAN:
-                    f.addControllerEvent(track, channel, time[channel], 0x0a,
-                            data)
-                elif t is VOLUME:
-                    f.addControllerEvent(track, channel, time[channel], 0x07,
-                            data)
-                elif t is TACET:
-                    time[channel] += data / self.ticks_per_beat
-
-        sio = StringIO()
-        f.writeFile(sio)
-        return sio.getvalue()
+        return max(time), exporter.commit()

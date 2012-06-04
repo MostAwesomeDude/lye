@@ -7,8 +7,8 @@ Also contains Fluidsynth stuff.
 from __future__ import division
 
 from collections import namedtuple
-import sys
 
+from lye.export import FSExporter
 from lye.library import Library
 from lye.lyne import Timelyne
 
@@ -86,9 +86,9 @@ class MarkedLyne(object):
         self.delayed = self.reactor.callLater(time, self.refill)
 
     def fill(self):
+        exporter = FSExporter(self.seq.sequencer, self.offset)
         # Perform the actual fill.
-        length, elapsed = self.lyne.to_fs(self.mark, self.seq.sequencer,
-                offset=self.offset)
+        length, elapsed = self.lyne.export(self.mark, exporter)
 
         # Figure out what our next offset is going to be, based on how long
         # that took. Weight of 10 is pretty decent.
