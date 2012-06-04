@@ -229,8 +229,8 @@ class Timelyne(object):
                                     velocity)
                         else:
                             velocity = make_velocity(velocity)
-                            exporter.note(channel, time[channel], duration,
-                                    pitch, velocity)
+                            exporter.note(channel, time[channel] + begin,
+                                    duration, pitch, velocity)
                     time[channel] += len(data)
                 elif t is TACET:
                     time[channel] += data

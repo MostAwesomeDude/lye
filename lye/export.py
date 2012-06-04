@@ -64,12 +64,12 @@ class FSExporter(object):
         event = FluidEvent()
         event.dest = self.dest
         event.noteon(channel, pitch, velocity)
-        self.seq.send(event, self.offset)
+        self.seq.send(event, self.offset + time)
 
         event = FluidEvent()
         event.dest = self.dest
         event.noteoff(channel, pitch)
-        self.seq.send(event, self.offset + duration)
+        self.seq.send(event, self.offset + time + duration)
 
     def bend(self, channel, time, value):
         event = FluidEvent()
