@@ -3,7 +3,6 @@ from __future__ import division
 from fractions import gcd
 from itertools import takewhile
 
-from lye.MidiFile import MIDIFile
 from lye.instruments import (instruments as midi_instruments,
                              numbered_instruments, HIGHEST, NEAREST, LOWEST)
 

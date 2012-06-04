@@ -87,4 +87,7 @@ class FSExporter(object):
         self.seq.send(event, self.offset + time)
 
     def volume(self, channel, time, amount):
-        pass
+        event = FluidEvent()
+        event.dest = self.dest
+        event.volume(channel, amount)
+        self.seq.send(event, self.offset + time)
