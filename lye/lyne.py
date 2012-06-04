@@ -224,7 +224,7 @@ class Timelyne(object):
                     for pitch, velocity, begin, duration in data.scheduled:
                         if pitch == 0 and duration == 0:
                             # Hax'd pitch bend data.
-                            exporter.bend(channel, time[channel] + duration,
+                            exporter.bend(channel, time[channel] + begin,
                                     velocity)
                         else:
                             velocity = make_velocity(velocity)

@@ -72,6 +72,12 @@ class FSExporter(object):
         self.seq.send(event, self.offset + time + duration)
 
     def bend(self, channel, time, value):
+        # Hax: Set the pitch wheel to 12 semitones.
+        event = FluidEvent()
+        event.dest = self.dest
+        event.pitch_sens(channel, 12)
+        self.seq.send(event, self.offset + time)
+
         event = FluidEvent()
         event.dest = self.dest
         event.pitch_bend(channel, value + 8192)

@@ -359,7 +359,7 @@ class Express(Visitor):
         exprs = slur.exprs[1:]
 
         for expr in exprs:
-            if abs(expr.pitch - first.pitch) > 2:
+            if abs(expr.pitch - first.pitch) > 12:
                 # Bail.
                 return slur, True
 
@@ -371,7 +371,7 @@ class Express(Visitor):
         for expr in exprs:
             offset += expr.duration
             out.append(PitchBend(offset,
-                (8191 // 2) * (expr.pitch - first.pitch)))
+                (8191 // 12) * (expr.pitch - first.pitch)))
 
         print out
 
