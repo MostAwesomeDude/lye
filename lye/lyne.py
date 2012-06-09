@@ -191,9 +191,8 @@ class Timelyne(object):
             else:
                 instrument = self._previous_instruments[i]
                 new = melody * muls[i]
-                new.instrument = instrument
                 new.fit_method = melody.fit_method
-                new.fit()
+                new.change_instrument(instrument)
                 print "%d: %d ticks (%d), %s %d" % (i, len(new), len(melody),
                         instrument, new.fit_method)
                 self.channels[i].append((LYNE, new))

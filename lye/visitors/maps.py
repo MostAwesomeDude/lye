@@ -2,8 +2,8 @@ from fractions import Fraction
 from operator import attrgetter, mul
 
 from lye.algos import pitch_to_number
-from lye.ast import (CLOSE_SLUR, OPEN_SLUR, Duration, Music, PitchBend, Rest,
-                     SciNote, Voice)
+from lye.ast import Duration, Music, PitchBend, Rest, SciNote, Voice
+from lye.facts import can_legato
 from lye.visitors.visitor import Visitor, hasfield
 
 
@@ -309,7 +309,7 @@ class HarmonySplitter(Visitor):
         return chord.notes[index], False
 
 
-class Express(Visitor):
+class Legato(Visitor):
     """
     Alter lengths of notes in order to make them more expressive.
 
@@ -321,39 +321,32 @@ class Express(Visitor):
     def __init__(self, instrument):
         self.inst = instrument
 
-    def traverse(self, exprs):
-        # Oh boy~
-        in_slur = False
-        out = []
+    def visit_SciNote(self, scinote):
+        """
+        Slightly shorten notes.
 
-        for expr in exprs:
-            if isinstance(expr, SciNote):
-                if in_slur:
-                    out.append(expr)
-                else:
-                    on = expr.duration * 9 // 10
-                    off = expr.duration - on
-                    out.append(expr._replace(duration=on))
-                    out.append(Rest(off))
-            elif expr is OPEN_SLUR:
-                if in_slur:
-                    raise Exception("Nested slurs!")
-                in_slur = True
-            elif expr is CLOSE_SLUR:
-                if not in_slur:
-                    raise Exception("Lone closing slur!")
-                in_slur = False
-            else:
-                out.append(expr)
+        We are guaranteed to never reach here inside Slurs, because we also
+        visit Slurs and refuse to recurse inside them.
+        """
 
-        return out
+        # Use integer math to ensure that on + off is always equal to the
+        # original duration.
+        on = scinote.duration * 9 // 10
+        off = scinote.duration - on
+        scinote = scinote._replace(duration=on)
+        rest = Rest(off)
+
+        # Don't recurse further; it isn't gonna work very well.
+        return Music([scinote, rest]), False
 
     def visit_Slur(self, slur):
         """
         Attempt to pitch-bend to victory.
         """
 
-        print slur
+        # If we can't do bends on this instrument, bail.
+        if not can_legato(self.inst):
+            return slur, False
 
         first = slur.exprs[0]
         exprs = slur.exprs[1:]
@@ -361,7 +354,7 @@ class Express(Visitor):
         for expr in exprs:
             if abs(expr.pitch - first.pitch) > 12:
                 # Bail.
-                return slur, True
+                return slur, False
 
         first = first._replace(
                 duration=sum(expr.duration for expr in slur.exprs))
@@ -372,7 +365,5 @@ class Express(Visitor):
             offset += expr.duration
             out.append(PitchBend(offset,
                 (8191 // 12) * (expr.pitch - first.pitch)))
-
-        print out
 
         return Music(out), False

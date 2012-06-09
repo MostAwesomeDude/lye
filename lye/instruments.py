@@ -1,26 +1,7 @@
 from collections import defaultdict
-import re
 
 from lye.ast import Chord, SciNote
 from lye.visitors.maps import Transposer
-
-from pyDatalog.pyDatalog import Datalog_engine
-
-pl = Datalog_engine()
-
-pl.load("""
-+ legato(acoustic_guitar__nylon_)
-+ legato(acoustic_guitar__steel_)
-+ legato(electric_guitar__jazz_)
-+ legato(electric_guitar__clean_)
-+ legato(electric_guitar__muted_)
-+ legato(overdriven_guitar)
-+ legato(distorted_guitar)
-""")
-
-def can_legato(instrument):
-    i = re.sub("[() ]", "_", instrument)
-    return bool(pl.ask("legato(%s)" % i))
 
 # Here's how pitches work. I'm writing it down largely because I keep
 # forgetting.

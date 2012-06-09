@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from lye.instruments import can_legato, sci_to_midi
+from lye.instruments import sci_to_midi
 
 class TestSciToMidi(TestCase):
 
@@ -15,11 +15,3 @@ class TestSciToMidi(TestCase):
 
     def test_flat(self):
         self.assertEqual(sci_to_midi("Cb4"), 59)
-
-class TestCanLegato(TestCase):
-
-    def test_piano_cannot_legato(self):
-        self.assertFalse(can_legato("acoustic grand"))
-
-    def test_guitar_can_legato(self):
-        self.assertTrue(can_legato("overdriven guitar"))

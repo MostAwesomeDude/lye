@@ -1,11 +1,9 @@
 from __future__ import division
 
-from fluidsynth import fluidsynth
-
 from lye.algos import schedule_notes
 from lye.grammar import LyeGrammar
 from lye.instruments import NEAREST, fit
-from lye.visitors import simplify_ast
+from lye.visitors import express_ast, simplify_ast
 from lye.visitors.folds import ChordCounter
 from lye.visitors.maps import HarmonySplitter, Multiply
 
@@ -20,10 +18,11 @@ class Melody(object):
     _len = None
     _scheduled = None
 
-    def __init__(self, music, tpb):
+    def __init__(self, music, tpb, instrument=None):
         self.music = music
         self.tpb = tpb
-        self._scheduled, self._len = schedule_notes(self.music, self.tpb)
+
+        self.change_instrument(instrument)
 
     def __nonzero__(self):
         return any(self.music)
@@ -44,15 +43,23 @@ class Melody(object):
     def scheduled(self):
         return self._scheduled
 
-    def fit(self):
+    def change_instrument(self, instrument):
         """
-        Force this melody to be within the range of its instrument.
+        Set the instrument for this melody.
+
+        Forces the melody to be within the range of the instrument, and
+        applies expressions to the melody.
         """
 
-        if self.instrument:
-            self.music = fit(self.music, self.instrument, self.fit_method)
-        # And reschedule.
-        self._scheduled, self._len = schedule_notes(self.music, self.tpb)
+        self.instrument = instrument
+        music = self.music
+
+        if instrument:
+            music = fit(music, self.instrument, self.fit_method)
+            music = express_ast(music, self.instrument)
+
+        # And finally reschedule.
+        self._scheduled, self._len = schedule_notes(music, self.tpb)
 
     def split(self):
         """
