@@ -321,6 +321,17 @@ class Legato(Visitor):
     def __init__(self, instrument):
         self.inst = instrument
 
+    @staticmethod
+    def shorten(scinote):
+        # Use integer math to ensure that on + off is always equal to the
+        # original duration.
+        on = scinote.duration * 9 // 10
+        off = scinote.duration - on
+        scinote = scinote._replace(duration=on)
+        rest = Rest(off)
+
+        return scinote, rest
+
     def visit_SciNote(self, scinote):
         """
         Slightly shorten notes.
@@ -329,15 +340,24 @@ class Legato(Visitor):
         visit Slurs and refuse to recurse inside them.
         """
 
-        # Use integer math to ensure that on + off is always equal to the
-        # original duration.
-        on = scinote.duration * 9 // 10
-        off = scinote.duration - on
-        scinote = scinote._replace(duration=on)
-        rest = Rest(off)
+        scinote, rest = self.shorten(scinote)
 
         # Don't recurse further; it isn't gonna work very well.
         return Music([scinote, rest]), False
+
+    def visit_Chord(self, chord):
+        """
+        Shorten the chord slightly.
+        """
+
+        notes = []
+
+        for note in chord.notes:
+            note, rest = self.shorten(note)
+            notes.append(note)
+
+        chord = chord._replace(notes=notes)
+        return Music([chord, rest]), False
 
     def visit_Slur(self, slur):
         """
