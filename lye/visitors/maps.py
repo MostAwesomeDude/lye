@@ -366,7 +366,7 @@ class Legato(Visitor):
 
         # If we can't do bends on this instrument, bail.
         if not can_legato(self.inst):
-            return slur, False
+            return Music(slur.exprs), False
 
         first = slur.exprs[0]
         exprs = slur.exprs[1:]
@@ -374,7 +374,7 @@ class Legato(Visitor):
         for expr in exprs:
             if abs(expr.pitch - first.pitch) > 12:
                 # Bail.
-                return slur, False
+                return Music(slur.exprs), False
 
         first = first._replace(
                 duration=sum(expr.duration for expr in slur.exprs))
