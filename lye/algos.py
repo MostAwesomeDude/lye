@@ -1,7 +1,6 @@
 from collections import namedtuple
-from warnings import warn
 
-from lye.ast import (MEASURE, PARTIAL, TIE, Chord, PitchBend, SciNote, Rest,
+from lye.ast import (MEASURE, PARTIAL, Chord, PitchBend, SciNote, Rest,
                      Voices)
 
 ScheduledNote = namedtuple("ScheduledNote", "pitch, velocity, begin, duration")
