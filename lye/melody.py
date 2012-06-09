@@ -1,10 +1,9 @@
 from __future__ import division
 
-from lye.algos import schedule_notes
 from lye.grammar import LyeGrammar
 from lye.instruments import NEAREST, fit
 from lye.visitors import express_ast, simplify_ast
-from lye.visitors.folds import ChordCounter
+from lye.visitors.folds import ChordCounter, NoteScheduler, fold
 from lye.visitors.maps import HarmonySplitter, Multiply
 
 class Melody(object):
@@ -59,7 +58,7 @@ class Melody(object):
             music = express_ast(music, self.instrument)
 
         # And finally reschedule.
-        self._scheduled, self._len = schedule_notes(music, self.tpb)
+        self._scheduled, self._len = fold(NoteScheduler, music)
 
     def split(self):
         """
@@ -73,9 +72,7 @@ class Melody(object):
         Returned melodies are high-to-low.
         """
 
-        counter = ChordCounter()
-        counter.visit(self.music)
-        voices = counter.length
+        voices = fold(ChordCounter, self.music)
 
         rv = []
         for voice in range(voices):
