@@ -7,6 +7,7 @@ from lye.visitors import express_ast, simplify_ast
 
 if len(sys.argv) < 2:
     print "Usage:", sys.argv[0], "<snippet> [<instrument>]"
+    sys.exit(0)
 
 with open(sys.argv[1], "rb") as f:
     s = f.read()
