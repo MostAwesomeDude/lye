@@ -323,10 +323,13 @@ class Legato(Visitor):
 
     @staticmethod
     def shorten(scinote):
-        # Use integer math to ensure that on + off is always equal to the
-        # original duration.
-        on = scinote.duration * 9 // 10
-        off = scinote.duration - on
+        # The rules are simple.
+        # 1) Ideally, the new duration is 90% of the old duration.
+        # 2) The total elapsed time in this voice must be unchanged.
+        # 3) 1 <= x <= 10 for all times x that are removed from the note.
+
+        off = max(1, min(10, scinote.duration // 10))
+        on = scinote.duration - off
         scinote = scinote._replace(duration=on)
         rest = Rest(off)
 

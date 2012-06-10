@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from lye.ast import (CLOSE_SLUR, OPEN_SLUR, TIE, Drums, Music, Rest, SciNote,
                      Slur)
-from lye.visitors.maps import DrumsTransformer
+from lye.visitors.maps import DrumsTransformer, Legato
 from lye.visitors.peephole import RestMerger, TieRemover
 from lye.visitors.pegs import SlurMaker
 
@@ -47,3 +47,17 @@ class TestSlurMaker(TestCase):
         expected = Music([Slur(["a", "b", "c"])])
         result = SlurMaker().visit(notes)
         self.assertEqual(result, expected)
+
+class TestLegato(TestCase):
+
+    def test_shorten_not_too_short(self):
+        note = SciNote(duration=480, pitch=None, velocity=None)
+        note, rest = Legato.shorten(note)
+        self.assertEqual(470, note.duration)
+        self.assertEqual(10, rest.duration)
+
+    def test_shorten_just_right(self):
+        note = SciNote(duration=30, pitch=None, velocity=None)
+        note, rest = Legato.shorten(note)
+        self.assertEqual(27, note.duration)
+        self.assertEqual(3, rest.duration)
