@@ -365,11 +365,18 @@ class Legato(Visitor):
     def visit_Slur(self, slur):
         """
         Attempt to pitch-bend to victory.
+
+        Also apply shortening to the tail of the slur.
         """
 
-        # If we can't do bends on this instrument, bail.
+        def fail():
+            # Cut the tail off the end and return the whole shebang.
+            last, rest = self.shorten(slur.exprs[-1])
+            return Music(slur.exprs[:-1] + [last, rest]), False
+
+        # If we can't do legato on this instrument, bail.
         if not can_legato(self.inst):
-            return Music(slur.exprs), False
+            return fail()
 
         first = slur.exprs[0]
         exprs = slur.exprs[1:]
@@ -377,10 +384,11 @@ class Legato(Visitor):
         for expr in exprs:
             if abs(expr.pitch - first.pitch) > 12:
                 # Bail.
-                return Music(slur.exprs), False
+                return fail()
 
         first = first._replace(
                 duration=sum(expr.duration for expr in slur.exprs))
+        first, rest = self.shorten(first)
         offset = 0
         out = [first]
 
@@ -388,5 +396,7 @@ class Legato(Visitor):
             offset += expr.duration
             out.append(PitchBend(offset,
                 (8191 // 12) * (expr.pitch - first.pitch)))
+
+        out.append(rest)
 
         return Music(out), False
