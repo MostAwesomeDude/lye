@@ -49,8 +49,9 @@ Library
   
   -- Packages needed in order to build this package.
   Build-depends:       base >= 4 && < 5
-                     , data-lens >= 2.0.2 && < 2.1
-                     , trifecta >= 0.50.2.1 && < 0.51
+                     , data-lens
+                     , trifecta
+                     , uniplate >= 1.6.7 && < 1.7
   
   -- Modules not exported by this package.
   -- Other-modules:       

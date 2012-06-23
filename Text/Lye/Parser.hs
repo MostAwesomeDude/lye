@@ -9,32 +9,7 @@ import Text.Trifecta.Parser.Token.Prim (decimal)
 import Text.Trifecta.Parser.Token.Combinators
 import Text.Trifecta.Highlight.Prim
 
-type Fraction = Ratio Integer
-
-data Accidental = Flat | Sharp
-    deriving (Show)
-
-data Octave = OctaveDown | OctaveUp
-    deriving (Show)
-
-data Marker = EndVoice
-            | Measure
-            | Partial
-            | Tie
-    deriving (Show)
-
-data Expression = Chord [Expression]
-                | Drums Expression
-                | Duration Integer Integer
-                | Music [Expression]
-                | RawNote Char [Accidental] [Octave] (Maybe Expression)
-                | Relative Char [Octave] Expression
-                | Rest (Maybe Expression)
-                | SciNote Integer Integer
-                | Times Fraction Expression
-                | Voice [Expression]
-                | Voices [Expression]
-    deriving (Show)
+import Text.Lye.Types
 
 -- From edwardk's stash-o-stuff.
 infixl 4 <$!>
