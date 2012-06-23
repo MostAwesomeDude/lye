@@ -44,7 +44,9 @@ Cabal-version:       >=1.2
 
 Library
   -- Modules exported by the library.
-  Exposed-modules:     Text.Lye.Parser
+  Exposed-modules:     Text.Lye.Interactive
+                     , Text.Lye.Parser
+                     , Text.Lye.Types
                      , Text.Lye.Visitor
   
   -- Packages needed in order to build this package.
