@@ -66,6 +66,12 @@ parsePitch = spaces
 parseRest :: MonadParser m => m Char
 parseRest = highlight ReservedOperator (oneOf "r") <?> "rest"
 
+parseDrumsExpr :: MonadParser m => m Expression
+parseDrumsExpr = do
+    lexstr "\\drums"
+    expr <- parseExpr
+    return $! Drums expr
+
 parseMusicExpr :: MonadParser m => m Expression
 parseMusicExpr = Music <$!> braces (many parseExpr)
 
@@ -93,7 +99,8 @@ parseRestExpr = do
 
 parseExpr :: MonadParser m => m Expression
 parseExpr = choice
-    [ parseMusicExpr
+    [ parseDrumsExpr
+    , parseMusicExpr
     , parseNoteExpr
     , parseRelativeExpr
     , parseRestExpr
