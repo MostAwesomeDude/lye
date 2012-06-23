@@ -10,3 +10,9 @@ inlineDrums = let
     f (Drums expr) = expr
     f x = x
     in transform f
+
+flattenMusic :: Expression -> Expression
+flattenMusic = let
+    f (Music [x]) = x
+    f x = x
+    in transform f
