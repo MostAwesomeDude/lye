@@ -60,9 +60,7 @@ timelyne to Fluidsynth.
 Bugs
 ====
 
-Lynes can't be rewound. The information in lynes about instrument changes only
-goes forwards, not backwards. This isn't considered super-important yet and
-would be easy to address.
+Lye is obviously a bug-free and perfect piece of software. :3
 
-Fluidsynth is a fickle mistress. Drums don't play, some melodies are rendered
-staccato, etc.
+In all seriousness, feel free to report bugs, but don't be surprised if I
+don't move on them.
