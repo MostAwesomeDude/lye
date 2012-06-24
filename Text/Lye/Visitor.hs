@@ -49,3 +49,9 @@ applyDurations expr = let
         descendM recurser e'
     initial = Duration (1 % 4)
     in evalState (recurser expr) initial
+
+cleanDurations :: Expression -> Expression
+cleanDurations = let
+    f (ParsedDuration num dem) = Duration (num % dem)
+    f x = x
+    in transformBi f
