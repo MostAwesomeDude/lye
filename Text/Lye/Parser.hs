@@ -37,8 +37,8 @@ parseDots = do
     ds <- lexeme $ many (oneOf ".")
     return $ fromIntegral (length ds)
 
-parseDuration :: MonadParser m => m Expression
-parseDuration = Duration <$!> parseNumber <*> parseDots <?> "duration"
+parseDuration :: MonadParser m => m Duration
+parseDuration = ParsedDuration <$!> parseNumber <*> parseDots <?> "duration"
 
 _char2Octave :: Char -> Octave
 _char2Octave c = case c of
@@ -76,7 +76,7 @@ parseMusicExpr :: MonadParser m => m Expression
 parseMusicExpr = Music <$!> braces (many parseExpr)
 
 parseNoteExpr :: MonadParser m => m Expression
-parseNoteExpr = lexeme $ RawNote <$!>
+parseNoteExpr = lexeme $ ParsedNote <$!>
     parsePitch
     <*> many parseAccidental
     <*> many parseOctave
@@ -95,7 +95,7 @@ parseRestExpr :: MonadParser m => m Expression
 parseRestExpr = do
     parseRest
     duration <- optional parseDuration
-    return $! Rest duration
+    return $! ParsedRest duration
 
 parseExpr :: MonadParser m => m Expression
 parseExpr = choice

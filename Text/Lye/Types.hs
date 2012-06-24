@@ -12,6 +12,10 @@ data Accidental = Flat | Sharp
 data Octave = OctaveDown | OctaveUp
     deriving (Show, Data, Typeable)
 
+data Duration = ParsedDuration Integer Integer
+              | Duration (Ratio Integer)
+    deriving (Show, Data, Typeable)
+
 data Marker = EndVoice
             | Measure
             | Partial
@@ -20,11 +24,12 @@ data Marker = EndVoice
 
 data Expression = Chord [Expression]
                 | Drums Expression
-                | Duration Integer Integer
                 | Music [Expression]
-                | RawNote Char [Accidental] [Octave] (Maybe Expression)
+                | Note Char [Accidental] [Octave] Duration
+                | ParsedNote Char [Accidental] [Octave] (Maybe Duration)
+                | ParsedRest (Maybe Duration)
                 | Relative Char [Octave] Expression
-                | Rest (Maybe Expression)
+                | Rest Duration
                 | SciNote Integer Integer
                 | Times Fraction Expression
                 | Voice [Expression]

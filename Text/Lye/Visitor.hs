@@ -1,5 +1,7 @@
 module Text.Lye.Visitor where
 
+import Control.Monad.State
+import Data.Functor
 import Data.Ratio
 import Text.Lye.Types
 
@@ -31,3 +33,19 @@ longestChord = let
     f (Chord xs) is = maximum $ length xs:is
     f x is = maximum $ 0:is
     in para f
+
+-- | Apply durations to an expression.
+--   Uses the State monad to move data across the AST, and manually recurses
+--   in the correct manner.
+applyDurations :: Expression -> Expression
+applyDurations expr = let
+    f (ParsedNote c a o (Just d)) = put d >> return (Note c a o d)
+    f (ParsedNote c a o Nothing) = Note c a o <$> get
+    f (ParsedRest (Just d)) = put d >> return (Rest d)
+    f (ParsedRest Nothing) = Rest <$> get
+    f x = return x
+    recurser e = do
+        e' <- f e
+        descendM recurser e'
+    initial = Duration (1 % 4)
+    in evalState (recurser expr) initial
