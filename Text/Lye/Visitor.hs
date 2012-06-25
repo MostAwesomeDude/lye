@@ -50,37 +50,27 @@ applyDurations expr = let
     initial = Duration (1 % 4)
     in evalState (recurser expr) initial
 
-cleanDurations :: Expression -> Expression
-cleanDurations = let
-    f (ParsedDuration num dem) = Duration (num % dem)
+applyTimes :: Expression -> Expression
+applyTimes = let
+    inner r (Duration r') = Duration $ r * r'
+    f (Times r expr) = transformBi (inner r) expr
     f x = x
-    in transformBi f
+    in transform f
 
-accidentalsToInt :: [Accidental] -> Integer
-accidentalsToInt = let
-    f x = case x of
-        Sharp -> 1
-        Flat -> -1
-    in sum . map f
+stages :: [Expression -> Expression]
+stages = [ inlineDrums
+         -- , VoicesTransformer
+         , applyDurations
+         , applyTimes
+         -- , Relativizer
+         , flattenMusic
+         -- , NoteTransformer
+         -- , DynamicRemover
+         -- , ChordSorter
+         -- , SlurMaker
+         -- , TieRemover
+         -- , RestMerger
+         ]
 
-octavesToInt :: [Octave] -> Integer
-octavesToInt = let
-    f x = case x of
-        OctaveUp -> 12
-        OctaveDown -> -12
-    in sum . map f
-
-pitchToNumber :: Char -> [Accidental] -> [Octave] -> Integer
-pitchToNumber c as os = let
-    a = accidentalsToInt as
-    o = octavesToInt os
-    x = o * 12 + a
-    y = case c of
-        'c' -> 48
-        'd' -> 50
-        'e' -> 52
-        'f' -> 53
-        'g' -> 55
-        'a' -> 57
-        'b' -> 59
-    in x + y
+applyStages :: Expression -> Expression
+applyStages = flip (foldr id) stages

@@ -25,7 +25,7 @@ lexstr = lexeme . string
 parseNumber :: MonadParser m => m Integer
 parseNumber = highlight Number (lexeme decimal) <?> "number"
 
-parseFraction :: MonadParser m => m Fraction
+parseFraction :: MonadParser m => m Rational
 parseFraction = (%) <$!>
     parseNumber
     <* char '/'
@@ -37,8 +37,15 @@ parseDots = do
     ds <- lexeme $ many (oneOf ".")
     return $ fromIntegral (length ds)
 
+dotsToRatio :: Integer -> Rational
+dotsToRatio dots = 2 - (1 % (2 ^ dots))
+
 parseDuration :: MonadParser m => m Duration
-parseDuration = ParsedDuration <$!> parseNumber <*> parseDots <?> "duration"
+parseDuration = do
+    length <- parseNumber
+    dots <- parseDots
+    let ratio = 1 % length
+    return $ Duration $! ratio * (dotsToRatio dots)
 
 _char2Octave :: Char -> Octave
 _char2Octave c = case c of
