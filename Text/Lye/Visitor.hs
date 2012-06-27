@@ -28,6 +28,12 @@ flattenMusic = let
     f x = Nothing
     in rewrite f
 
+preserveVoices :: Expression -> Expression
+preserveVoices = let
+    f (Voices vs) = Just $ Voices [ Voice exprs | (Music exprs) <- vs ]
+    f x = Nothing
+    in rewrite f
+
 longestChord :: Expression -> Int
 longestChord = let
     f (Chord xs) is = maximum $ length xs:is
@@ -59,7 +65,7 @@ applyTimes = let
 
 stages :: [Expression -> Expression]
 stages = [ inlineDrums
-         -- , VoicesTransformer
+         , preserveVoices
          , applyDurations
          , applyTimes
          -- , Relativizer
