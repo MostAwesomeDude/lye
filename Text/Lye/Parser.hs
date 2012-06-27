@@ -66,9 +66,11 @@ parseSharp = string "is" >> return Sharp
 parseAccidental :: MonadParser m => m Accidental
 parseAccidental = parseFlat <|> parseSharp
 
-parsePitch :: MonadParser m => m Char
-parsePitch = spaces
-    *> highlight ReservedOperator (oneOf "abcdefg") <?> "pitch"
+parsePitch :: MonadParser m => m Pitch
+parsePitch = let
+    c2i c = toEnum $ fromEnum c - 97
+    _p = oneOf "abcdefg" >>= return . c2i
+    in spaces *> highlight ReservedOperator _p <?> "pitch"
 
 parseRest :: MonadParser m => m Char
 parseRest = highlight ReservedOperator (oneOf "r") <?> "rest"

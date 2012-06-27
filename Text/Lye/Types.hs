@@ -10,6 +10,9 @@ data Accidental = Flat | Sharp
 data Octave = OctaveDown | OctaveUp
     deriving (Show, Data, Typeable)
 
+data Pitch = A | B | C | D | E | F | G
+    deriving (Show, Eq, Ord, Enum, Data, Typeable)
+
 data Duration = Duration Rational
     deriving (Show, Data, Typeable)
 
@@ -22,10 +25,10 @@ data Marker = EndVoice
 data Expression = Chord [Expression]
                 | Drums Expression
                 | Music [Expression]
-                | Note Char [Accidental] [Octave] Duration
-                | ParsedNote Char [Accidental] [Octave] (Maybe Duration)
+                | Note Pitch [Accidental] [Octave] Duration
+                | ParsedNote Pitch [Accidental] [Octave] (Maybe Duration)
                 | ParsedRest (Maybe Duration)
-                | Relative Char [Octave] Expression
+                | Relative Pitch [Octave] Expression
                 | Rest Duration
                 | SciNote Integer Integer
                 | Times Rational Expression
@@ -47,17 +50,17 @@ octavesToInt = let
         OctaveDown -> -12
     in sum . map f
 
-pitchToNumber :: Char -> [Accidental] -> [Octave] -> Integer
+pitchToNumber :: Pitch -> [Accidental] -> [Octave] -> Integer
 pitchToNumber c as os = let
     a = accidentalsToInt as
     o = octavesToInt os
     x = o * 12 + a
     y = case c of
-        'c' -> 48
-        'd' -> 50
-        'e' -> 52
-        'f' -> 53
-        'g' -> 55
-        'a' -> 57
-        'b' -> 59
+        C -> 48
+        D -> 50
+        E -> 52
+        F -> 53
+        G -> 55
+        A -> 57
+        B -> 59
     in x + y
