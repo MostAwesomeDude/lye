@@ -22,23 +22,11 @@ inlineDrums = let
     f x = Nothing
     in rewrite f
 
-flattenMusic :: Expression -> Expression
-flattenMusic = let
-    f (Music [x]) = Just x
-    f x = Nothing
-    in rewrite f
-
 preserveVoices :: Expression -> Expression
 preserveVoices = let
     f (Voices vs) = Just $ Voices [ Voice exprs | (Music exprs) <- vs ]
     f x = Nothing
     in rewrite f
-
-longestChord :: Expression -> Int
-longestChord = let
-    f (Chord xs) is = maximum $ length xs:is
-    f x is = maximum $ 0:is
-    in para f
 
 -- | Apply durations to an expression.
 --   Uses the State monad to move data across the AST, and manually recurses
@@ -63,6 +51,12 @@ applyTimes = let
     f x = x
     in transform f
 
+flattenMusic :: Expression -> Expression
+flattenMusic = let
+    f (Music [x]) = Just x
+    f x = Nothing
+    in rewrite f
+
 stages :: [Expression -> Expression]
 stages = [ inlineDrums
          , preserveVoices
@@ -80,3 +74,9 @@ stages = [ inlineDrums
 
 applyStages :: Expression -> Expression
 applyStages = flip (foldr id) stages
+
+longestChord :: Expression -> Int
+longestChord = let
+    f (Chord xs) is = maximum $ length xs:is
+    f x is = maximum $ 0:is
+    in para f
