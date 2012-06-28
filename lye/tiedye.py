@@ -115,3 +115,6 @@ def just_go_already(lib, lyne, *soundfonts):
         lyne = Timelyne.from_lines(library, f)
         seq = create_sequencer(*soundfonts)
         return MarkedLyne(lyne, seq)
+
+def demo():
+    return just_go_already("groove", "groove.lyne", "gugs.sf2")
