@@ -1,11 +1,24 @@
 from collections import namedtuple
 
-CLOSE_SLUR = object()
-ENDVOICE = object()
-MEASURE = object()
-OPEN_SLUR = object()
-PARTIAL = object()
-TIE = object()
+class Named(object):
+    """
+    Named for convenience, compare me by identity.
+    """
+
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return "<%s>" % self.name
+
+    __repr__ = __str__
+
+CLOSE_SLUR = Named("Close Slur")
+ENDVOICE = Named("End Voice")
+MEASURE = Named("Measure")
+OPEN_SLUR = Named("Open Slur")
+PARTIAL = Named("Partial")
+TIE = Named("Tie")
 
 Chord = namedtuple("Chord", "notes")
 Drums = namedtuple("Drums", "expr")
