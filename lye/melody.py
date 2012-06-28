@@ -17,9 +17,10 @@ class Melody(object):
     _len = None
     _scheduled = None
 
-    def __init__(self, music, tpb, instrument=None):
+    def __init__(self, music, tpb, instrument=None, data=None):
         self.music = music
         self.tpb = tpb
+        self.data = data
 
         self.change_instrument(instrument)
 
@@ -91,5 +92,5 @@ def melody_from_ly(s):
     g = LyeGrammar(s)
     ast = g.ast()
     ast = simplify_ast(ast)
-    melody = Melody(ast, 120)
+    melody = Melody(ast, 120, data=s)
     return melody
