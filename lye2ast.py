@@ -3,6 +3,7 @@
 import sys
 
 from lye.grammar import LyeGrammar
+from lye.pretty import pretty
 from lye.visitors import express_ast, simplify_ast
 
 if len(sys.argv) < 2:
@@ -17,11 +18,11 @@ ast = g.ast()
 ast = simplify_ast(ast)
 
 print "AST:"
-print ast
+print pretty(ast)
 
 if len(sys.argv) >= 3:
     instrument = " ".join(sys.argv[2:])
     ast = express_ast(ast, instrument)
 
     print "AST (%s):" % instrument
-    print ast
+    print pretty(ast)

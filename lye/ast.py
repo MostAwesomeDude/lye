@@ -13,6 +13,29 @@ class Named(object):
 
     __repr__ = __str__
 
+def nt(*args):
+    """
+    Hax namedtuples.
+    """
+
+    def f(self, p, cycle):
+        name = type(self).__name__,
+        if cycle:
+            p.text("%s(...)" % name)
+
+        with p.group(1, "%s(" % name, ")"):
+            for i, field in enumerate(self._fields):
+                val = getattr(self, field)
+                if i:
+                    p.text(",")
+                    p.breakable()
+                p.text("%s=" % field)
+                p.pretty(val)
+
+    cls = namedtuple(*args)
+    cls.__pretty__ = f
+    return cls
+
 CLOSE_SLUR = Named("Close Slur")
 ENDVOICE = Named("End Voice")
 MEASURE = Named("Measure")
@@ -20,17 +43,17 @@ OPEN_SLUR = Named("Open Slur")
 PARTIAL = Named("Partial")
 TIE = Named("Tie")
 
-Chord = namedtuple("Chord", "notes")
-Drums = namedtuple("Drums", "expr")
-Duration = namedtuple("Duration", "length, dots")
-Dynamic = namedtuple("Dynamic", "mark")
-Music = namedtuple("Music", "exprs")
-Note = namedtuple("Note", "pitch, accidental, octave, duration")
-PitchBend = namedtuple("PitchBend", "offset, value")
-Relative = namedtuple("Relative", "pitch, octave, expr")
-Rest = namedtuple("Rest", "duration")
-SciNote = namedtuple("SciNote", "pitch, duration, velocity")
-Slur = namedtuple("Slur", "exprs")
-Times = namedtuple("Times", "fraction, expr")
-Voice = namedtuple("Voice", "exprs")
-Voices = namedtuple("Voices", "exprs")
+Chord = nt("Chord", "notes")
+Drums = nt("Drums", "expr")
+Duration = nt("Duration", "length, dots")
+Dynamic = nt("Dynamic", "mark")
+Music = nt("Music", "exprs")
+Note = nt("Note", "pitch, accidental, octave, duration")
+PitchBend = nt("PitchBend", "offset, value")
+Relative = nt("Relative", "pitch, octave, expr")
+Rest = nt("Rest", "duration")
+SciNote = nt("SciNote", "pitch, duration, velocity")
+Slur = nt("Slur", "exprs")
+Times = nt("Times", "fraction, expr")
+Voice = nt("Voice", "exprs")
+Voices = nt("Voices", "exprs")
