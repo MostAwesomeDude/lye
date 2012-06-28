@@ -1,20 +1,25 @@
 \tempo 90
-> electric bass (f | acoustic gr | trumpet | alto sa | tenor s | distort | over    | draw  | drums
-% 63               | 95          | 47      | 47      | 47      | 15      | 111     | 31    | 63
-@ 100              | 100         | 70      | 70      | 70      | 80      | 80      | 50    | 100
-& bass,            | -           | -       | -       | -       | -       | -       | -     | -
+> electric bass (f | acoustic gr | trumpet | alto sa | tenor s | distort | overdriv | draw  | drums
+% 63               | 95          | 47      | 47      | 47      | 15      | 111      | 31    | 63
+@ 100              | 100         | 65      | 65      | 65      | 80      | 80       | 45    | 100
+& bass,            | -           | -       | -       | -       | -       | -        | -     | -
 "
-& "                | -           | -       | -       | -       | -       | -       | -     | 2and4hat
+& "                | -           | -       | -       | -       | -       | -        | -     | 2and4hat
 "
-& "                | piano       | -       | -       | -       | -       | -       | -     | "
+& "                | piano       | -       | -       | -       | -       | -        | -     | "
 "
-& "                | "           | -       | -       | -       | -       | -       | -     | drums
+& "                | "           | -       | -       | -       | -       | -        | -     | drums
 "
-& "                | "           | horn[0] | horn[1] | horn[2] | -       | -       | -     | "
+& "                | "           | horn[0] | horn[1] | horn[2] | -       | -        | -     | "
 "
-& "                | "           | "       | "       | "       | guitar  | -       | -     | "
+& "                | "           | "       | "       | "       | guitar  | -        | -     | "
 "
-& "                | "           | "       | "       | "       | "       | -       | organ | "
+& "                | "           | "       | "       | "       | "       | -        | organ | "
 "
-& "                | "           | "       | "       | "       | "       | guitar2 | "     | "
+& "                | "           | "       | "       | "       | "       | guitar2  | "     | "
+"
+& "                | -           | -       | -       | -       | -       | paradigm | "     | "
+& "                | horn        | -       | -       | -       | -       | "        | "     | "
+"
+& bass,            | -           | -       | -       | -       | -       | -        | -     | 2and4hat
 "
