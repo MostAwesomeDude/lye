@@ -67,7 +67,7 @@ class Timelyne(object):
 
         self = cls(library)
         for line in lines:
-            print "==="
+            print ">",
             line = line.strip()
             marker, line = line[0], line[1:]
             if marker == "\\":
@@ -109,6 +109,7 @@ class Timelyne(object):
         print "Tempo: %d" % self.tempo
 
     def set_marks(self):
+        print "Mark"
         for i, channel in enumerate(self.channels):
             if self.marks[i]:
                 previous = self.marks[i][-1].stop
@@ -116,20 +117,17 @@ class Timelyne(object):
                 previous = 0
             mark = slice(previous, len(channel))
             self.marks[i].append(mark)
-            print "%d: Mark %r" % (i, mark)
 
     def set_instruments(self, instruments):
         for i, instrument in enumerate(instruments):
             if instrument == "drums":
-                print "%d: Drums" % i
                 self._drum_channel = i
                 self.channels[i].append((INSTRUMENT, 0))
             elif instrument in ("-", '"'):
-                print "%d: No change" % i
+                pass
             else:
                 instrument = find_instrument(instrument)
                 self._previous_instruments[i] = instrument
-                print "%d: Instrument %s" % (i, instrument)
                 self.channels[i].append((INSTRUMENT,
                     numbered_instruments[instrument]))
 
@@ -186,16 +184,15 @@ class Timelyne(object):
 
         for i, melody in enumerate(melodies):
             if melody is TACET:
-                print "%d: Tacet (%d)" % (i, total)
                 self.channels[i].append((TACET, total))
             else:
                 instrument = self._previous_instruments[i]
                 new = melody * muls[i]
                 new.fit_method = melody.fit_method
                 new.change_instrument(instrument)
-                print "%d: %d ticks (%d), %s %d" % (i, len(new), len(melody),
-                        instrument, new.fit_method)
                 self.channels[i].append((LYNE, new))
+
+        print "Lyne of %d" % total
 
     def reorder(self):
         dc = self._drum_channel
