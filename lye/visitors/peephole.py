@@ -29,7 +29,11 @@ def peephole(*types):
             do_peepholes(ast)
             return ast, True
 
-        return type(f.__name__, (Visitor,), {"visit_generic": visit})
+        def init(self, *args, **kwargs):
+            pass
+
+        return type(f.__name__, (Visitor,),
+                {"__init__": init, "visit_generic": visit})
 
     return inner
 
