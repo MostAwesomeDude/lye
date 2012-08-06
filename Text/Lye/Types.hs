@@ -64,3 +64,12 @@ pitchToNumber c as os = let
         A -> 57
         B -> 59
     in x + y
+
+-- | Indicate which direction is nearer for transposition or relative
+--   assignment.
+transposeDirection :: Pitch -> Pitch -> Octave
+transposeDirection p q = let
+    p' = fromEnum p
+    q' = fromEnum q
+    diff = q' - p' `mod` 7
+    in if diff > 3 then OctaveDown else OctaveUp
