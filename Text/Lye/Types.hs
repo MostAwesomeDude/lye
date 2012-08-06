@@ -16,6 +16,9 @@ data Pitch = A | B | C | D | E | F | G
 data Duration = Duration Rational
     deriving (Show, Data, Typeable)
 
+data Key = Major Pitch | Minor Pitch
+    deriving (Show, Data, Typeable)
+
 data Marker = EndVoice
             | Measure
             | Partial
