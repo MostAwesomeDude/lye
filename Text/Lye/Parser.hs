@@ -80,11 +80,13 @@ parseKey = let
     major = do
         p <- parsePitch
         ma <- optional parseAccidental
+        spaces
         lexstr "\\major"
         return $! Major p ma
     minor = do
         p <- parsePitch
         ma <- optional parseAccidental
+        spaces
         lexstr "\\minor"
         return $! Minor p ma
     in do
