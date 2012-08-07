@@ -32,6 +32,7 @@ data Marker = EndVoice
 data Expression = Chord [Expression]
                 | DirectiveExpr Directive
                 | Drums Expression
+                | MarkerExpr Marker
                 | Music [Expression]
                 | Note Pitch [Accidental] [Octave] Duration
                 | ParsedNote Pitch [Accidental] [Octave] (Maybe Duration)

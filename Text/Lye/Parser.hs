@@ -102,6 +102,11 @@ parseDrumsExpr = do
     expr <- parseExpr
     return $! Drums expr
 
+parseMarkerExpr :: MonadParser m => m Expression
+parseMarkerExpr = do
+    lexstr "|"
+    return $! MarkerExpr Measure
+
 parseMusicExpr :: MonadParser m => m Expression
 parseMusicExpr = Music <$!> braces (many parseExpr)
 
@@ -131,6 +136,7 @@ parseExpr :: MonadParser m => m Expression
 parseExpr = choice
     [ parseDirExpr
     , parseDrumsExpr
+    , parseMarkerExpr
     , parseMusicExpr
     , parseNoteExpr
     , parseRelativeExpr
