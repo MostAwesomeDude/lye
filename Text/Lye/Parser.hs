@@ -93,8 +93,17 @@ parseKey = let
         lexstr "\\key"
         choice [major, minor]
 
+parseTime :: MonadParser m => m Directive
+parseTime = do
+    lexstr "\\time"
+    d <- parseDuration
+    return $ case d of
+        Duration r -> TimeDir r
+
 parseDirExpr :: MonadParser m => m Expression
-parseDirExpr = DirectiveExpr <$!> KeyDir <$> parseKey
+parseDirExpr = let
+    _pk = KeyDir <$> parseKey
+    in DirectiveExpr <$!> choice [_pk, parseTime]
 
 parseDrumsExpr :: MonadParser m => m Expression
 parseDrumsExpr = do

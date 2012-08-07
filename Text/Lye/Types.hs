@@ -21,6 +21,7 @@ data Key = Major Pitch (Maybe Accidental)
     deriving (Show, Data, Typeable)
 
 data Directive = KeyDir Key
+               | TimeDir Rational
     deriving (Show, Data, Typeable)
 
 data Marker = EndVoice
