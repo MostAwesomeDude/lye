@@ -16,7 +16,11 @@ data Pitch = A | B | C | D | E | F | G
 data Duration = Duration Rational
     deriving (Show, Data, Typeable)
 
-data Key = Major Pitch | Minor Pitch
+data Key = Major Pitch (Maybe Accidental)
+         | Minor Pitch (Maybe Accidental)
+    deriving (Show, Data, Typeable)
+
+data Directive = KeyDir Key
     deriving (Show, Data, Typeable)
 
 data Marker = EndVoice
@@ -26,6 +30,7 @@ data Marker = EndVoice
     deriving (Show, Data, Typeable)
 
 data Expression = Chord [Expression]
+                | DirectiveExpr Directive
                 | Drums Expression
                 | Music [Expression]
                 | Note Pitch [Accidental] [Octave] Duration

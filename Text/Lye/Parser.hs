@@ -75,6 +75,25 @@ parsePitch = let
 parseRest :: MonadParser m => m Char
 parseRest = highlight ReservedOperator (oneOf "r") <?> "rest"
 
+parseKey :: MonadParser m => m Key
+parseKey = let
+    major = do
+        p <- parsePitch
+        ma <- optional parseAccidental
+        lexstr "\\major"
+        return $! Major p ma
+    minor = do
+        p <- parsePitch
+        ma <- optional parseAccidental
+        lexstr "\\minor"
+        return $! Minor p ma
+    in do
+        lexstr "\\key"
+        choice [major, minor]
+
+parseDirExpr :: MonadParser m => m Expression
+parseDirExpr = DirectiveExpr <$!> KeyDir <$> parseKey
+
 parseDrumsExpr :: MonadParser m => m Expression
 parseDrumsExpr = do
     lexstr "\\drums"
@@ -108,7 +127,8 @@ parseRestExpr = do
 
 parseExpr :: MonadParser m => m Expression
 parseExpr = choice
-    [ parseDrumsExpr
+    [ parseDirExpr
+    , parseDrumsExpr
     , parseMusicExpr
     , parseNoteExpr
     , parseRelativeExpr
