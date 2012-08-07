@@ -137,3 +137,6 @@ parseExpr = choice
     , parseRestExpr
     , Chord <$!> angles (many parseNoteExpr)
     , Times <$!> (lexstr "\\times" *> parseFraction) <*> parseMusicExpr ]
+
+parseExprs :: MonadParser m => m [Expression]
+parseExprs = many parseExpr
