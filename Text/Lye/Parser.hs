@@ -96,9 +96,8 @@ parseKey = let
 parseTime :: MonadParser m => m Directive
 parseTime = do
     lexstr "\\time"
-    d <- parseDuration
-    return $ case d of
-        Duration r -> TimeDir r
+    f <- parseFraction
+    return $! TimeDir f
 
 parseDirExpr :: MonadParser m => m Expression
 parseDirExpr = let
