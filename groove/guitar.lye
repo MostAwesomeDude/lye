@@ -1,4 +1,0 @@
-\relative e' {
-    \times 2/3 { e16( fis e) } cis e r fis8. ~ fis4. r8 |
-    \times 2/3 { e16( fis e) } cis e r fis r b, ~ b4. r8 |
-}

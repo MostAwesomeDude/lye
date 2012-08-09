@@ -1,3 +1,0 @@
-\relative fis' {
-    fis16 ( a b cis ) a ( b cis e ) fis cis e b \times 2/3 { cis ( d cis ) } b cis
-}
