@@ -47,9 +47,9 @@ Executable lye
 
   -- Packages needed in order to build this package.
   Build-depends:       base >= 4 && < 5
-                     , mtl >= 2.0 && < 2.1
+                     , mtl
                      , trifecta
-                     , uniplate >= 1.6.7 && < 1.7
+                     , uniplate
 
   -- GHC compiler flags.
   ghc-options:         -Wall -rtsopts
