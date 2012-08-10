@@ -1,6 +1,7 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, TemplateHaskell #-}
 module Text.Lye.Types where
 
+import Control.Lens.TH
 import Data.Data
 import Data.Ratio
 
@@ -45,3 +46,10 @@ data Expression = Chord [Expression]
                 | Voice [Expression]
                 | Voices [Expression]
     deriving (Show, Data, Typeable)
+
+data Annotated = Annotated { _expression :: Expression
+                           , _key :: Key
+                           , _time :: Rational }
+    deriving (Show, Data, Typeable)
+
+-- makeLenses ''Annotated
