@@ -51,6 +51,7 @@ _char2Octave :: Char -> Octave
 _char2Octave c = case c of
     '\'' -> OctaveUp
     ',' -> OctaveDown
+    _ -> error $ "_char2Octave: Got illegal character " ++ show c
 
 parseOctave :: MonadParser m => m Octave
 parseOctave = do
