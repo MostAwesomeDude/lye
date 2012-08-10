@@ -42,9 +42,9 @@ dotsToRatio dots = 2 - (1 % (2 ^ dots))
 
 parseDuration :: MonadParser m => m Duration
 parseDuration = do
-    length <- parseNumber
+    len <- parseNumber
     dots <- parseDots
-    let ratio = 1 % length
+    let ratio = 1 % len
     return $ Duration $! ratio * (dotsToRatio dots)
 
 _char2Octave :: Char -> Octave
