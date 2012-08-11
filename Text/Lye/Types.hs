@@ -52,4 +52,4 @@ data Annotated = Annotated { _expression :: Expression
                            , _time :: Rational }
     deriving (Show, Data, Typeable)
 
--- makeLenses ''Annotated
+makeLenses ''Annotated
