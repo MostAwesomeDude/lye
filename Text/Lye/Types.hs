@@ -29,6 +29,8 @@ data Marker = EndVoice
             | Measure
             | Partial
             | Tie
+            | OpenSlur
+            | CloseSlur
     deriving (Show, Data, Typeable)
 
 data Expression = Chord [Expression]

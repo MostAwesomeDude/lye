@@ -99,9 +99,13 @@ drumsExpr = do
     Drums <$!> expr
 
 markerExpr :: (Monad m, TokenParsing m) => m Expression
-markerExpr = do
-    symbol "|"
-    return $! MarkerExpr Measure
+markerExpr = let
+    f s m = do
+        symbol s
+        return $! MarkerExpr Measure
+    -- Sorry!
+    c = flip (flip uncurry . unzip) $ zipWith f
+    in choice . c $ [("|", Measure), ("(", OpenSlur), (")", CloseSlur)]
 
 musicExpr :: (Monad m, TokenParsing m) => m Expression
 musicExpr = Music <$!> braces (many expr)
