@@ -2,12 +2,10 @@ module Text.Lye.Parser where
 
 import Control.Applicative
 import Data.Ratio
-import Text.Trifecta.Parser.Char
-import Text.Trifecta.Parser.Class
-import Text.Trifecta.Parser.Combinators
-import Text.Trifecta.Parser.Token.Prim (decimal)
-import Text.Trifecta.Parser.Token.Combinators
-import Text.Trifecta.Highlight.Prim
+import Text.Parser.Char
+import Text.Parser.Combinators
+import Text.Parser.Token
+import Text.Parser.Token.Highlight
 
 import Text.Lye.Types
 
@@ -19,139 +17,133 @@ f <$!> ma = do
     a <- ma
     return $! f a
 
-lexstr :: MonadParser m => String -> m String
-lexstr = lexeme . string
+-- | Might need to be split up if we ever care about the return value.
+slashSymbol :: (Monad m, TokenParsing m) => String -> m ()
+slashSymbol s = highlight ReservedIdentifier $ symbol ('\\':s) >> return ()
 
-parseNumber :: MonadParser m => m Integer
-parseNumber = highlight Number (lexeme decimal) <?> "number"
+number :: (TokenParsing m, Monad m) => m Integer
+number = highlight Number natural
 
-parseFraction :: MonadParser m => m Rational
-parseFraction = (%) <$!>
-    parseNumber
-    <* char '/'
-    <*> parseNumber
-    <?> "fraction"
+fraction :: (Monad m, TokenParsing m) => m Rational
+fraction = (%) <$!> number <* char '/' <*> number <?> "number"
 
-parseDots :: MonadParser m => m Integer
-parseDots = do
-    ds <- lexeme $ many (oneOf ".")
-    return $ fromIntegral (length ds)
+dots :: (Monad m, TokenParsing m) => m Integer
+dots = fromIntegral . length <$!> many (char '.') <* whiteSpace <?> "dots"
 
 dotsToRatio :: Integer -> Rational
 dotsToRatio dots = 2 - (1 % (2 ^ dots))
 
-parseDuration :: MonadParser m => m Duration
-parseDuration = do
-    len <- parseNumber
-    dots <- parseDots
+duration :: (Monad m, TokenParsing m) => m Duration
+duration = do
+    len <- number
+    dots <- dots
     let ratio = 1 % len
     return $ Duration $! ratio * (dotsToRatio dots)
 
-_char2Octave :: Char -> Octave
-_char2Octave c = case c of
-    '\'' -> OctaveUp
-    ',' -> OctaveDown
-    _ -> error $ "_char2Octave: Got illegal character " ++ show c
+octaveDown :: (Monad m, CharParsing m) => m Octave
+octaveDown = char ',' >> return OctaveDown
 
-parseOctave :: MonadParser m => m Octave
-parseOctave = do
-    c <- oneOf "',"
-    return $ _char2Octave c
+octaveUp :: (Monad m, CharParsing m) => m Octave
+octaveUp = char '\'' >> return OctaveUp
 
-parseFlat :: MonadParser m => m Accidental
-parseFlat = string "es" >> return Flat
+octave :: (Monad m, CharParsing m) => m Octave
+octave = octaveDown <|> octaveUp <?> "octave"
 
-parseSharp :: MonadParser m => m Accidental
-parseSharp = string "is" >> return Sharp
+flat :: (Monad m, CharParsing m) => m Accidental
+flat = string "es" >> return Flat
 
-parseAccidental :: MonadParser m => m Accidental
-parseAccidental = parseFlat <|> parseSharp
+sharp :: (Monad m, CharParsing m) => m Accidental
+sharp = string "is" >> return Sharp
 
-parsePitch :: MonadParser m => m Pitch
-parsePitch = let
+accidental :: (Monad m, CharParsing m) => m Accidental
+accidental = flat <|> sharp <?> "accidental"
+
+pitch :: (Monad m, TokenParsing m) => m Pitch
+pitch = let
     c2i c = toEnum $ fromEnum c - 97
     _p = oneOf "abcdefg" >>= return . c2i
     in spaces *> highlight ReservedOperator _p <?> "pitch"
 
-parseRest :: MonadParser m => m Char
-parseRest = highlight ReservedOperator (oneOf "r") <?> "rest"
+rest :: TokenParsing m => m Char
+rest = highlight ReservedOperator (char 'r') <?> "rest"
 
-parseKey :: MonadParser m => m Key
-parseKey = let
+key :: (Monad m, TokenParsing m) => m Key
+key = let
     major = do
-        p <- parsePitch
-        ma <- optional parseAccidental
-        spaces
-        lexstr "\\major"
+        p <- pitch
+        ma <- optional accidental
+        whiteSpace
+        slashSymbol "major"
         return $! Major p ma
     minor = do
-        p <- parsePitch
-        ma <- optional parseAccidental
-        spaces
-        lexstr "\\minor"
+        p <- pitch
+        ma <- optional accidental
+        whiteSpace
+        slashSymbol "minor"
         return $! Minor p ma
     in do
-        lexstr "\\key"
+        slashSymbol "key"
         choice [major, minor]
 
-parseTime :: MonadParser m => m Directive
-parseTime = do
-    lexstr "\\time"
-    f <- parseFraction
-    return $! TimeDir f
+time :: (Monad m, TokenParsing m) => m Directive
+time = slashSymbol "time" >> TimeDir <$!> fraction
 
-parseDirExpr :: MonadParser m => m Expression
-parseDirExpr = let
-    _pk = KeyDir <$> parseKey
-    in DirectiveExpr <$!> choice [_pk, parseTime]
+dirExpr :: (Monad m, TokenParsing m) => m Expression
+dirExpr = let
+    _pk = KeyDir <$> key
+    in DirectiveExpr <$!> choice [_pk, time]
 
-parseDrumsExpr :: MonadParser m => m Expression
-parseDrumsExpr = do
-    lexstr "\\drums"
-    expr <- parseExpr
-    return $! Drums expr
+drumsExpr :: (Monad m, TokenParsing m) => m Expression
+drumsExpr = do
+    slashSymbol "drums"
+    Drums <$!> expr
 
-parseMarkerExpr :: MonadParser m => m Expression
-parseMarkerExpr = do
-    lexstr "|"
+markerExpr :: (Monad m, TokenParsing m) => m Expression
+markerExpr = do
+    symbol "|"
     return $! MarkerExpr Measure
 
-parseMusicExpr :: MonadParser m => m Expression
-parseMusicExpr = Music <$!> braces (many parseExpr)
+musicExpr :: (Monad m, TokenParsing m) => m Expression
+musicExpr = Music <$!> braces (many expr)
 
-parseNoteExpr :: MonadParser m => m Expression
-parseNoteExpr = lexeme $ ParsedNote <$!>
-    parsePitch
-    <*> many parseAccidental
-    <*> many parseOctave
-    <*> optional parseDuration
+noteExpr :: (Monad m, TokenParsing m) => m Expression
+noteExpr = ParsedNote <$!>
+    pitch
+    <*> many accidental
+    <*> many octave
+    <*> optional duration
+    <*  whiteSpace
 
-parseRelativeExpr :: MonadParser m => m Expression
-parseRelativeExpr = do
-    lexstr "\\relative"
-    pitch <- parsePitch
-    many parseAccidental
-    octaves <- lexeme $ many parseOctave
-    expr <- parseExpr
+relativeExpr :: (Monad m, TokenParsing m) => m Expression
+relativeExpr = do
+    slashSymbol "relative"
+    pitch <- pitch
+    many accidental
+    octaves <- many octave
+    whiteSpace
+    expr <- expr
     return $! Relative pitch octaves expr
 
-parseRestExpr :: MonadParser m => m Expression
-parseRestExpr = do
-    parseRest
-    duration <- optional parseDuration
+restExpr :: (Monad m, TokenParsing m) => m Expression
+restExpr = do
+    rest
+    duration <- optional duration
     return $! ParsedRest duration
 
-parseExpr :: MonadParser m => m Expression
-parseExpr = choice
-    [ parseDirExpr
-    , parseDrumsExpr
-    , parseMarkerExpr
-    , parseMusicExpr
-    , parseNoteExpr
-    , parseRelativeExpr
-    , parseRestExpr
-    , Chord <$!> angles (many parseNoteExpr)
-    , Times <$!> (lexstr "\\times" *> parseFraction) <*> parseMusicExpr ]
+expr :: (Monad m, TokenParsing m) => m Expression
+expr = choice
+    [ dirExpr
+    , drumsExpr
+    , markerExpr
+    , musicExpr
+    , noteExpr
+    , relativeExpr
+    , restExpr
+    , Chord <$!> angles (many noteExpr)
+    , Times <$!> (slashSymbol "times" *> fraction) <*> musicExpr ]
 
-parseExprs :: MonadParser m => m [Expression]
-parseExprs = many parseExpr
+exprs :: (Monad m, TokenParsing m) => m [Expression]
+exprs = many expr
+
+fullParse :: (Monad m, TokenParsing m) => m [Expression]
+fullParse = between whiteSpace eof exprs

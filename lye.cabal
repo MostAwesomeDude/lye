@@ -49,6 +49,7 @@ Executable lye
   Build-depends:       base >= 4 && < 5
                      , lens
                      , mtl
+                     , parsers
                      , trifecta
                      , uniplate
 

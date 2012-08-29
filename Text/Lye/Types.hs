@@ -47,9 +47,9 @@ data Expression = Chord [Expression]
                 | Voices [Expression]
     deriving (Show, Data, Typeable)
 
-data Annotated = Annotated { _expression :: Expression
-                           , _key :: Key
-                           , _time :: Rational }
+data Annotated = Annotated { _aExpression :: Expression
+                           , _aKey :: Key
+                           , _aTime :: Rational }
     deriving (Show, Data, Typeable)
 
 makeLenses ''Annotated
