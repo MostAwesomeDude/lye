@@ -134,9 +134,14 @@ restExpr = do
     duration <- optional duration
     return $! ParsedRest duration
 
+timesExpr :: (Monad m, TokenParsing m) => m Expression
+timesExpr = Times <$!> (slashSymbol "times" *> fraction) <*> musicExpr
+
 expr :: (Monad m, TokenParsing m) => m Expression
 expr = choice
-    [ dirExpr
+    -- "\times" must come before "\time", so timesExpr needs to come before
+    -- dirExpr. A similar issue will come up when we add voices.
+    [ timesExpr
     , drumsExpr
     , markerExpr
     , musicExpr
@@ -144,7 +149,7 @@ expr = choice
     , relativeExpr
     , restExpr
     , Chord <$!> angles (many noteExpr)
-    , Times <$!> (slashSymbol "times" *> fraction) <*> musicExpr ]
+    , dirExpr ]
 
 exprs :: (Monad m, TokenParsing m) => m [Expression]
 exprs = many expr
