@@ -1,15 +1,31 @@
 module Text.Lye.Export where
 
-import Codec.Midi
-import Control.Monad.Trans.Reader
+import Codec.Midi as M
+import Data.Generics.Uniplate.Data
 
-doTPB :: Time -> Int -> Ticks
-doTPB x y = floor $ x / (realToFrac y)
+import Text.Lye.Types
 
-note :: Channel -> Time -> Time -> Key -> Velocity -> Reader Ticks (Track Ticks)
-note chan start duration pitch vel = do
-    tpb <- ask
-    let start' = doTPB start tpb
-        duration' = doTPB duration tpb
-    return [ (start', NoteOn chan pitch vel)
-           , (start' + duration', NoteOff chan pitch vel) ]
+-- Based on...
+-- para :: Uniplate on => (on -> [r] -> r) -> on -> r
+-- para op x = op x $ map (para op) $ children x
+-- I *think* this is right. I think.
+-- paraM :: (Monad m, Uniplate on) => (on -> [r] -> m r) -> on -> m r
+-- paraM op x = join . (liftM $ op x) $ mapM (paraM op) $ children x
+
+note :: Channel -> Int -> Int -> M.Key -> Velocity -> Track Int
+note chan start duration pitch vel =
+    [ (start, NoteOn chan pitch vel)
+    , (start + duration, NoteOff chan pitch vel) ]
+
+paramorph :: Expression -> [Track Int] -> Track Int
+paramorph expr tracks = let
+    track = case expr of
+        SciNote pitch duration -> note 0 0 duration pitch 127
+        _ -> []
+    in concat $ track:tracks
+
+doTPB :: Int -> Int -> Ticks
+doTPB = flip div
+
+schedule :: Expression -> Int -> Track Int
+schedule expr tpb = para paramorph expr

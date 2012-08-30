@@ -43,7 +43,7 @@ data Expression = Chord [Expression]
                 | ParsedRest (Maybe Duration)
                 | Relative Pitch [Octave] Expression
                 | Rest Duration
-                | SciNote Integer Integer
+                | SciNote Int Int
                 | Times Rational Expression
                 | Voice [Expression]
                 | Voices [Expression]
