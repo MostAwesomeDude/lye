@@ -52,10 +52,15 @@ applyTimes = let
     in rewrite f
 
 flattenMusic :: Expression -> Expression
-flattenMusic = let
+flattenMusic = rewrite f
+    where
     f (Music [x]) = Just x
+    f (Music xs) | anyMusic xs = Just . Music $ refold xs
     f _ = Nothing
-    in rewrite f
+    anyMusic xs = not . null $ [x | (Music x) <- xs]
+    refold [] = []
+    refold ((Music exprs):xs) = exprs ++ refold xs
+    refold (x:xs) = x : refold xs
 
 dumpExpr :: Expression -> Expression
 dumpExpr expr = trace ("Currently at " ++ show expr) expr
