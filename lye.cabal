@@ -49,8 +49,8 @@ Executable lye
   Build-depends:       base >= 4 && < 5
                      , HCodecs
                      , lens
-                     , mtl
                      , parsers
+                     , transformers
                      , trifecta
                      , uniplate
 

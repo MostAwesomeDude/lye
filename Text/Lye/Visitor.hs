@@ -1,6 +1,8 @@
 module Text.Lye.Visitor where
 
-import Control.Monad.State
+import Debug.Trace
+
+import Control.Monad.Trans.State
 import Data.Functor
 import Data.Ratio
 import Text.Lye.Types
@@ -19,13 +21,13 @@ applyPeephole f = let
 inlineDrums :: Expression -> Expression
 inlineDrums = let
     f (Drums expr) = Just expr
-    f x = Nothing
+    f _ = Nothing
     in rewrite f
 
 preserveVoices :: Expression -> Expression
 preserveVoices = let
     f (Voices vs) = Just $ Voices [ Voice exprs | (Music exprs) <- vs ]
-    f x = Nothing
+    f _ = Nothing
     in rewrite f
 
 -- | Apply durations to an expression.
@@ -38,24 +40,25 @@ applyDurations expr = let
     f (ParsedRest (Just d)) = put d >> return (Rest d)
     f (ParsedRest Nothing) = Rest <$> get
     f x = return x
-    recurser e = do
-        e' <- f e
-        descendM recurser e'
+    recurser e = f e >>= descendM recurser
     initial = Duration (1 % 4)
     in evalState (recurser expr) initial
 
 applyTimes :: Expression -> Expression
 applyTimes = let
     inner r (Duration r') = Duration $ r * r'
-    f (Times r expr) = transformBi (inner r) expr
-    f x = x
-    in transform f
+    f (Times r expr) = Just $ transformBi (inner r) expr
+    f _ = Nothing
+    in rewrite f
 
 flattenMusic :: Expression -> Expression
 flattenMusic = let
     f (Music [x]) = Just x
-    f x = Nothing
+    f _ = Nothing
     in rewrite f
+
+dumpExpr :: Expression -> Expression
+dumpExpr expr = trace ("Currently at " ++ show expr) expr
 
 stages :: [Expression -> Expression]
 stages = [ inlineDrums
@@ -73,10 +76,10 @@ stages = [ inlineDrums
          ]
 
 applyStages :: Expression -> Expression
-applyStages = flip (foldr id) stages
+applyStages = flip (foldl $ flip ($)) stages
 
 longestChord :: Expression -> Int
 longestChord = let
     f (Chord xs) is = maximum $ length xs:is
-    f x is = maximum $ 0:is
+    f _ is = maximum $ 0:is
     in para f
