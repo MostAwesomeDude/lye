@@ -2,14 +2,20 @@ module Main where
 
 import System.Environment
 
+import Text.Lye.Export
 import Text.Lye.Interactive
 import Text.Lye.Types
+import Text.Lye.Visitor
 
 testFile :: String -> IO ()
 testFile s = do
-    exprs <- test s
+    exprs <- exprsFromFile s
     let music = Music exprs
     putStrLn $ show music
+    let cleaned = applyStages music
+    putStrLn $ show cleaned
+    let midi = schedule cleaned 120
+    putStrLn $ show midi
     return ()
 
 main :: IO ()

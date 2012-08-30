@@ -27,5 +27,10 @@ paramorph expr tracks = let
 doTPB :: Int -> Int -> Ticks
 doTPB = flip div
 
-schedule :: Expression -> Int -> Track Int
-schedule expr tpb = para paramorph expr
+fstMap :: (a -> b) -> [(a, c)] -> [(b, c)]
+fstMap f xs = let inner (x, y) = (f x, y) in map inner xs
+
+schedule :: Expression -> Int -> Track Ticks
+schedule expr tpb = let
+    track = para paramorph expr
+    in fstMap (doTPB tpb) track
