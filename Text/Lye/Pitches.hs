@@ -2,25 +2,25 @@ module Text.Lye.Pitches where
 
 import Text.Lye.Types
 
-accidentalsToInt :: [Accidental] -> Integer
+accidentalsToInt :: [Accidental] -> Int
 accidentalsToInt = let
     f x = case x of
         Sharp -> 1
         Flat -> -1
     in sum . map f
 
-octavesToInt :: [Octave] -> Integer
+octavesToInt :: [Octave] -> Int
 octavesToInt = let
     f x = case x of
         OctaveUp -> 12
         OctaveDown -> -12
     in sum . map f
 
-pitchToNumber :: Pitch -> [Accidental] -> [Octave] -> Integer
+pitchToNumber :: Pitch -> [Accidental] -> [Octave] -> Int
 pitchToNumber c as os = let
     a = accidentalsToInt as
     o = octavesToInt os
-    x = o * 12 + a
+    x = o + a
     y = case c of
         C -> 48
         D -> 50

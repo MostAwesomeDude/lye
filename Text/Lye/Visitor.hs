@@ -85,6 +85,12 @@ flattenMusic = rewrite f
     refold ((Music exprs):xs) = exprs ++ refold xs
     refold (x:xs) = x : refold xs
 
+sciNotes :: Expression -> Expression
+sciNotes = let
+    f (Note p a o d) = Just . flip SciNote d $ pitchToNumber p a o
+    f _ = Nothing
+    in rewrite f
+
 dumpExpr :: Expression -> Expression
 dumpExpr expr = trace ("Currently at " ++ show expr) expr
 
@@ -95,7 +101,7 @@ stages = [ inlineDrums
          , applyTimes
          , relativize
          , flattenMusic
-         -- , NoteTransformer
+         , sciNotes
          -- , DynamicRemover
          -- , ChordSorter
          -- , SlurMaker
