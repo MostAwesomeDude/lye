@@ -38,7 +38,7 @@ duration = do
     len <- number
     ds <- dots
     let ratio = 1 % len
-    return $ Duration $! ratio * (dotsToRatio ds)
+    return $ Duration $! ratio * dotsToRatio ds
 
 octaveDown :: (Monad m, CharParsing m) => m Octave
 octaveDown = char ',' >> return OctaveDown
@@ -68,7 +68,7 @@ pitch = let
         'g' -> G
         'a' -> A
         'b' -> B
-    _p = oneOf "cdefgab" >>= return . c2i
+    _p = fmap c2i $ oneOf "cdefgab"
     in spaces *> highlight ReservedOperator _p <?> "pitch"
 
 rest :: TokenParsing m => m Char
@@ -76,16 +76,17 @@ rest = highlight ReservedOperator (char 'r') <?> "rest"
 
 key :: (Monad m, TokenParsing m) => m Key
 key = let
-    major = do
+    _k = do
         p <- pitch
         ma <- optional accidental
         whiteSpace
+        return (p, ma)
+    major = do
+        (p, ma) <- _k
         slashSymbol "major"
         return $! Major p ma
     minor = do
-        p <- pitch
-        ma <- optional accidental
-        whiteSpace
+        (p, ma) <- _k
         slashSymbol "minor"
         return $! Minor p ma
     in do

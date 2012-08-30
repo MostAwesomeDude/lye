@@ -82,7 +82,7 @@ flattenMusic = rewrite f
     f _ = Nothing
     anyMusic xs = not . null $ [x | (Music x) <- xs]
     refold [] = []
-    refold ((Music exprs):xs) = exprs ++ refold xs
+    refold (Music exprs:xs) = exprs ++ refold xs
     refold (x:xs) = x : refold xs
 
 sciNotes :: Expression -> Expression
