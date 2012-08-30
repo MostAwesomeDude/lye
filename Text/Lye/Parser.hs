@@ -109,7 +109,7 @@ markerExpr :: (Monad m, TokenParsing m) => m Expression
 markerExpr = let
     f s m = do
         symbol s
-        return $! MarkerExpr Measure
+        return $! MarkerExpr m
     -- Sorry!
     c = flip (flip uncurry . unzip) $ zipWith f
     in choice . c $ [("|", Measure), ("(", OpenSlur), (")", CloseSlur)]
