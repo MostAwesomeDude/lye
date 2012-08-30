@@ -31,14 +31,14 @@ dots :: (Monad m, TokenParsing m) => m Integer
 dots = fromIntegral . length <$!> many (char '.') <* whiteSpace <?> "dots"
 
 dotsToRatio :: Integer -> Rational
-dotsToRatio dots = 2 - (1 % (2 ^ dots))
+dotsToRatio ds = 2 - (1 % (2 ^ ds))
 
 duration :: (Monad m, TokenParsing m) => m Duration
 duration = do
     len <- number
-    dots <- dots
+    ds <- dots
     let ratio = 1 % len
-    return $ Duration $! ratio * (dotsToRatio dots)
+    return $ Duration $! ratio * (dotsToRatio ds)
 
 octaveDown :: (Monad m, CharParsing m) => m Octave
 octaveDown = char ',' >> return OctaveDown
@@ -107,10 +107,8 @@ drumsExpr = do
 
 markerExpr :: (Monad m, TokenParsing m) => m Expression
 markerExpr = let
-    f s m = do
-        symbol s
-        return $! MarkerExpr m
-    -- Sorry!
+    f s m = symbol s >> MarkerExpr <$!> return m
+    -- Sorry! So sorry! Maybe someday this could be cleaned up.
     c = flip (flip uncurry . unzip) $ zipWith f
     in choice . c $ [ ("|", Measure)
                     , ("(", OpenSlur)
@@ -131,18 +129,21 @@ noteExpr = ParsedNote <$!>
 relativeExpr :: (Monad m, TokenParsing m) => m Expression
 relativeExpr = do
     slashSymbol "relative"
-    pitch <- pitch
-    many accidental
-    octaves <- many octave
+    p <- pitch
+    -- Discard accidentals. They are valid but don't affect relative
+    -- scheduling.
+    _ <- many accidental
+    os <- many octave
     whiteSpace
-    expr <- expr
-    return $! Relative pitch octaves expr
+    e <- expr
+    return $! Relative p os e
 
 restExpr :: (Monad m, TokenParsing m) => m Expression
 restExpr = do
-    rest
-    duration <- optional duration
-    return $! ParsedRest duration
+    -- Yes, honey, he knows it's a rest.
+    _ <- rest
+    d <- optional duration
+    return $! ParsedRest d
 
 timesExpr :: (Monad m, TokenParsing m) => m Expression
 timesExpr = Times <$!> (slashSymbol "times" *> fraction) <*> musicExpr
