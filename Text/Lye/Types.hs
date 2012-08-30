@@ -11,7 +11,7 @@ data Accidental = Flat | Sharp
 data Octave = OctaveDown | OctaveUp
     deriving (Show, Data, Typeable)
 
-data Pitch = A | B | C | D | E | F | G
+data Pitch = C | D | E | F | G | A | B
     deriving (Show, Eq, Ord, Enum, Data, Typeable)
 
 data Duration = Duration Rational

@@ -4,6 +4,7 @@ import Debug.Trace
 
 import Control.Monad.Trans.State
 import Data.Functor
+import Data.Maybe
 import Data.Ratio
 import Text.Lye.Pitches
 import Text.Lye.Types
@@ -60,8 +61,8 @@ relativize = rewrite f
     f _ = Nothing
     g (Note p a o d) = do
         (rp, ro) <- get
-        let whether = transposeDirection rp p
-            o' = os . ocount $ o ++ ro ++ if whether then [OctaveDown] else []
+        let extra = transposeDirection rp p
+            o'    = os . ocount $ o ++ ro ++ maybeToList extra
         put (p, o')
         return $ Note p a o' d
     g x = return x
@@ -69,8 +70,8 @@ relativize = rewrite f
         OctaveUp   -> 1
         OctaveDown -> -1)
     os i = if i < 0
-        then replicate (negate i) OctaveUp
-        else replicate i OctaveDown
+        then replicate (negate i) OctaveDown
+        else replicate i OctaveUp
     recurser e = g e >>= descendM recurser
 
 flattenMusic :: Expression -> Expression

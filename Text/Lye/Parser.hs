@@ -60,8 +60,15 @@ accidental = flat <|> sharp <?> "accidental"
 
 pitch :: (Monad m, TokenParsing m) => m Pitch
 pitch = let
-    c2i c = toEnum $ fromEnum c - 97
-    _p = oneOf "abcdefg" >>= return . c2i
+    c2i c = case c of
+        'c' -> C
+        'd' -> D
+        'e' -> E
+        'f' -> F
+        'g' -> G
+        'a' -> A
+        'b' -> B
+    _p = oneOf "cdefgab" >>= return . c2i
     in spaces *> highlight ReservedOperator _p <?> "pitch"
 
 rest :: TokenParsing m => m Char
