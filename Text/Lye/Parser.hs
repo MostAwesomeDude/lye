@@ -112,7 +112,10 @@ markerExpr = let
         return $! MarkerExpr m
     -- Sorry!
     c = flip (flip uncurry . unzip) $ zipWith f
-    in choice . c $ [("|", Measure), ("(", OpenSlur), (")", CloseSlur)]
+    in choice . c $ [ ("|", Measure)
+                    , ("(", OpenSlur)
+                    , (")", CloseSlur)
+                    , ("~", Tie) ]
 
 musicExpr :: (Monad m, TokenParsing m) => m Expression
 musicExpr = Music <$!> braces (many expr)
