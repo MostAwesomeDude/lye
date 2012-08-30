@@ -1,29 +1,29 @@
-{-# LANGUAGE DeriveDataTypeable, TemplateHaskell #-}
+{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, TemplateHaskell #-}
 module Text.Lye.Types where
 
 import Control.Lens.TH
 import Data.Data
-import Data.Ratio
+import Data.Ratio()
 
 data Accidental = Flat | Sharp
-    deriving (Show, Data, Typeable)
+    deriving (Show, Eq, Data, Typeable)
 
 data Octave = OctaveDown | OctaveUp
-    deriving (Show, Data, Typeable)
+    deriving (Show, Eq, Data, Typeable)
 
 data Pitch = C | D | E | F | G | A | B
     deriving (Show, Eq, Ord, Enum, Data, Typeable)
 
-data Duration = Duration Rational
-    deriving (Show, Data, Typeable)
+newtype Duration = Duration Rational
+    deriving (Show, Eq, Data, Typeable, Num)
 
 data Key = Major Pitch (Maybe Accidental)
          | Minor Pitch (Maybe Accidental)
-    deriving (Show, Data, Typeable)
+    deriving (Show, Eq, Data, Typeable)
 
 data Directive = KeyDir Key
                | TimeDir Rational
-    deriving (Show, Data, Typeable)
+    deriving (Show, Eq, Data, Typeable)
 
 data Marker = EndVoice
             | Measure
@@ -31,7 +31,7 @@ data Marker = EndVoice
             | Tie
             | OpenSlur
             | CloseSlur
-    deriving (Show, Data, Typeable)
+    deriving (Show, Eq, Data, Typeable)
 
 data Expression = Chord [Expression]
                 | DirectiveExpr Directive
@@ -47,7 +47,7 @@ data Expression = Chord [Expression]
                 | Times Rational Expression
                 | Voice [Expression]
                 | Voices [Expression]
-    deriving (Show, Data, Typeable)
+    deriving (Show, Eq, Data, Typeable)
 
 data Annotated = Annotated { _aExpression :: Expression
                            , _aKey :: Key

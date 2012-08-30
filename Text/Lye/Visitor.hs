@@ -91,6 +91,17 @@ sciNotes = let
     f _ = Nothing
     in rewrite f
 
+mergeTies :: Expression -> Expression
+mergeTies = let
+    f (Music exprs)
+        | MarkerExpr Tie `elem` exprs = Just . Music $ refold exprs
+    f _ = Nothing
+    refold [] = []
+    refold (SciNote p d:MarkerExpr Tie:SciNote p' d':xs)
+        | p == p' = SciNote p (d + d') : refold xs
+    refold (x:xs) = x : refold xs
+    in rewrite f
+
 dumpExpr :: Expression -> Expression
 dumpExpr expr = trace ("Currently at " ++ show expr) expr
 
@@ -105,7 +116,7 @@ stages = [ inlineDrums
          -- , DynamicRemover
          -- , ChordSorter
          -- , SlurMaker
-         -- , TieRemover
+         , mergeTies
          -- , RestMerger
          ]
 
