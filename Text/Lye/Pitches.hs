@@ -32,10 +32,11 @@ pitchToNumber c as os = let
     in x + y
 
 -- | Indicate which direction is nearer for transposition or relative
---   assignment.
-transposeDirection :: Pitch -> Pitch -> Octave
+--   assignment. True means that the nearest one is an octave *down* and
+--   should be adjusted accordingly.
+transposeDirection :: Pitch -> Pitch -> Bool
 transposeDirection p q = let
     p' = fromEnum p
     q' = fromEnum q
     diff = q' - p' `mod` 7
-    in if diff > 3 then OctaveDown else OctaveUp
+    in diff > 3

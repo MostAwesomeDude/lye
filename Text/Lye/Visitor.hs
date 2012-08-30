@@ -5,6 +5,7 @@ import Debug.Trace
 import Control.Monad.Trans.State
 import Data.Functor
 import Data.Ratio
+import Text.Lye.Pitches
 import Text.Lye.Types
 
 import Data.Generics.Uniplate.Data
@@ -51,6 +52,27 @@ applyTimes = let
     f _ = Nothing
     in rewrite f
 
+-- | Apply Relative to inner expressions.
+relativize :: Expression -> Expression
+relativize = rewrite f
+    where
+    f (Relative p os exprs) = Just $ evalState (recurser exprs) (p, os)
+    f _ = Nothing
+    g (Note p a o d) = do
+        (rp, ro) <- get
+        let whether = transposeDirection rp p
+            o' = os . ocount $ o ++ ro ++ if whether then [OctaveDown] else []
+        put (p, o')
+        return $ Note p a o' d
+    g x = return x
+    ocount = sum . map (\x -> case x of
+        OctaveUp   -> 1
+        OctaveDown -> -1)
+    os i = if i < 0
+        then replicate (negate i) OctaveUp
+        else replicate i OctaveDown
+    recurser e = g e >>= descendM recurser
+
 flattenMusic :: Expression -> Expression
 flattenMusic = rewrite f
     where
@@ -70,7 +92,7 @@ stages = [ inlineDrums
          , preserveVoices
          , applyDurations
          , applyTimes
-         -- , Relativizer
+         , relativize
          , flattenMusic
          -- , NoteTransformer
          -- , DynamicRemover
