@@ -20,7 +20,7 @@ note chan start duration pitch vel =
 paramorph :: Expression -> [Track Int] -> Track Int
 paramorph expr tracks = let
     track = case expr of
-        SciNote pitch duration -> note 0 0 duration pitch 127
+        -- SciNote pitch duration -> note 0 0 duration pitch 127
         _ -> []
     in concat $ track:tracks
 
