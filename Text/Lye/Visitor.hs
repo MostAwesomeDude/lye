@@ -121,7 +121,6 @@ dumpExpr expr = trace ("Currently at " ++ show expr) expr
 
 stages :: [Expression -> Expression]
 stages = [ inlineDrums
-         , preserveVoices
          , applyDurations
          , applyTimes
          , relativize
