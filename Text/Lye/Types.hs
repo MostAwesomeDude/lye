@@ -55,3 +55,9 @@ data Annotated = Annotated { _aExpression :: Expression
     deriving (Show, Data, Typeable)
 
 makeLenses ''Annotated
+
+data Exporter = Exporter { _eTpb :: Int
+                         , _eTicks :: Int }
+    deriving (Show, Data, Typeable)
+
+makeLenses ''Exporter
