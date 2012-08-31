@@ -14,9 +14,9 @@ testFile s = do
     putStrLn $ show music
     let cleaned = applyStages music
     putStrLn $ show cleaned
-    let midi = schedule cleaned 120
+    let midi = schedule cleaned 480
     putStrLn $ show midi
-    return ()
+    export 480 midi
 
 main :: IO ()
 main = do

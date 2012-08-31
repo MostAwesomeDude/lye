@@ -34,6 +34,9 @@ paramorph expr tracks = do
             in do
                 eTicks += duration'
                 return $ note 0 position duration' pitch 127
+        Rest (Duration d) -> let
+            duration' = floor $ d * (realToFrac tpb) * 4
+            in eTicks += duration' >> return []
         _ -> return []
     return . concat $ track:tracks
 
@@ -41,4 +44,16 @@ fstMap :: (a -> b) -> [(a, c)] -> [(b, c)]
 fstMap f xs = let inner (x, y) = (f x, y) in map inner xs
 
 schedule :: Expression -> Int -> Track Ticks
-schedule expr tpb = evalState (paraM paramorph expr) $ Exporter tpb 0
+schedule expr tpb = (0, TempoChange 500000): (evalState (paraM paramorph expr) $ Exporter tpb 0)
+
+absToDelta :: Num a => [(a, b)] -> [(a, b)]
+absToDelta track = let
+    (as, ms) = unzip track
+    as' = flip evalState 0 $ forM as $ \x' -> do
+        x <- get
+        put x'
+        return $ x' - x
+    in zip as' ms
+
+export :: Int -> Track Ticks -> IO ()
+export tpb track = exportFile "test.mid" $ Midi SingleTrack (TicksPerBeat tpb) [absToDelta track]
