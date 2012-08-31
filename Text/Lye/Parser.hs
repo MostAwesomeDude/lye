@@ -73,7 +73,7 @@ pitch = let
     in spaces *> highlight ReservedOperator _p <?> "pitch"
 
 drum :: (Monad m, TokenParsing m) => m Drum
-drum = highlight ReservedOperator d <?> "drum"
+drum = spaces *> highlight ReservedOperator d <?> "drum"
     where
     d = choice $ M.foldlWithKey p [] dmap
     p ds key value = (string key >> return value) : ds
@@ -97,7 +97,7 @@ drum = highlight ReservedOperator d <?> "drum"
                       , ("trio", Triangle) ]
 
 rest :: TokenParsing m => m Char
-rest = highlight ReservedOperator (char 'r') <?> "rest"
+rest = spaces *> highlight ReservedOperator (char 'r') <?> "rest"
 
 key :: (Monad m, TokenParsing m) => m Key
 key = let
@@ -120,6 +120,9 @@ key = let
 
 time :: (Monad m, TokenParsing m) => m Directive
 time = slashSymbol "time" >> TimeDir <$!> fraction
+
+chordExpr :: (Monad m, TokenParsing m) => m Expression
+chordExpr = Chord <$!> angles (many noteExpr)
 
 dirExpr :: (Monad m, TokenParsing m) => m Expression
 dirExpr = let
@@ -177,10 +180,14 @@ restExpr = do
 timesExpr :: (Monad m, TokenParsing m) => m Expression
 timesExpr = Times <$!> (slashSymbol "times" *> fraction) <*> musicExpr
 
+voicesExpr :: (Monad m, TokenParsing m) => m Expression
+voicesExpr = Voices <$!> between (symbol "<<") (symbol ">>") (many expr)
+
 expr :: (Monad m, TokenParsing m) => m Expression
 expr = choice
     -- "\times" must come before "\time", so timesExpr needs to come before
-    -- dirExpr. A similar issue will come up when we add voices.
+    -- dirExpr. Similarly, "<<" must come before "<", so voicesExpr needs to
+    -- precede chordExpr.
     [ timesExpr
     , drumExpr
     , drumsExpr
@@ -189,7 +196,8 @@ expr = choice
     , noteExpr
     , relativeExpr
     , restExpr
-    , Chord <$!> angles (many noteExpr)
+    , voicesExpr
+    , chordExpr
     , dirExpr ]
 
 exprs :: (Monad m, TokenParsing m) => m [Expression]
