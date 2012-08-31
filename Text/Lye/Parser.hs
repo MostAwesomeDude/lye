@@ -1,6 +1,7 @@
 module Text.Lye.Parser where
 
 import Control.Applicative
+import qualified Data.Map as M
 import Data.Ratio
 import Text.Parser.Char
 import Text.Parser.Combinators
@@ -71,6 +72,30 @@ pitch = let
     _p = fmap c2i $ oneOf "cdefgab"
     in spaces *> highlight ReservedOperator _p <?> "pitch"
 
+drum :: (Monad m, TokenParsing m) => m Drum
+drum = highlight ReservedOperator d <?> "drum"
+    where
+    d = choice $ M.foldlWithKey p [] dmap
+    p ds key value = (string key >> return value) : ds
+    dmap = M.fromList [ ("bd", Bass)
+                      , ("ss", SideStick)
+                      , ("sn", Snare)
+                      , ("tomfl", LowFloorTom)
+                      , ("hhc", ClosedHat)
+                      , ("tomfh", HighFloorTom)
+                      , ("hhp", PedalHat)
+                      , ("toml", LowTom)
+                      , ("hho", OpenHat)
+                      , ("tomml", LowMidTom)
+                      , ("tommh", HighMidTom)
+                      , ("tomh", HighTom)
+                      , ("cb", Cowbell)
+                      , ("timl", LowTimbale)
+                      , ("timh", HighTimbale)
+                      , ("trim", MutedTriangle)
+                      , ("tri", Triangle)
+                      , ("trio", Triangle) ]
+
 rest :: TokenParsing m => m Char
 rest = highlight ReservedOperator (char 'r') <?> "rest"
 
@@ -127,6 +152,9 @@ noteExpr = ParsedNote <$!>
     <*> optional duration
     <*  whiteSpace
 
+drumExpr :: (Monad m, TokenParsing m) => m Expression
+drumExpr = ParsedDrumNote <$!> drum <*> optional duration <* whiteSpace
+
 relativeExpr :: (Monad m, TokenParsing m) => m Expression
 relativeExpr = do
     slashSymbol "relative"
@@ -154,6 +182,7 @@ expr = choice
     -- "\times" must come before "\time", so timesExpr needs to come before
     -- dirExpr. A similar issue will come up when we add voices.
     [ timesExpr
+    , drumExpr
     , drumsExpr
     , markerExpr
     , musicExpr
