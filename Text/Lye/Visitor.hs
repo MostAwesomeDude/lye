@@ -37,6 +37,8 @@ preserveVoices = let
 --   in the correct manner.
 applyDurations :: Expression -> Expression
 applyDurations expr = let
+    f (ParsedDrumNote n (Just d)) = put d >> return (DrumNote n d)
+    f (ParsedDrumNote n Nothing) = DrumNote n <$> get
     f (ParsedNote c a o (Just d)) = put d >> return (Note c a o d)
     f (ParsedNote c a o Nothing) = Note c a o <$> get
     f (ParsedRest (Just d)) = put d >> return (Rest d)
