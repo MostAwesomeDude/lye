@@ -102,6 +102,18 @@ mergeTies = let
     refold (x:xs) = x : refold xs
     in rewrite f
 
+-- This needs to be a transform, not a rewrite, because otherwise it will
+-- recurse endlessly.
+mergeRests :: Expression -> Expression
+mergeRests = let
+    f (Music exprs) | anyRests exprs = Music $ refold exprs
+    f e = e
+    anyRests xs = not . null $ [x | (Rest x) <- xs]
+    refold [] = []
+    refold (Rest d:Rest d':xs) = Rest (d + d') : refold xs
+    refold (x:xs) = x : refold xs
+    in transform f
+
 dumpExpr :: Expression -> Expression
 dumpExpr expr = trace ("Currently at " ++ show expr) expr
 
@@ -117,7 +129,7 @@ stages = [ inlineDrums
          -- , ChordSorter
          -- , SlurMaker
          , mergeTies
-         -- , RestMerger
+         , mergeRests
          ]
 
 applyStages :: Expression -> Expression
