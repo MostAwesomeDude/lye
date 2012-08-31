@@ -1,57 +1,58 @@
 module Text.Lye.Export where
 
 import Codec.Midi as M
-import Control.Lens
 import Control.Monad
-import Control.Monad.Trans.State
+import Control.Monad.Trans.RWS
+import qualified Control.Monad.Trans.State as St
 import Data.Generics.Uniplate.Data
 
 import Text.Lye.Types
 
--- Based on...
--- para :: Uniplate on => (on -> [r] -> r) -> on -> r
--- para op x = op x $ map (para op) $ children x
--- I *think* this is right. I think.
-paraM :: (Monad m, Uniplate on) => (on -> [r] -> m r) -> on -> m r
-paraM op x = join . (liftM $ op x) $ mapM (paraM op) $ children x
+type Exporter a = RWS Int (Track Ticks) Ticks a
 
 note :: Channel -> Int -> Int -> M.Key -> Velocity -> Track Ticks
 note chan start duration pitch vel =
     [ (start, NoteOn chan pitch vel)
     , (start + duration, NoteOff chan pitch vel) ]
 
-paramorph :: Expression -> [Track Int] -> State Exporter (Track Ticks)
-paramorph expr tracks = do
-    position <- use eTicks
-    tpb <- use eTpb
+scheduleNotes :: Expression -> Exporter Expression
+scheduleNotes expr = do
+    tpb <- ask
+    position <- get
     -- Note that in all of our duration calculations, we are multiplying by 4
     -- as a constant. This is because our equation is:
     -- beats * ticks/beat * beats/measure
     -- The latter is a constant.
-    track <- case expr of
+    case expr of
         SciNote pitch (Duration d) -> let
             duration' = floor $ d * (realToFrac tpb) * 4
             in do
-                eTicks += duration'
-                return $ note 0 position duration' pitch 127
+                modify (+ duration')
+                tell $ note 0 position duration' pitch 127
         Rest (Duration d) -> let
             duration' = floor $ d * (realToFrac tpb) * 4
-            in eTicks += duration' >> return []
-        _ -> return []
-    return . concat $ track:tracks
+            in modify (+ duration')
+        _ -> return ()
+    descendM scheduleNotes expr
 
 fstMap :: (a -> b) -> [(a, c)] -> [(b, c)]
 fstMap f xs = let inner (x, y) = (f x, y) in map inner xs
 
 schedule :: Expression -> Int -> Track Ticks
-schedule expr tpb = (0, TempoChange 500000): (evalState (paraM paramorph expr) $ Exporter tpb 0)
+schedule expr tpb = track
+    where
+    (_, _, track) = runRWS scheduler tpb 0
+    scheduler = do
+        -- tell $ [(0, TempoChange 500000)]
+        _ <- scheduleNotes expr
+        return ()
 
 absToDelta :: Num a => [(a, b)] -> [(a, b)]
 absToDelta track = let
     (as, ms) = unzip track
-    as' = flip evalState 0 $ forM as $ \x' -> do
-        x <- get
-        put x'
+    as' = flip St.evalState 0 $ forM as $ \x' -> do
+        x <- St.get
+        St.put x'
         return $ x' - x
     in zip as' ms
 
