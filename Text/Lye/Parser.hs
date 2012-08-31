@@ -1,5 +1,12 @@
 module Text.Lye.Parser where
 
+-- A note about general theory here. What would be really useful for us is if
+-- we could follow the parsing style where there is no leading whitespace. In
+-- order to do this, we must *never* parse leading whitespace on any data, and
+-- instead we must be vigilant in mopping up trailing whitespace anywhere that
+-- it is legal. This is only difficult because nearly every expression in
+-- Lilypond permits leading whitespace, due to their parser's "design."
+
 import Control.Applicative
 import qualified Data.Map as M
 import Data.Ratio
@@ -29,7 +36,7 @@ fraction :: (Monad m, TokenParsing m) => m Rational
 fraction = (%) <$!> number <* char '/' <*> number <?> "number"
 
 dots :: (Monad m, TokenParsing m) => m Integer
-dots = fromIntegral . length <$!> many (char '.') <* whiteSpace <?> "dots"
+dots = fromIntegral . length <$!> many (char '.') <?> "dots"
 
 dotsToRatio :: Integer -> Rational
 dotsToRatio ds = 2 - (1 % (2 ^ ds))
@@ -60,23 +67,23 @@ accidental :: (Monad m, CharParsing m) => m Accidental
 accidental = flat <|> sharp <?> "accidental"
 
 pitch :: (Monad m, TokenParsing m) => m Pitch
-pitch = let
-    c2i c = case c of
-        'c' -> C
-        'd' -> D
-        'e' -> E
-        'f' -> F
-        'g' -> G
-        'a' -> A
-        'b' -> B
-    _p = fmap c2i $ oneOf "cdefgab"
-    in spaces *> highlight ReservedOperator _p <?> "pitch"
+pitch = highlight ReservedOperator p <?> "pitch"
+    where
+    p = choice $ M.foldlWithKey folder [] pmap
+    folder ps key value = (char key >> return value) : ps
+    pmap = M.fromList [ ('c', C)
+                      , ('d', D)
+                      , ('e', E)
+                      , ('f', F)
+                      , ('g', G)
+                      , ('a', A)
+                      , ('b', B) ]
 
 drum :: (Monad m, TokenParsing m) => m Drum
-drum = spaces *> highlight ReservedOperator d <?> "drum"
+drum = highlight ReservedOperator d <?> "drum"
     where
-    d = choice $ M.foldlWithKey p [] dmap
-    p ds key value = (string key >> return value) : ds
+    d = choice $ M.foldlWithKey folder [] dmap
+    folder ds key value = (string key >> return value) : ds
     dmap = M.fromList [ ("bd", Bass)
                       , ("ss", SideStick)
                       , ("sn", Snare)
@@ -97,7 +104,7 @@ drum = spaces *> highlight ReservedOperator d <?> "drum"
                       , ("trio", Triangle) ]
 
 rest :: TokenParsing m => m Char
-rest = spaces *> highlight ReservedOperator (char 'r') <?> "rest"
+rest = highlight ReservedOperator (char 'r') <?> "rest"
 
 key :: (Monad m, TokenParsing m) => m Key
 key = let
@@ -130,9 +137,7 @@ dirExpr = let
     in DirectiveExpr <$!> choice [_pk, time]
 
 drumsExpr :: (Monad m, TokenParsing m) => m Expression
-drumsExpr = do
-    slashSymbol "drums"
-    Drums <$!> expr
+drumsExpr = slashSymbol "drums" >> Drums <$!> expr
 
 markerExpr :: (Monad m, TokenParsing m) => m Expression
 markerExpr = let
@@ -145,7 +150,7 @@ markerExpr = let
                     , ("~", Tie) ]
 
 musicExpr :: (Monad m, TokenParsing m) => m Expression
-musicExpr = Music <$!> braces (many expr)
+musicExpr = Music <$!> braces exprs
 
 noteExpr :: (Monad m, TokenParsing m) => m Expression
 noteExpr = ParsedNote <$!>
@@ -157,6 +162,9 @@ noteExpr = ParsedNote <$!>
 
 drumExpr :: (Monad m, TokenParsing m) => m Expression
 drumExpr = ParsedDrumNote <$!> drum <*> optional duration <* whiteSpace
+
+restExpr :: (Monad m, TokenParsing m) => m Expression
+restExpr = rest >> ParsedRest <$!> optional duration <* whiteSpace
 
 relativeExpr :: (Monad m, TokenParsing m) => m Expression
 relativeExpr = do
@@ -170,18 +178,11 @@ relativeExpr = do
     e <- expr
     return $! Relative p os e
 
-restExpr :: (Monad m, TokenParsing m) => m Expression
-restExpr = do
-    -- Yes, honey, he knows it's a rest.
-    _ <- rest
-    d <- optional duration
-    return $! ParsedRest d
-
 timesExpr :: (Monad m, TokenParsing m) => m Expression
 timesExpr = Times <$!> (slashSymbol "times" *> fraction) <*> musicExpr
 
 voicesExpr :: (Monad m, TokenParsing m) => m Expression
-voicesExpr = Voices <$!> between (symbol "<<") (symbol ">>") (many expr)
+voicesExpr = Voices <$!> between (symbol "<<") (symbol ">>") exprs
 
 expr :: (Monad m, TokenParsing m) => m Expression
 expr = choice
