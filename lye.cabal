@@ -57,3 +57,5 @@ Executable lye
 
   -- GHC compiler flags.
   ghc-options:         -Wall -rtsopts
+
+  Extra-libraries:     tinfo
