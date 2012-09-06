@@ -5,6 +5,8 @@ import Control.Monad
 import Control.Monad.Trans.RWS
 import qualified Control.Monad.Trans.State as St
 import Data.Generics.Uniplate.Data
+import Data.List
+import Data.Ord
 
 import Text.Lye.Types
 
@@ -15,31 +17,45 @@ note chan start duration pitch vel =
     [ (start, NoteOn chan pitch vel)
     , (start + duration, NoteOff chan pitch vel) ]
 
+-- Note that in all of our duration calculations, we are multiplying by 4 as a
+-- constant. This is because our equation is:
+-- beats * ticks/beat * beats/measure
+-- The latter is a constant.
+doTPB :: Rational -> Int -> Int
+doTPB d tpb = floor $ d * (realToFrac tpb) * 4
+
 scheduleNotes :: Expression -> Exporter Expression
 scheduleNotes expr = do
     tpb <- ask
     position <- get
-    -- Note that in all of our duration calculations, we are multiplying by 4
-    -- as a constant. This is because our equation is:
-    -- beats * ticks/beat * beats/measure
-    -- The latter is a constant.
     case expr of
+        DrumNote drum (Duration d) -> let
+            duration' = doTPB d tpb
+            pitch = fromEnum drum
+            in do
+                modify (+ duration')
+                tell $ note 9 position duration' pitch 127
         SciNote pitch (Duration d) -> let
-            duration' = floor $ d * (realToFrac tpb) * 4
+            duration' = doTPB d tpb
             in do
                 modify (+ duration')
                 tell $ note 0 position duration' pitch 127
         Rest (Duration d) -> let
-            duration' = floor $ d * (realToFrac tpb) * 4
+            duration' = doTPB d tpb
             in modify (+ duration')
+        Voices exprs -> forM_ exprs $ \e -> do
+            put position
+            scheduleNotes e
         _ -> return ()
-    descendM scheduleNotes expr
+    case expr of
+        Voices _ -> return expr
+        _ -> descendM scheduleNotes expr
 
 fstMap :: (a -> b) -> [(a, c)] -> [(b, c)]
 fstMap f xs = let inner (x, y) = (f x, y) in map inner xs
 
 schedule :: Expression -> Int -> Track Ticks
-schedule expr tpb = track
+schedule expr tpb = sortBy (comparing fst) track
     where
     (_, _, track) = runRWS scheduler tpb 0
     scheduler = do
