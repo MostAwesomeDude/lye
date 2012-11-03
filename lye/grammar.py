@@ -101,6 +101,8 @@ expr_voices   = token("<<") expr_music+:es token(">>") -> Voices(es)
 expr = expr_chord | expr_drum | expr_drums | expr_dynamic | expr_marker
      | expr_music | expr_note | expr_relative | expr_rest | expr_times
      | expr_voices
+
+lye = expr:e spaces? end -> e
 """
 
 LyeGrammar = makeGrammar(grammar, grammar_globals)

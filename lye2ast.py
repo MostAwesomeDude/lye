@@ -14,7 +14,7 @@ with open(sys.argv[1], "rb") as f:
     s = f.read()
 
 g = LyeGrammar(s)
-ast = g.expr()
+ast = g.lye()
 ast = simplify_ast(ast)
 
 print "AST:"
