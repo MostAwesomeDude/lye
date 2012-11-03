@@ -1,5 +1,8 @@
-import re
+#import re
 
+def can_legato(x): return False
+
+'''
 from pyDatalog.pyDatalog import Datalog_engine
 
 pl = Datalog_engine()
@@ -17,3 +20,4 @@ pl.load("""
 def can_legato(instrument):
     i = re.sub("[() ]", "_", instrument)
     return bool(pl.ask("legato(%s)" % i))
+'''
