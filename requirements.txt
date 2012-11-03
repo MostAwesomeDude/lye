@@ -1,2 +1,3 @@
 fluidsynth>=0.2
 pyDatalog>=0.4
+Parsley

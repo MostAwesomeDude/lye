@@ -1,9 +1,8 @@
 import unittest
 
 from lye.grammar import LyeGrammar
-from lye.tests.helpers import ParsingMixin
 
-class TestSalsaSnippets(unittest.TestCase, ParsingMixin):
+class TestSalsaSnippets(unittest.TestCase):
 
     def test_shady_snippet(self):
         snippet = """\\relative d'' {
@@ -13,7 +12,7 @@ class TestSalsaSnippets(unittest.TestCase, ParsingMixin):
             d2.. c8 | d1
         }
         """
-        self.assertParses(snippet, LyeGrammar, "expr")
+        LyeGrammar(snippet).expr()
 
     def test_shiny_snippet_one(self):
         snippet = """\\relative c' {
@@ -21,7 +20,7 @@ class TestSalsaSnippets(unittest.TestCase, ParsingMixin):
             r4 c, d e | g f c d | c1
         }
         """
-        self.assertParses(snippet, LyeGrammar, "expr")
+        LyeGrammar(snippet).expr()
 
     def test_shiny_snippet_two(self):
         snippet = """\\relative b' {
@@ -30,4 +29,4 @@ class TestSalsaSnippets(unittest.TestCase, ParsingMixin):
             d1 | dis8. b dis8 c8. es c8 | b1
         }
         """
-        self.assertParses(snippet, LyeGrammar, "expr")
+        LyeGrammar(snippet).expr()
