@@ -9,10 +9,13 @@ slur_globals = {
     "Slur": Slur,
 }
 
+# The exactly() rule sucks really *really* hard for non-strings, so I hacked
+# something a bit more fun into this one.
+
 slur_maker = """
-open  = exactly(OPEN_SLUR)
-close = exactly(CLOSE_SLUR)
-not_close = anything:x ?(x is not CLOSE_SLUR) -> x
+open = anything:x ?(x is OPEN_SLUR) -> x
+close = anything:x ?(x is CLOSE_SLUR) -> x
+not_close = ~close anything
 slur  = anything:x open not_close+:xs close -> Slur([x] + xs)
 slurify = (slur | anything)*
 """
@@ -22,7 +25,6 @@ _slurry = makeGrammar(slur_maker, slur_globals)
 class SlurMaker(Visitor):
 
     def visit_generic(self, node):
-        print node
         if hasfield(node, "exprs"):
             exprs = _slurry(node.exprs).slurify()
             node = node._replace(exprs=exprs)
