@@ -22,6 +22,7 @@ _slurry = makeGrammar(slur_maker, slur_globals)
 class SlurMaker(Visitor):
 
     def visit_generic(self, node):
+        print node
         if hasfield(node, "exprs"):
             exprs = _slurry(node.exprs).slurify()
             node = node._replace(exprs=exprs)

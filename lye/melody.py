@@ -90,7 +90,7 @@ def melody_from_ly(s):
     """
 
     g = LyeGrammar(s)
-    ast = g.lye()
+    ast = g.exprs()
     ast = simplify_ast(ast)
     melody = Melody(ast, 120, data=s)
     return melody

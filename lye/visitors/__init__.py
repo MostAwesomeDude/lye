@@ -26,11 +26,10 @@ simplify_stages = (
     DynamicRemover,
     # Sort Chord contents. Must come after SciNotes.
     ChordSorter,
-    # Add Slurs.
-    SlurMaker,
-    # Peepholes!
     # Remove TIEs.
     TieRemover,
+    # Add Slurs.
+    SlurMaker,
     # Merge Rests.
     RestMerger,
 )
