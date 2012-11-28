@@ -15,6 +15,7 @@ drum_notes = {
     "cb":    56,
     "timl":  65,
     "timh":  66,
+    "cl":    75,
     "trim":  80,
     "tri":   81,
     "trio":  81,
