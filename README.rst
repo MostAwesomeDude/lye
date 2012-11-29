@@ -64,3 +64,11 @@ Lye is obviously a bug-free and perfect piece of software. :3
 
 In all seriousness, feel free to report bugs, but don't be surprised if I
 don't move on them.
+
+Special Thanks
+==============
+
+* Wade Cline
+* Sarah Craig
+* Jerome Hirsch
+* Ben Kero
