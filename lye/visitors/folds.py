@@ -2,11 +2,11 @@
 AST transformations which fold up an AST into a single value.
 """
 
-from collections import namedtuple
+from lye.ast import nt
 
 from lye.visitors.visitor import Visitor
 
-ScheduledNote = namedtuple("ScheduledNote", "pitch, velocity, begin, duration")
+ScheduledNote = nt("ScheduledNote", "pitch, velocity, begin, duration")
 
 class Foldable(Visitor):
     """
