@@ -2,7 +2,6 @@ from __future__ import division
 
 from lye.combyne import Bynder
 from lye.grammar import LyeGrammar
-from lye.instruments import NEAREST, fit
 from lye.visitors import simplify_ast
 from lye.visitors.folds import ChordCounter, fold
 from lye.visitors.maps import HarmonySplitter, Multiply
@@ -12,8 +11,6 @@ class Melody(object):
     instrument = None
     volume = 100
     pan = 63
-
-    fit_method = NEAREST
 
     _len = None
     _scheduled = None
@@ -54,9 +51,6 @@ class Melody(object):
 
         self.instrument = instrument
         music = self.music
-
-        if instrument:
-            music = fit(music, self.instrument, self.fit_method)
 
         bynder = Bynder(music, self.instrument)
 

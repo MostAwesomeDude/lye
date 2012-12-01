@@ -1,4 +1,5 @@
 from lye.ast import nt
+from lye.instruments import NEAREST, fit
 from lye.visitors import express_ast
 from lye.visitors.folds import NoteScheduler, fold
 
@@ -12,7 +13,9 @@ class Bynder(nt("Bynder", "ast instrument")):
     """
 
     def specialized(self):
-        return self._replace(ast=express_ast(self.ast, self.instrument))
+        ast = express_ast(self.ast, self.instrument)
+        ast = fit(ast, self.instrument, NEAREST)
+        return self._replace(ast=ast)
 
     def schedule(self):
         return fold(NoteScheduler, self.specialized().ast)
