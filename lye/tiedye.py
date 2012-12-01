@@ -116,5 +116,9 @@ def just_go_already(lib, lyne, *soundfonts):
         seq = create_sequencer(*soundfonts)
         return MarkedLyne(lyne, seq)
 
+def play_a_bynder(bynder, *soundfonts):
+    seq = create_sequencer(*soundfonts)
+    return MarkedLyne(bynder, seq)
+
 def demo():
     return just_go_already("groove", "groove.lyne", "gugs.sf2")
