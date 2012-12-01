@@ -1,9 +1,10 @@
 from __future__ import division
 
+from lye.combyne import Bynder
 from lye.grammar import LyeGrammar
 from lye.instruments import NEAREST, fit
-from lye.visitors import express_ast, simplify_ast
-from lye.visitors.folds import ChordCounter, NoteScheduler, fold
+from lye.visitors import simplify_ast
+from lye.visitors.folds import ChordCounter, fold
 from lye.visitors.maps import HarmonySplitter, Multiply
 
 class Melody(object):
@@ -56,10 +57,11 @@ class Melody(object):
 
         if instrument:
             music = fit(music, self.instrument, self.fit_method)
-            music = express_ast(music, self.instrument)
+
+        bynder = Bynder(music, self.instrument)
 
         # And finally reschedule.
-        self._scheduled, self._len = fold(NoteScheduler, music)
+        self._scheduled, self._len = bynder.schedule()
 
     def split(self):
         """
