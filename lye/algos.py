@@ -1,6 +1,3 @@
-from lye.ast import (MEASURE, PARTIAL, Chord, PitchBend, SciNote, Rest,
-                     Voices)
-
 class LyeParseWarning(Warning):
     """
     A dubious token was encountered while parsing a melody.
