@@ -3,43 +3,18 @@ from __future__ import division
 from fractions import gcd
 from itertools import takewhile
 
-from lye.instruments import (instruments as midi_instruments,
-                             numbered_instruments, HIGHEST, NEAREST, LOWEST)
+from lye.instruments import numbered_instruments, HIGHEST, NEAREST, LOWEST
+from lye.utilities import find_instrument, make_velocity
 
 INSTRUMENT, LYNE, PAN, VOLUME = range(4)
 
 TACET = object()
-
-def make_velocity(s):
-    l = "pp p mp mf f ff".split()
-    i = l.index(s)
-    i = i * 18 + 19
-    return i
 
 def multipliers(numbers):
     denominator = reduce(gcd, numbers)
     numerator = max(numbers) // denominator
     lcm = denominator * numerator
     return [lcm // number for number in numbers]
-
-def find_instrument(name):
-    """
-    Attempt to fully qualify a MIDI instrument name.
-    """
-
-    name = name.lower()
-    found = []
-
-    for instrument in midi_instruments:
-        if instrument.startswith(name):
-            found.append(instrument)
-
-    if len(found) < 1:
-        raise Exception("Couldn't match any instruments for %s" % name)
-    elif len(found) > 1:
-        raise Exception("Found multiple instruments for %s: %s"
-            % (name, found))
-    return found[0]
 
 class Timelyne(object):
     """

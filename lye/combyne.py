@@ -1,35 +1,8 @@
 from lye.ast import nt
-from lye.instruments import (NEAREST, fit, instruments as midi_instruments,
-        numbered_instruments)
+from lye.instruments import NEAREST, fit, numbered_instruments
+from lye.utilities import find_instrument, make_velocity
 from lye.visitors import express_ast
 from lye.visitors.folds import NoteScheduler, fold
-
-# XXX duped
-def make_velocity(s):
-    l = "pp p mp mf f ff".split()
-    i = l.index(s)
-    i = i * 18 + 19
-    return i
-
-# XXX duped
-def find_instrument(name):
-    """
-    Attempt to fully qualify a MIDI instrument name.
-    """
-
-    name = name.lower()
-    found = []
-
-    for instrument in midi_instruments:
-        if instrument.startswith(name):
-            found.append(instrument)
-
-    if len(found) < 1:
-        raise Exception("Couldn't match any instruments for %s" % name)
-    elif len(found) > 1:
-        raise Exception("Found multiple instruments for %s: %s"
-            % (name, found))
-    return found[0]
 
 class Bynder(nt("Bynder", "ast instrument")):
     """
