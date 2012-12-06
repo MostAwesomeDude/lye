@@ -9,13 +9,14 @@ from lye.utilities import find_instrument
 from lye.visitors import simplify_ast
 
 if len(sys.argv) < 3:
-    print "Usage:", sys.argv[0], "<instrument> <snippet>+"
+    print "Usage:", sys.argv[0], "(<instrument> <snippet>)+"
     sys.exit(0)
 
-instrument = find_instrument(sys.argv[1])
+pairs = zip(sys.argv[1::2], sys.argv[2::2])
 
 bound = Combyned()
-for path in sys.argv[2:]:
+for instrument, path in pairs:
+    instrument = find_instrument(instrument)
     with open(path, "rb") as f:
         s = f.read()
         g = LyeGrammar(s)
