@@ -6,6 +6,7 @@ from fluidsynth.fluidsynth import FluidEvent
 
 from lye.MidiFile import MIDIFile
 
+
 class FileExporter(object):
     """
     Export MIDI data to a file.
@@ -42,6 +43,7 @@ class FileExporter(object):
     def volume(self, channel, time, amount):
         time /= self.tpb
         self.f.addControllerEvent(0, channel, time, 0x07, amount)
+
 
 class FSExporter(object):
     """
