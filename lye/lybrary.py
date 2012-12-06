@@ -1,20 +1,34 @@
-from glob import iglob
 import os.path
 
+from lye.combyne import Bynder, Drumlyne
+from lye.grammar import LyeGrammar
 from lye.melody import melody_from_ly
+from lye.visitors import simplify_ast
+
 
 class Lye(object):
     """
     A file with notes in it.
     """
 
-    def __init__(self, filename):
-        self.filename = filename
+    def __init__(self, path):
+        self.path = path
+
+    def bynder(self, instrument):
+        with open(self.path, "rb") as f:
+            s = f.read()
+            g = LyeGrammar(s)
+            ast = g.lye()
+            if instrument == "drums":
+                return Drumlyne(simplify_ast(ast))
+            else:
+                return Bynder(simplify_ast(ast), instrument)
 
     def melody(self):
-        with open(self.filename, "rb") as f:
+        with open(self.path, "rb") as f:
             s = f.read()
             return melody_from_ly(s)
+
 
 class Lybrary(object):
     """
@@ -22,12 +36,12 @@ class Lybrary(object):
     """
 
     def __init__(self, path):
-        self.path = os.path.abspath(path)
+        self.path = path
 
     def snippets(self):
         d = {}
-        i = iglob(os.path.join(self.path, "*.lye"))
-        for fullname in i:
-            name = os.path.splitext(os.path.basename(fullname))[0]
-            d[name] = Lye(fullname)
+        kids = self.path.globChildren("*.lye")
+        for kid in kids:
+            name = os.path.splitext(kid.basename())[0]
+            d[name] = Lye(kid)
         return d
