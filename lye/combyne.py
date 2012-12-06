@@ -43,6 +43,28 @@ class Bynder(nt("Bynder", "ast instrument")):
         return elapsed, exporter.commit()
 
 
+class Drumlyne(nt("Drumlyne", "ast")):
+
+    def __or__(self, other):
+        return Combyned(self, other)
+
+    def schedule(self):
+        return fold(NoteScheduler, self.ast)
+
+    def export_to_channel(self, channel, exporter):
+        notes, elapsed = self.schedule()
+
+        # Ignore all channels; drums are always on channel 9.
+        for pitch, velocity, begin, duration in notes:
+            velocity = make_velocity(velocity)
+            exporter.note(9, begin, duration, pitch, velocity)
+        return elapsed
+
+    def export(self, mark, exporter):
+        elapsed = self.export_to_channel(9, exporter)
+        return elapsed, exporter.commit()
+
+
 class Combyned(object):
     """
     Combine two Bynders to play them simultaneously.
@@ -54,7 +76,7 @@ class Combyned(object):
     def __or__(self, other):
         if isinstance(other, Combyned):
             return Combyned(*(self.bynders + other.bynders))
-        elif isinstance(other, Bynder):
+        elif isinstance(other, (Bynder, Drumlyne)):
             return Combyned(other, *self.bynders)
         else:
             raise RuntimeError("WTF?")
@@ -62,7 +84,7 @@ class Combyned(object):
     def __ror__(self, other):
         if isinstance(other, Combyned):
             self.bynders += other.bynders
-        elif isinstance(other, Bynder):
+        elif isinstance(other, (Bynder, Drumlyne)):
             self.bynders += (other,)
         else:
             raise RuntimeError("WTF?")

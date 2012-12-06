@@ -2,7 +2,7 @@
 
 import sys
 
-from lye.combyne import Bynder, Combyned
+from lye.combyne import Bynder, Combyned, Drumlyne
 from lye.grammar import LyeGrammar
 from lye.tiedye import play_a_bynder
 from lye.utilities import find_instrument
@@ -21,7 +21,10 @@ for instrument, path in pairs:
         s = f.read()
         g = LyeGrammar(s)
         ast = g.lye()
-        bound |= Bynder(simplify_ast(ast), instrument)
+        if instrument == "drums":
+            bound |= Drumlyne(simplify_ast(ast))
+        else:
+            bound |= Bynder(simplify_ast(ast), instrument)
 
 print "Playing..."
 

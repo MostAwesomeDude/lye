@@ -14,6 +14,9 @@ def find_instrument(name):
     name = name.lower()
     found = []
 
+    if name == "drums":
+        return "drums"
+
     for instrument in midi_instruments:
         if instrument.startswith(name):
             found.append(instrument)
