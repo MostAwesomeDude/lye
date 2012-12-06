@@ -4,6 +4,7 @@ from lye.utilities import make_velocity
 from lye.visitors import express_ast
 from lye.visitors.folds import NoteScheduler, fold
 
+
 class Bynder(nt("Bynder", "ast instrument")):
     """
     A snippet of lye, processed and prepared for export or combination with
@@ -67,7 +68,7 @@ class Drumlyne(nt("Drumlyne", "ast")):
 
 class Combyned(object):
     """
-    Combine two Bynders to play them simultaneously.
+    Combine two or more Bynders to play them simultaneously.
     """
 
     def __init__(self, *bynders):
