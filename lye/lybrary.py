@@ -3,6 +3,7 @@ import os.path
 from lye.combyne import Bynder, Drumlyne
 from lye.grammar import LyeGrammar
 from lye.melody import melody_from_ly
+from lye.utilities import find_instrument
 from lye.visitors import simplify_ast
 
 
@@ -15,7 +16,8 @@ class Lye(object):
         self.path = path
 
     def bynder(self, instrument):
-        with open(self.path, "rb") as f:
+        instrument = find_instrument(instrument)
+        with self.path.open("rb") as f:
             s = f.read()
             g = LyeGrammar(s)
             ast = g.lye()
@@ -25,7 +27,7 @@ class Lye(object):
                 return Bynder(simplify_ast(ast), instrument)
 
     def melody(self):
-        with open(self.path, "rb") as f:
+        with self.path.open("rb") as f:
             s = f.read()
             return melody_from_ly(s)
 
