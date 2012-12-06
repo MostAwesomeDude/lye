@@ -13,6 +13,9 @@ class Bynder(nt("Bynder", "ast instrument")):
     as the AST itself and any trimmings.
     """
 
+    def __or__(self, other):
+        return Combyned(self, other)
+
     def specialized(self):
         ast = express_ast(self.ast, self.instrument)
         ast = fit(ast, self.instrument, NEAREST)
@@ -47,6 +50,22 @@ class Combyned(object):
 
     def __init__(self, *bynders):
         self.bynders = bynders
+
+    def __or__(self, other):
+        if isinstance(other, Combyned):
+            return Combyned(*(self.bynders + other.bynders))
+        elif isinstance(other, Bynder):
+            return Combyned(other, *self.bynders)
+        else:
+            raise RuntimeError("WTF?")
+
+    def __ror__(self, other):
+        if isinstance(other, Combyned):
+            self.bynders += other.bynders
+        elif isinstance(other, Bynder):
+            self.bynders += (other,)
+        else:
+            raise RuntimeError("WTF?")
 
     def export(self, mark, exporter):
         elapsed = 0

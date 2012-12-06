@@ -14,15 +14,13 @@ if len(sys.argv) < 3:
 
 instrument = find_instrument(sys.argv[1])
 
-bynders = []
+bound = Combyned()
 for path in sys.argv[2:]:
     with open(path, "rb") as f:
         s = f.read()
         g = LyeGrammar(s)
         ast = g.lye()
-        bynders.append(Bynder(simplify_ast(ast), instrument))
-
-bound = Combyned(*bynders)
+        bound |= Bynder(simplify_ast(ast), instrument)
 
 print "Playing..."
 
