@@ -1,6 +1,6 @@
 from lye.ast import nt
 from lye.instruments import NEAREST, fit, numbered_instruments
-from lye.utilities import find_instrument, make_velocity
+from lye.utilities import make_velocity
 from lye.visitors import express_ast
 from lye.visitors.folds import NoteScheduler, fold
 
@@ -24,8 +24,7 @@ class Bynder(nt("Bynder", "ast instrument")):
     def export_to_channel(self, channel, exporter):
         notes, elapsed = self.schedule()
 
-        instrument = find_instrument(self.instrument)
-        exporter.pc(channel, 0, numbered_instruments[instrument])
+        exporter.pc(channel, 0, numbered_instruments[self.instrument])
 
         for pitch, velocity, begin, duration in notes:
             if pitch == 0 and duration == 0:
@@ -34,7 +33,23 @@ class Bynder(nt("Bynder", "ast instrument")):
             else:
                 velocity = make_velocity(velocity)
                 exporter.note(channel, begin, duration, pitch, velocity)
-        return elapsed, exporter.commit()
+        return elapsed
 
     def export(self, mark, exporter):
-        return self.export_to_channel(0, exporter)
+        elapsed = self.export_to_channel(0, exporter)
+        return elapsed, exporter.commit()
+
+
+class Combyned(object):
+    """
+    Combine two Bynders to play them simultaneously.
+    """
+
+    def __init__(self, *bynders):
+        self.bynders = bynders
+
+    def export(self, mark, exporter):
+        elapsed = 0
+        for i, bynder in enumerate(self.bynders):
+            elapsed = max(elapsed, bynder.export_to_channel(i, exporter))
+        return elapsed, exporter.commit()

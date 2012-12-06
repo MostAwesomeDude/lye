@@ -2,28 +2,27 @@
 
 import sys
 
-from lye.combyne import Bynder
+from lye.combyne import Bynder, Combyned
 from lye.grammar import LyeGrammar
-from lye.pretty import pretty
 from lye.tiedye import play_a_bynder
 from lye.utilities import find_instrument
 from lye.visitors import simplify_ast
 
 if len(sys.argv) < 3:
-    print "Usage:", sys.argv[0], "<snippet> <instrument>"
+    print "Usage:", sys.argv[0], "<instrument> <snippet>+"
     sys.exit(0)
 
-with open(sys.argv[1], "rb") as f:
-    s = f.read()
+instrument = find_instrument(sys.argv[1])
 
-instrument = find_instrument(" ".join(sys.argv[2:]))
+bynders = []
+for path in sys.argv[2:]:
+    with open(path, "rb") as f:
+        s = f.read()
+        g = LyeGrammar(s)
+        ast = g.lye()
+        bynders.append(Bynder(simplify_ast(ast), instrument))
 
-g = LyeGrammar(s)
-ast = g.lye()
-bound = Bynder(simplify_ast(ast), instrument)
-
-print "AST (%s):" % instrument
-print pretty(bound.specialized())
+bound = Combyned(*bynders)
 
 print "Playing..."
 
