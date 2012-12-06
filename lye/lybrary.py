@@ -3,7 +3,7 @@ import os.path
 
 from lye.melody import melody_from_ly
 
-class Snippet(object):
+class Lye(object):
     """
     A file with notes in it.
     """
@@ -16,7 +16,7 @@ class Snippet(object):
             s = f.read()
             return melody_from_ly(s)
 
-class Library(object):
+class Lybrary(object):
     """
     A folder with snippets.
     """
@@ -29,5 +29,5 @@ class Library(object):
         i = iglob(os.path.join(self.path, "*.lye"))
         for fullname in i:
             name = os.path.splitext(os.path.basename(fullname))[0]
-            d[name] = Snippet(fullname)
+            d[name] = Lye(fullname)
         return d
