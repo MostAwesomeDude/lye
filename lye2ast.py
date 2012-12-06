@@ -5,6 +5,7 @@ import sys
 from lye.combyne import Bynder
 from lye.grammar import LyeGrammar
 from lye.pretty import pretty
+from lye.utilities import find_instrument
 from lye.visitors import simplify_ast
 
 if len(sys.argv) < 2:
@@ -14,7 +15,7 @@ if len(sys.argv) < 2:
 instrument = None
 
 if len(sys.argv) >= 3:
-    instrument = " ".join(sys.argv[2:])
+    instrument = find_instrument(" ".join(sys.argv[2:]))
 
 with open(sys.argv[1], "rb") as f:
     s = f.read()

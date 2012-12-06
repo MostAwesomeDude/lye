@@ -6,6 +6,7 @@ from lye.combyne import Bynder
 from lye.grammar import LyeGrammar
 from lye.pretty import pretty
 from lye.tiedye import play_a_bynder
+from lye.utilities import find_instrument
 from lye.visitors import simplify_ast
 
 if len(sys.argv) < 3:
@@ -15,7 +16,7 @@ if len(sys.argv) < 3:
 with open(sys.argv[1], "rb") as f:
     s = f.read()
 
-instrument = " ".join(sys.argv[2:])
+instrument = find_instrument(" ".join(sys.argv[2:]))
 
 g = LyeGrammar(s)
 ast = g.lye()
