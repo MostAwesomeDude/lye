@@ -14,6 +14,13 @@ class Bynder(nt("Bynder", "ast instrument")):
     as the AST itself and any trimmings.
     """
 
+    repeat = 1
+
+    def __mul__(self, other):
+        bynder = self._replace()
+        bynder.repeat = self.repeat * other
+        return bynder
+
     def __or__(self, other):
         return Combyned(self, other)
 
@@ -26,17 +33,22 @@ class Bynder(nt("Bynder", "ast instrument")):
         return fold(NoteScheduler, self.specialized().ast)
 
     def export_to_channel(self, channel, exporter):
-        notes, elapsed = self.schedule()
+        notes, length = self.schedule()
+        elapsed = 0
 
         exporter.pc(channel, 0, numbered_instruments[self.instrument])
 
-        for pitch, velocity, begin, duration in notes:
-            if pitch == 0 and duration == 0:
-                # Hax'd pitch bend data.
-                exporter.bend(channel, begin, velocity)
-            else:
-                velocity = make_velocity(velocity)
-                exporter.note(channel, begin, duration, pitch, velocity)
+        for i in range(self.repeat):
+            for pitch, velocity, begin, duration in notes:
+                begin += elapsed
+
+                if pitch == 0 and duration == 0:
+                    # Hax'd pitch bend data.
+                    exporter.bend(channel, begin, velocity)
+                else:
+                    velocity = make_velocity(velocity)
+                    exporter.note(channel, begin, duration, pitch, velocity)
+            elapsed += length
         return elapsed
 
     def export(self, mark, exporter):
@@ -46,6 +58,13 @@ class Bynder(nt("Bynder", "ast instrument")):
 
 class Drumlyne(nt("Drumlyne", "ast")):
 
+    repeat = 1
+
+    def __mul__(self, other):
+        drumlyne = self._replace()
+        drumlyne.repeat = self.repeat * other
+        return drumlyne
+
     def __or__(self, other):
         return Combyned(self, other)
 
@@ -53,12 +72,17 @@ class Drumlyne(nt("Drumlyne", "ast")):
         return fold(NoteScheduler, self.ast)
 
     def export_to_channel(self, channel, exporter):
-        notes, elapsed = self.schedule()
+        notes, length = self.schedule()
+        elapsed = 0
 
-        # Ignore all channels; drums are always on channel 9.
-        for pitch, velocity, begin, duration in notes:
-            velocity = make_velocity(velocity)
-            exporter.note(9, begin, duration, pitch, velocity)
+        for i in range(self.repeat):
+            # Ignore all channels; drums are always on channel 9.
+            for pitch, velocity, begin, duration in notes:
+                begin += elapsed
+
+                velocity = make_velocity(velocity)
+                exporter.note(9, begin, duration, pitch, velocity)
+            elapsed += length
         return elapsed
 
     def export(self, mark, exporter):
