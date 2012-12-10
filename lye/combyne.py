@@ -104,7 +104,7 @@ class Combyned(object):
         elif isinstance(other, (Bynder, Drumlyne)):
             return Combyned(other, *self.bynders)
         else:
-            raise RuntimeError("WTF?")
+            raise RuntimeError("Can't combyne %r and %r" % (self, other))
 
     def __ror__(self, other):
         if isinstance(other, Combyned):
@@ -112,7 +112,7 @@ class Combyned(object):
         elif isinstance(other, (Bynder, Drumlyne)):
             self.bynders += (other,)
         else:
-            raise RuntimeError("WTF?")
+            raise RuntimeError("Can't combyne %r and %r" % (self, other))
 
     def export(self, mark, exporter):
         elapsed = 0
