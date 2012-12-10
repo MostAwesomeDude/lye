@@ -7,6 +7,12 @@ from lye.utilities import find_instrument
 from lye.visitors import simplify_ast
 
 
+class LybraryError(Exception):
+    """
+    Something went wrong while trying to do lybrarian stuff.
+    """
+
+
 class Lye(object):
     """
     A file with notes in it.
@@ -39,6 +45,12 @@ class Lybrary(object):
 
     def __init__(self, path):
         self.path = path
+        if not self.path.exists():
+            raise LybraryError("Path %r doesn't exist!" % self.path)
+
+    def __div__(self, other):
+        child = self.path.child(other)
+        return Lybrary(child)
 
     def snippets(self):
         d = {}
