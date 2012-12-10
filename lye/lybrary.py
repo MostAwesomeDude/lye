@@ -50,7 +50,14 @@ class Lybrary(object):
 
     def __div__(self, other):
         child = self.path.child(other)
-        return Lybrary(child)
+        if child.exists():
+            if child.isdir():
+                return Lybrary(child)
+            else:
+                return Lye(child)
+        else:
+            child = self.path.child("%s.lye" % other)
+            return Lye(child)
 
     def snippets(self):
         d = {}
