@@ -1,3 +1,5 @@
+from fractions import gcd
+
 from lye.ast import nt
 from lye.instruments import NEAREST, fit, numbered_instruments
 from lye.utilities import make_velocity
@@ -5,7 +7,43 @@ from lye.visitors import express_ast
 from lye.visitors.folds import NoteScheduler, fold
 
 
-class Bynder(nt("Bynder", "ast instrument")):
+def multipliers(numbers):
+    denominator = reduce(gcd, numbers)
+    numerator = max(numbers) // denominator
+    lcm = denominator * numerator
+    return [lcm // number for number in numbers]
+
+
+class _Bynd(object):
+    """
+    Common functionality.
+    """
+
+    repeat = 1
+
+    def __mul__(self, other):
+        bound = self._replace()
+        bound.repeat = self.repeat * other
+        return bound
+
+    def __or__(self, other):
+        return Combyned(self, other)
+
+    def __and__(self, other):
+        mine = self.length() * self.repeat
+        theirs = other.length() * self.repeat
+        mine, theirs = multipliers((mine, theirs))
+
+        self = self * mine
+        other = other * theirs
+
+        return Combyned(self, other)
+
+    def length(self):
+        return self.schedule()[1] * self.repeat
+
+
+class Bynder(_Bynd, nt("Bynder", "ast instrument")):
     """
     A snippet of lye, processed and prepared for export or combination with
     other snippets.
@@ -13,16 +51,6 @@ class Bynder(nt("Bynder", "ast instrument")):
     Bynders contain all of the data necessary for specializing an AST, as well
     as the AST itself and any trimmings.
     """
-
-    repeat = 1
-
-    def __mul__(self, other):
-        bynder = self._replace()
-        bynder.repeat = self.repeat * other
-        return bynder
-
-    def __or__(self, other):
-        return Combyned(self, other)
 
     def specialized(self):
         ast = express_ast(self.ast, self.instrument)
@@ -56,17 +84,7 @@ class Bynder(nt("Bynder", "ast instrument")):
         return elapsed, exporter.commit()
 
 
-class Drumlyne(nt("Drumlyne", "ast")):
-
-    repeat = 1
-
-    def __mul__(self, other):
-        drumlyne = self._replace()
-        drumlyne.repeat = self.repeat * other
-        return drumlyne
-
-    def __or__(self, other):
-        return Combyned(self, other)
+class Drumlyne(_Bynd, nt("Drumlyne", "ast")):
 
     def schedule(self):
         return fold(NoteScheduler, self.ast)
@@ -101,7 +119,7 @@ class Combyned(object):
     def __or__(self, other):
         if isinstance(other, Combyned):
             return Combyned(*(self.bynders + other.bynders))
-        elif isinstance(other, (Bynder, Drumlyne)):
+        elif isinstance(other, _Bynd):
             return Combyned(other, *self.bynders)
         else:
             raise RuntimeError("Can't combyne %r and %r" % (self, other))
@@ -109,10 +127,36 @@ class Combyned(object):
     def __ror__(self, other):
         if isinstance(other, Combyned):
             self.bynders += other.bynders
-        elif isinstance(other, (Bynder, Drumlyne)):
+        elif isinstance(other, _Bynd):
             self.bynders += (other,)
         else:
             raise RuntimeError("Can't combyne %r and %r" % (self, other))
+
+    def __and__(self, other):
+        bynders = self.bynders
+
+        if isinstance(other, Combyned):
+            bynders += other.bynders
+        elif isinstance(other, _Bynd):
+            bynders += (other,)
+        else:
+            raise RuntimeError("Can't combyne %r and %r" % (self, other))
+
+        ms = multipliers([b.length() for b in bynders])
+        return Combyned(*(b * m for (b, m) in zip(bynders, ms)))
+
+    def __rand__(self, other):
+        bynders = self.bynders
+
+        if isinstance(other, Combyned):
+            bynders += other.bynders
+        elif isinstance(other, _Bynd):
+            bynders += (other,)
+        else:
+            raise RuntimeError("Can't combyne %r and %r" % (self, other))
+
+        ms = multipliers([b.length() for b in bynders])
+        self.bynders = tuple(*(b * m for (b, m) in zip(bynders, ms)))
 
     def export(self, mark, exporter):
         elapsed = 0
