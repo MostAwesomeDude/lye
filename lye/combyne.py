@@ -42,6 +42,9 @@ class _Bynd(object):
     def length(self):
         return self.schedule()[1] * self.repeat
 
+    def begin(self):
+        return self.schedule()[0][0].begin
+
 
 class Bynder(_Bynd, nt("Bynder", "ast instrument")):
     """
@@ -157,6 +160,9 @@ class Combyned(object):
 
         ms = multipliers([b.length() for b in bynders])
         self.bynders = tuple(*(b * m for (b, m) in zip(bynders, ms)))
+
+    def begin(self):
+        return min(b.begin() for b in self.bynders)
 
     def export(self, mark, exporter):
         elapsed = 0

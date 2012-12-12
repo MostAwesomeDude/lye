@@ -81,6 +81,9 @@ class MarkedLyne(object):
         self.seq.sequencer.beats_per_minute = self.lyne.tempo
         self.seq.sequencer.ticks_per_beat = self.lyne.ticks_per_beat
 
+        # Rewind to before the beginning of the lyne.
+        self.offset -= self.lyne.begin()
+
     def refill(self):
         time = self.fill()
         self.delayed = self.reactor.callLater(time, self.refill)
