@@ -83,7 +83,7 @@ class Bynder(_Bynd, nt("Bynder", "ast instrument")):
             elapsed += length
         return elapsed
 
-    def export(self, mark, exporter):
+    def export(self, exporter):
         elapsed = self.export_to_channel(0, exporter)
         return elapsed, exporter.commit()
 
@@ -107,7 +107,7 @@ class Drumlyne(_Bynd, nt("Drumlyne", "ast")):
             elapsed += length
         return elapsed
 
-    def export(self, mark, exporter):
+    def export(self, exporter):
         elapsed = self.export_to_channel(9, exporter)
         return elapsed, exporter.commit()
 
@@ -165,7 +165,7 @@ class Combyned(object):
     def begin(self):
         return min(b.begin() for b in self.bynders)
 
-    def export(self, mark, exporter):
+    def export(self, exporter):
         elapsed = 0
         for i, bynder in enumerate(self.bynders):
             elapsed = max(elapsed, bynder.export_to_channel(i, exporter))

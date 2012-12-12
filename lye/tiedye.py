@@ -58,7 +58,6 @@ def create_sequencer(*soundfonts):
 class MarkedLyne(object):
 
     delayed = None
-    mark = 0
     # This default doesn't reflect anything meaningful; typically, fills take
     # 1-10 ticks, so this usually starts way too high. However, we want a
     # latency of less than 100 ticks for responsiveness.
@@ -91,7 +90,7 @@ class MarkedLyne(object):
     def fill(self):
         exporter = FSExporter(self.seq.sequencer, self.offset)
         # Perform the actual fill.
-        length, elapsed = self.lyne.export(self.mark, exporter)
+        length, elapsed = self.lyne.export(exporter)
 
         # Figure out what our next offset is going to be, based on how long
         # that took, and when the next sequence starts. A weight of 10 is
