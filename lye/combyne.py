@@ -67,7 +67,8 @@ class Bynder(_Bynd, nt("Bynder", "ast instrument")):
         notes, length = self.schedule()
         elapsed = 0
 
-        exporter.pc(channel, 0, numbered_instruments[self.instrument])
+        exporter.pc(channel, self.begin(),
+                numbered_instruments[self.instrument])
 
         for i in range(self.repeat):
             for pitch, velocity, begin, duration in notes:
