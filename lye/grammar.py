@@ -5,8 +5,8 @@ from fractions import Fraction
 from parsley import makeGrammar
 
 from lye.ast import (CLOSE_SLUR, MEASURE, OPEN_SLUR, TIE, Chord, Drums,
-                     Duration, Dynamic, Key, Music, Note, Relative, Rest,
-                     SciNote, Times, Voices)
+                     Duration, Dynamic, Key, Music, Note, Partial, Relative,
+                     Rest, SciNote, Times, Voices)
 from lye.drums import drum_notes
 
 class InternalParseError(Exception):
@@ -33,6 +33,7 @@ grammar_globals = {
     "Music": Music,
     "Note": Note,
     "OPEN_SLUR": OPEN_SLUR,
+    "Partial": Partial,
     "Relative": Relative,
     "Rest": Rest,
     "SciNote": SciNote,
@@ -84,6 +85,7 @@ expr_marker   = open_slur | close_slur | measure | tie
 expr_music    = token("{") expr+:e token("}") -> Music(e)
 expr_note     = pitch:p accidental?:a octave?:o duration?:d
               -> Note(p, a or 0, o or 0, d)
+expr_partial  = token("\\\\partial") spaces duration:d -> Partial(d)
 expr_relative = token("\\\\relative") spaces pitch:p accidental? octave?:o
                 expr_music:e
               -> Relative(p, o or 0, e)
@@ -91,9 +93,9 @@ expr_rest     = token("r") duration?:d -> Rest(d)
 expr_times    = token("\\\\times") spaces int:n '/' int:d expr_music:e
               -> Times(Fraction(n, d), e)
 expr_voices   = token("<<") expr_music+:es token(">>") -> Voices(es)
-expr = expr_chord | expr_drum | expr_drums | expr_dynamic | expr_key
-     | expr_marker | expr_music | expr_note | expr_relative | expr_rest
-     | expr_times | expr_voices
+expr = expr_chord | expr_drum | expr_drums | expr_key | expr_marker
+     | expr_music | expr_note | expr_partial | expr_dynamic | expr_relative
+     | expr_rest | expr_times | expr_voices
 
 exprs = expr+:es -> Music(es)
 
