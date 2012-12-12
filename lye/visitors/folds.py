@@ -50,6 +50,11 @@ class NoteScheduler(Foldable):
     def result(self):
         return self.notes, self.marker
 
+    def visit_Partial(self, partial):
+        # XXX Yes, this is derpy and not sufficient in all cases.
+        self.marker -= partial.duration
+        return partial, False
+
     def visit_Chord(self, chord):
         begin = self.marker
         self.marker = begin + chord.notes[0].duration
