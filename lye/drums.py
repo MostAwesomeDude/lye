@@ -13,6 +13,15 @@ drum_notes = {
     "tommh": 48,
     "tomh":  50,
     "cb":    56,
+    "cghm":  62,
+    # Not part of MIDI.
+    "cgh":   63,
+    "cgho":  63,
+    "cgl":   64,
+    # Not part of MIDI.
+    "cglo":  64,
+    # Not part of MIDI.
+    "cglm":  64,
     "timl":  65,
     "timh":  66,
     "cl":    75,
