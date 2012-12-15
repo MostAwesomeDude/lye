@@ -148,3 +148,23 @@ class Combyned(object):
         for i, bynder in enumerate(self.bynders):
             elapsed = max(elapsed, bynder.export_to_channel(i, exporter))
         return elapsed, exporter.commit()
+
+
+class Lyne(object):
+    """
+    Combine a sequence of Bynders sequentially.
+    """
+
+    def __init__(self, *bynders):
+        self.bynders = bynders
+        self.index = 0
+
+    def begin(self):
+        return self.bynders[self.index].begin()
+
+    def export(self, exporter):
+        rv = self.bynders[self.index].export(exporter)
+        # Add an off-by-one to keep it from growing to unindexable indices.
+        if self.index + 1 < len(self.bynders):
+            self.index += 1
+        return rv
