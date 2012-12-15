@@ -1,10 +1,28 @@
 from fractions import gcd
+from functools import wraps
 
 from lye.ast import nt
 from lye.instruments import NEAREST, fit, numbered_instruments
 from lye.utilities import make_velocity
 from lye.visitors import express_ast
 from lye.visitors.folds import NoteScheduler, fold
+
+
+def pure(method):
+    """
+    Annotate a pure method to be cached after its first invocation.
+    """
+
+    d = {}
+
+    @wraps(method)
+    def f(self):
+        k = id(self)
+        if k not in d:
+            d[k] = method(self)
+        return d[k]
+
+    return f
 
 
 def multipliers(numbers):
@@ -59,11 +77,13 @@ class Bynder(_Bynd, nt("Bynder", "ast instrument")):
     as the AST itself and any trimmings.
     """
 
+    @pure
     def specialized(self):
         ast = express_ast(self.ast, self.instrument)
         ast = fit(ast, self.instrument, NEAREST)
         return self._replace(ast=ast)
 
+    @pure
     def schedule(self):
         return fold(NoteScheduler, self.specialized().ast)
 
@@ -94,6 +114,7 @@ class Bynder(_Bynd, nt("Bynder", "ast instrument")):
 
 class Drumlyne(_Bynd, nt("Drumlyne", "ast")):
 
+    @pure
     def schedule(self):
         return fold(NoteScheduler, self.ast)
 
