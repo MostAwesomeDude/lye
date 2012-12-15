@@ -39,6 +39,10 @@ class _Bynd(object):
 
         return Combyned(self, other)
 
+    @property
+    def bynders(self):
+        return (self,)
+
     def length(self):
         return self.schedule()[1] * self.repeat
 
@@ -121,44 +125,18 @@ class Combyned(object):
         self.bynders = bynders
 
     def __or__(self, other):
-        if isinstance(other, Combyned):
-            return Combyned(*(self.bynders + other.bynders))
-        elif isinstance(other, _Bynd):
-            return Combyned(other, *self.bynders)
-        else:
-            raise RuntimeError("Can't combyne %r and %r" % (self, other))
+        return Combyned(*(self.bynders + other.bynders))
 
     def __ror__(self, other):
-        if isinstance(other, Combyned):
-            self.bynders += other.bynders
-        elif isinstance(other, _Bynd):
-            self.bynders += (other,)
-        else:
-            raise RuntimeError("Can't combyne %r and %r" % (self, other))
+        self.bynders += other.bynders
 
     def __and__(self, other):
-        bynders = self.bynders
-
-        if isinstance(other, Combyned):
-            bynders += other.bynders
-        elif isinstance(other, _Bynd):
-            bynders += (other,)
-        else:
-            raise RuntimeError("Can't combyne %r and %r" % (self, other))
-
+        bynders = self.bynders + other.bynders
         ms = multipliers([b.length() for b in bynders])
         return Combyned(*(b * m for (b, m) in zip(bynders, ms)))
 
     def __rand__(self, other):
-        bynders = self.bynders
-
-        if isinstance(other, Combyned):
-            bynders += other.bynders
-        elif isinstance(other, _Bynd):
-            bynders += (other,)
-        else:
-            raise RuntimeError("Can't combyne %r and %r" % (self, other))
-
+        bynders = self.bynders + other.bynders
         ms = multipliers([b.length() for b in bynders])
         self.bynders = tuple(*(b * m for (b, m) in zip(bynders, ms)))
 
