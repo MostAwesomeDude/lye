@@ -95,7 +95,11 @@ class MarkedLyne(object):
         # Figure out what our next offset is going to be, based on how long
         # that took, and when the next sequence starts. A weight of 10 is
         # pretty decent.
-        new_offset = mma(self.offset, elapsed - self.lyne.begin(), 10)
+        new_offset = mma(self.offset, elapsed, 10)
+
+        # Always ensure that our next offset is far enough in advance that it
+        # doesn't affect the next sequence.
+        new_offset -= self.lyne.begin()
 
         # And now determine how long we should wait, in ticks, for the next
         # fill.
