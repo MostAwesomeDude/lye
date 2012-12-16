@@ -87,7 +87,7 @@ expr_key      = token("\\\\key") pitch:p mode:m -> Key(p, m)
 expr_marker   = open_slur | close_slur | measure | tie
 expr_music    = token("{") expr+:e token("}") -> Music(e)
 expr_note     = pitch:p accidental?:a octave?:o duration?:d articulation?:r
-              -> Note(p, a or 0, o or 0, d)
+              -> Note(p, a or 0, o or 0, d, r)
 expr_partial  = token("\\\\partial") spaces duration:d -> Partial(d)
 expr_relative = token("\\\\relative") spaces pitch:p accidental? octave?:o
                 expr_music:e
