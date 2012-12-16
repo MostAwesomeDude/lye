@@ -235,8 +235,6 @@ class DynamicRemover(Visitor):
 
     volume = "mf"
 
-    dynamics = "pp p mp mf f ff".split()
-
     def visit_SciNote(self, scinote):
         scinote = scinote._replace(velocity=self.volume)
         return scinote, False
@@ -245,6 +243,26 @@ class DynamicRemover(Visitor):
         self.volume = dynamic.mark
 
         return None, False
+
+
+class ArticulateDynamics(Visitor):
+    """
+    Apply articulations to SciNotes.
+
+    The articulations are preserved for later passes as well.
+    """
+
+    dynamics = "pp p mp mf f ff".split()
+
+    def visit_SciNote(self, scinote):
+        ds = self.dynamics
+
+        if scinote.articulation == ">":
+            # Accent.
+            if scinote.velocity != ds[-1]:
+                velocity = ds[ds.index(scinote.velocity) + 1]
+                scinote = scinote._replace(velocity=velocity)
+        return scinote, False
 
 
 class ChordSorter(Visitor):

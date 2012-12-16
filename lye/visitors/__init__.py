@@ -1,4 +1,5 @@
-from lye.visitors.maps import (ChordSorter, DrumsTransformer, DurationVisitor,
+from lye.visitors.maps import (ArticulateDynamics, ChordSorter,
+                               DrumsTransformer, DurationVisitor,
                                DynamicRemover, Legato, MusicFlattener,
                                NoteTransformer, Relativizer, TimesVisitor,
                                VoicesTransformer)
@@ -24,6 +25,8 @@ simplify_stages = (
     NoteTransformer,
     # Fold Dynamics. Must come after SciNotes.
     DynamicRemover,
+    # Apply articulations for dynamics. Must come after SciNotes.
+    ArticulateDynamics,
     # Sort Chord contents. Must come after SciNotes.
     ChordSorter,
     # Add Slurs.
