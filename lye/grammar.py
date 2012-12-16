@@ -81,7 +81,7 @@ mode = token("\\\\major") -> "major"
 
 expr_chord    = token("<") expr_note+:ns token(">") -> Chord(ns)
 expr_drum     = kit:k duration?:d articulation?:r
-              -> SciNote(drum_notes[k], d, None)
+              -> SciNote(drum_notes[k], d, None, r)
 expr_drums    = token("\\\\drums") expr:e -> Drums(e)
 expr_key      = token("\\\\key") pitch:p mode:m -> Key(p, m)
 expr_marker   = open_slur | close_slur | measure | tie

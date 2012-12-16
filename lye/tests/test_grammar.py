@@ -60,7 +60,7 @@ class TestDrums(unittest.TestCase):
     def test_drum_mode(self):
         expr = LyeGrammar("\\drums { sn }").expr_drums()
         self.assertEqual(len(expr.expr.exprs), 1)
-        self.assertEqual(expr.expr.exprs[0], SciNote(40, None, None))
+        self.assertEqual(expr.expr.exprs[0], SciNote(40, None, None, None))
 
 class TestChords(unittest.TestCase):
 

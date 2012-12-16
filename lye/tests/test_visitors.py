@@ -16,13 +16,15 @@ class TestDrumsTransformer(TestCase):
 class TestTieRemover(TestCase):
 
     def test_no_ties(self):
-        notes = Music([SciNote(42, 120, None), SciNote(42, 120, None)])
+        notes = Music([SciNote(42, 120, None, None),
+            SciNote(42, 120, None, None)])
         result = TieRemover().visit(notes)
         self.assertEqual(result, notes)
 
     def test_valid_tie(self):
-        notes = Music([SciNote(42, 120, None), TIE, SciNote(42, 120, None)])
-        expected = Music([SciNote(42, 240, None)])
+        notes = Music([SciNote(42, 120, None, None), TIE,
+            SciNote(42, 120, None, None)])
+        expected = Music([SciNote(42, 240, None, None)])
         result = TieRemover().visit(notes)
         self.assertEqual(result, expected)
 
@@ -51,13 +53,15 @@ class TestSlurMaker(TestCase):
 class TestLegato(TestCase):
 
     def test_shorten_not_too_short(self):
-        note = SciNote(duration=480, pitch=None, velocity=None)
+        note = SciNote(duration=480, pitch=None, velocity=None,
+                articulation=None)
         note, rest = Legato.shorten(note)
         self.assertEqual(470, note.duration)
         self.assertEqual(10, rest.duration)
 
     def test_shorten_just_right(self):
-        note = SciNote(duration=30, pitch=None, velocity=None)
+        note = SciNote(duration=30, pitch=None, velocity=None,
+                articulation=None)
         note, rest = Legato.shorten(note)
         self.assertEqual(27, note.duration)
         self.assertEqual(3, rest.duration)
