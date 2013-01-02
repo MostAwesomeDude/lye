@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, TemplateHaskell #-}
 module Text.Lye.Types where
 
-import Control.Lens.TH
+import Control.Lens
 import Data.Data
 import Data.Ratio()
 
@@ -92,6 +92,8 @@ data Expression = Chord [Expression]
                 | Voice [Expression]
                 | Voices [Expression]
     deriving (Show, Eq, Data, Typeable)
+
+instance Plated Expression
 
 data Annotated = Annotated { _aExpression :: Expression
                            , _aKey :: Key
