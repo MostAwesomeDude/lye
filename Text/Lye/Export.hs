@@ -3,6 +3,7 @@ module Text.Lye.Export where
 import Codec.Midi as M
 import Control.Lens
 import Control.Monad
+import Control.Monad.Free
 import Control.Monad.Trans.RWS
 import qualified Control.Monad.Trans.State as St
 import Data.List
@@ -12,10 +13,12 @@ import Text.Lye.Types
 
 type Exporter a = RWS Int (Track Ticks) Ticks a
 
+type Meta = Free (Notes ())
+
 note :: Channel -> Int -> Int -> M.Key -> Velocity -> Track Ticks
 note chan start duration pitch vel =
-    [ (start, NoteOn chan pitch vel)
-    , (start + duration, NoteOff chan pitch vel) ]
+    [ (start, M.NoteOn chan pitch vel)
+    , (start + duration, M.NoteOff chan pitch vel) ]
 
 -- Note that in all of our duration calculations, we are multiplying by 4 as a
 -- constant. This is because our equation is:

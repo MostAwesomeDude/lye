@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, TemplateHaskell #-}
+{-# LANGUAGE DeriveFunctor, DeriveDataTypeable, GeneralizedNewtypeDeriving, TemplateHaskell #-}
 module Text.Lye.Types where
 
 import Control.Lens
@@ -96,6 +96,10 @@ data Expression = Chord [Expression]
     deriving (Show, Eq, Data, Typeable)
 
 instance Plated Expression
+
+data Notes a = NoteOn Int Int Int Int
+             | NoteOff Int Int Int Int
+    deriving (Show, Eq, Functor, Data, Typeable)
 
 data Annotated = Annotated { _aExpression :: Expression
                            , _aKey :: Key
