@@ -2,14 +2,15 @@ module Text.Lye.Visitor where
 
 import Debug.Trace
 
+import Control.Applicative
+import Control.Lens
 import Control.Monad.Trans.State
+import Data.Data.Lens
 import Data.Functor
 import Data.Maybe
 import Data.Ratio
 import Text.Lye.Pitches
 import Text.Lye.Types
-
-import Data.Generics.Uniplate.Data
 
 applyPeephole :: ([Expression] -> [Expression]) -> Expression -> Expression
 applyPeephole f = let
@@ -44,14 +45,14 @@ applyDurations expr = let
     f (ParsedRest (Just d)) = put d >> return (Rest d)
     f (ParsedRest Nothing) = Rest <$> get
     f x = return x
-    recurser e = f e >>= descendM recurser
+    recurser e = f e >>= plate recurser
     initial = Duration (1 % 4)
     in evalState (recurser expr) initial
 
 applyTimes :: Expression -> Expression
 applyTimes = let
     inner r (Duration r') = Duration $ r * r'
-    f (Times r expr) = Just $ transformBi (inner r) expr
+    f (Times r expr) = Just $ transformOn biplate (inner r) expr
     f _ = Nothing
     in rewrite f
 
@@ -74,7 +75,7 @@ relativize = rewrite f
     os i = if i < 0
         then replicate (negate i) OctaveDown
         else replicate i OctaveUp
-    recurser e = g e >>= descendM recurser
+    recurser e = g e >>= plate recurser
 
 flattenMusic :: Expression -> Expression
 flattenMusic = rewrite f

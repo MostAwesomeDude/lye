@@ -59,6 +59,8 @@ instance Enum Drum where
 newtype Duration = Duration Rational
     deriving (Show, Eq, Data, Typeable, Num)
 
+instance Plated Duration
+
 data Key = Major Pitch (Maybe Accidental)
          | Minor Pitch (Maybe Accidental)
     deriving (Show, Eq, Data, Typeable)
