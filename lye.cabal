@@ -53,7 +53,6 @@ Executable lye
                      , parsers
                      , transformers
                      , trifecta
-                     , uniplate
 
   -- GHC compiler flags.
   ghc-options:         -Wall -rtsopts

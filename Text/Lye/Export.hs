@@ -1,10 +1,10 @@
 module Text.Lye.Export where
 
 import Codec.Midi as M
+import Control.Lens
 import Control.Monad
 import Control.Monad.Trans.RWS
 import qualified Control.Monad.Trans.State as St
-import Data.Generics.Uniplate.Data
 import Data.List
 import Data.Ord
 
@@ -49,7 +49,7 @@ scheduleNotes expr = do
         _ -> return ()
     case expr of
         Voices _ -> return expr
-        _ -> descendM scheduleNotes expr
+        _ -> plate scheduleNotes expr
 
 fstMap :: (a -> b) -> [(a, c)] -> [(b, c)]
 fstMap f xs = let inner (x, y) = (f x, y) in map inner xs
