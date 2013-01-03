@@ -51,9 +51,6 @@ scheduleNotes expr = do
         Voices _ -> return expr
         _ -> plate scheduleNotes expr
 
-fstMap :: (a -> b) -> [(a, c)] -> [(b, c)]
-fstMap f xs = let inner (x, y) = (f x, y) in map inner xs
-
 schedule :: Expression -> Int -> Track Ticks
 schedule expr tpb = sortBy (comparing fst) track
     where
