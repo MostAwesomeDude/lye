@@ -22,7 +22,7 @@ note chan start duration pitch vel =
 -- beats * ticks/beat * beats/measure
 -- The latter is a constant.
 doTPB :: Rational -> Int -> Int
-doTPB d tpb = floor $ d * (realToFrac tpb) * 4
+doTPB d tpb = floor $ d * realToFrac tpb * 4
 
 scheduleNotes :: Expression -> Exporter Expression
 scheduleNotes expr = do

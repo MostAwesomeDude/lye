@@ -8,6 +8,7 @@ module Text.Lye.Parser where
 -- Lilypond permits leading whitespace, due to their parser's "design."
 
 import Control.Applicative
+import Control.Monad
 import qualified Data.Map as M
 import Data.Ratio
 import Text.Parser.Char
@@ -27,7 +28,7 @@ f <$!> ma = do
 
 -- | Might need to be split up if we ever care about the return value.
 slashSymbol :: (Monad m, TokenParsing m) => String -> m ()
-slashSymbol s = highlight ReservedIdentifier $ symbol ('\\':s) >> return ()
+slashSymbol s = highlight ReservedIdentifier $ void $ symbol ('\\':s)
 
 number :: (TokenParsing m, Monad m) => m Integer
 number = highlight Number natural
