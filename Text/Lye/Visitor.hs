@@ -6,7 +6,6 @@ import Control.Applicative
 import Control.Lens
 import Control.Monad.Trans.State
 import Data.Data.Lens
-import Data.Functor
 import Data.Maybe
 import Data.Ratio
 import Text.Lye.Pitches
@@ -52,9 +51,9 @@ applyDurations expr = let
 applyTimes :: Expression -> Expression
 applyTimes = let
     inner r (Duration r') = Duration $ r * r'
-    f (Times r expr) = Just $ transformOn biplate (inner r) expr
-    f _ = Nothing
-    in rewrite f
+    f (Times r expr) = over biplate (inner r) expr
+    f expr = expr
+    in transform f
 
 -- | Apply Relative to inner expressions.
 relativize :: Expression -> Expression
@@ -90,9 +89,9 @@ flattenMusic = rewrite f
 
 sciNotes :: Expression -> Expression
 sciNotes = let
-    f (Note p a o d) = Just . flip SciNote d $ pitchToNumber p a o
-    f _ = Nothing
-    in rewrite f
+    f (Note p a o d) = SciNote (pitchToNumber p a o) d
+    f expr = expr
+    in transform f
 
 mergeTies :: Expression -> Expression
 mergeTies = let
@@ -135,7 +134,7 @@ stages = [ inlineDrums
          ]
 
 applyStages :: Expression -> Expression
-applyStages = flip (foldl $ flip ($)) stages
+applyStages expr = foldr id expr $ reverse stages
 
 longestChord :: Expression -> Int
 longestChord = let
