@@ -4,6 +4,7 @@ import qualified Codec.Midi as M
 import Control.Lens
 import Control.Monad
 import Control.Monad.Free
+import Control.Monad.Trans.Class
 import Control.Monad.Trans.RWS
 import qualified Control.Monad.Trans.State as St
 import Data.List
@@ -11,19 +12,24 @@ import Data.Ord
 
 import Text.Lye.Types
 
-type Exporter a = RWS Int (M.Track M.Ticks) M.Ticks a
+type Meta = Free Notes
+type Exporter a = RWST Int () M.Ticks Meta a
 
-type Meta a = Free Notes a
+noteOn :: Int -> Int -> Int -> Int -> Meta ()
+noteOn t c p v = liftF $ NoteOn t c p v ()
+
+noteOff :: Int -> Int -> Int -> Int -> Meta ()
+noteOff t c p v = liftF $ NoteOff t c p v ()
 
 metaToTrack :: Meta a -> M.Track M.Ticks
 metaToTrack (Pure _) = []
 metaToTrack (Free (NoteOn t c p v f)) = (t, M.NoteOn c p v) : metaToTrack f
 metaToTrack (Free (NoteOff t c p v f)) = (t, M.NoteOff c p v) : metaToTrack f
 
-note :: M.Channel -> Int -> Int -> M.Key -> M.Velocity -> M.Track M.Ticks
-note chan start duration pitch vel =
-    [ (start, M.NoteOn chan pitch vel)
-    , (start + duration, M.NoteOff chan pitch vel) ]
+note :: Int -> Int -> Int -> Int -> Int -> Meta ()
+note channel start duration pitch velocity = do
+    noteOn start channel pitch velocity
+    noteOff (start + duration) channel pitch velocity
 
 -- Note that in all of our duration calculations, we are multiplying by 4 as a
 -- constant. This is because our equation is:
@@ -42,12 +48,12 @@ scheduleNotes expr = do
             pitch = fromEnum drum
             in do
                 modify (+ duration')
-                tell $ note 9 position duration' pitch 127
+                lift $ note 9 position duration' pitch 127
         SciNote pitch (Duration d) -> let
             duration' = doTPB d tpb
             in do
                 modify (+ duration')
-                tell $ note 0 position duration' pitch 127
+                lift $ note 0 position duration' pitch 127
         Rest (Duration d) -> let
             duration' = doTPB d tpb
             in modify (+ duration')
@@ -62,7 +68,7 @@ scheduleNotes expr = do
 schedule :: Expression -> Int -> M.Track M.Ticks
 schedule expr tpb = sortBy (comparing fst) track
     where
-    (_, _, track) = runRWS scheduler tpb 0
+    track = metaToTrack $ runRWST scheduler tpb 0
     scheduler = void $ scheduleNotes expr
 
 absToDelta :: Num a => [(a, b)] -> [(a, b)]
