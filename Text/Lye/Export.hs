@@ -1,6 +1,6 @@
 module Text.Lye.Export where
 
-import Codec.Midi as M
+import qualified Codec.Midi as M
 import Control.Lens
 import Control.Monad
 import Control.Monad.Free
@@ -11,11 +11,16 @@ import Data.Ord
 
 import Text.Lye.Types
 
-type Exporter a = RWS Int (Track Ticks) Ticks a
+type Exporter a = RWS Int (M.Track M.Ticks) M.Ticks a
 
-type Meta = Free (Notes ())
+type Meta a = Free Notes a
 
-note :: Channel -> Int -> Int -> M.Key -> Velocity -> Track Ticks
+metaToTrack :: Meta a -> M.Track M.Ticks
+metaToTrack (Pure _) = []
+metaToTrack (Free (NoteOn t c p v f)) = (t, M.NoteOn c p v) : metaToTrack f
+metaToTrack (Free (NoteOff t c p v f)) = (t, M.NoteOff c p v) : metaToTrack f
+
+note :: M.Channel -> Int -> Int -> M.Key -> M.Velocity -> M.Track M.Ticks
 note chan start duration pitch vel =
     [ (start, M.NoteOn chan pitch vel)
     , (start + duration, M.NoteOff chan pitch vel) ]
@@ -54,14 +59,11 @@ scheduleNotes expr = do
         Voices _ -> return expr
         _ -> plate scheduleNotes expr
 
-schedule :: Expression -> Int -> Track Ticks
+schedule :: Expression -> Int -> M.Track M.Ticks
 schedule expr tpb = sortBy (comparing fst) track
     where
     (_, _, track) = runRWS scheduler tpb 0
-    scheduler = do
-        -- tell $ [(0, TempoChange 500000)]
-        _ <- scheduleNotes expr
-        return ()
+    scheduler = void $ scheduleNotes expr
 
 absToDelta :: Num a => [(a, b)] -> [(a, b)]
 absToDelta track = let
@@ -72,5 +74,6 @@ absToDelta track = let
         return $ x' - x
     in zip as' ms
 
-export :: Int -> Track Ticks -> IO ()
-export tpb track = exportFile "test.mid" $ Midi SingleTrack (TicksPerBeat tpb) [absToDelta track]
+export :: Int -> M.Track M.Ticks -> IO ()
+export tpb track = M.exportFile "test.mid" midi
+    where midi = M.Midi M.SingleTrack (M.TicksPerBeat tpb) [absToDelta track]

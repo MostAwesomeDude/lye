@@ -97,8 +97,8 @@ data Expression = Chord [Expression]
 
 instance Plated Expression
 
-data Notes a = NoteOn Int Int Int Int
-             | NoteOff Int Int Int Int
+data Notes a = NoteOn Int Int Int Int a
+             | NoteOff Int Int Int Int a
     deriving (Show, Eq, Functor, Data, Typeable)
 
 data Annotated = Annotated { _aExpression :: Expression
