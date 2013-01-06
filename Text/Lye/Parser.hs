@@ -46,8 +46,7 @@ duration :: (Monad m, TokenParsing m) => m Duration
 duration = do
     len <- number
     ds <- dots
-    let ratio = 1 % len
-    return $ Duration $! ratio * dotsToRatio ds
+    return $ Duration $! (1 % len) * dotsToRatio ds
 
 octaveDown :: (Monad m, CharParsing m) => m Octave
 octaveDown = char ',' >> return OctaveDown
