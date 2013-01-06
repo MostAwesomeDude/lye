@@ -1,29 +1,20 @@
 module Text.Lye.Export where
 
-import qualified Codec.Midi as M
 import Control.Lens
 import Control.Monad
 import Control.Monad.Free
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.RWS
-import Data.List
-import Data.Ord
 
 import Text.Lye.Types
 
-type Meta = Free Notes
-type Exporter a = RWST Int () M.Ticks Meta a
+type Exporter = RWST Int () Int Meta
 
 noteOn :: Int -> Int -> Int -> Int -> Meta ()
 noteOn t c p v = liftF $ NoteOn t c p v ()
 
 noteOff :: Int -> Int -> Int -> Int -> Meta ()
 noteOff t c p v = liftF $ NoteOff t c p v ()
-
-metaToTrack :: Meta a -> M.Track M.Ticks
-metaToTrack (Pure _) = []
-metaToTrack (Free (NoteOn t c p v f)) = (t, M.NoteOn c p v) : metaToTrack f
-metaToTrack (Free (NoteOff t c p v f)) = (t, M.NoteOff c p v) : metaToTrack f
 
 note :: Int -> Int -> Int -> Int -> Int -> Meta ()
 note channel start duration pitch velocity = do
@@ -64,18 +55,5 @@ scheduleNotes expr = do
         Voices _ -> return expr
         _ -> plate scheduleNotes expr
 
-schedule :: Expression -> Int -> M.Track M.Ticks
-schedule expr tpb = sortBy (comparing fst) track
-    where
-    track = metaToTrack $ runRWST scheduler tpb 0
-    scheduler = void $ scheduleNotes expr
-
-absToDelta :: Num a => [(a, b)] -> [(a, b)]
-absToDelta track = let
-    f current next = (next, next - current)
-    (_, results) = mapAccumLOf (traverse . _1) f 0 track
-    in results
-
-export :: Int -> M.Track M.Ticks -> IO ()
-export tpb track = M.exportFile "test.mid" midi
-    where midi = M.Midi M.SingleTrack (M.TicksPerBeat tpb) [absToDelta track]
+schedule :: Expression -> Int -> Meta ()
+schedule expr tpb = void $ runRWST (scheduleNotes expr) tpb 0

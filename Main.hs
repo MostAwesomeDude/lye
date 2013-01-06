@@ -3,6 +3,7 @@ module Main where
 import System.Environment
 
 import Text.Lye.Export
+import Text.Lye.Export.File
 import Text.Lye.Interactive
 import Text.Lye.Types
 import Text.Lye.Visitor

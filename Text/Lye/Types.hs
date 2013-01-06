@@ -2,6 +2,7 @@
 module Text.Lye.Types where
 
 import Control.Lens
+import Control.Monad.Free
 import Data.Data
 import Data.Ratio()
 
@@ -100,6 +101,8 @@ instance Plated Expression
 data Notes a = NoteOn Int Int Int Int a
              | NoteOff Int Int Int Int a
     deriving (Show, Eq, Functor, Data, Typeable)
+
+type Meta = Free Notes
 
 data Annotated = Annotated { _aExpression :: Expression
                            , _aKey :: Key
