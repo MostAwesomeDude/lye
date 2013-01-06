@@ -6,7 +6,6 @@ import Control.Monad
 import Control.Monad.Free
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.RWS
-import qualified Control.Monad.Trans.State as St
 import Data.List
 import Data.Ord
 
@@ -73,12 +72,9 @@ schedule expr tpb = sortBy (comparing fst) track
 
 absToDelta :: Num a => [(a, b)] -> [(a, b)]
 absToDelta track = let
-    (as, ms) = unzip track
-    as' = flip St.evalState 0 $ forM as $ \x' -> do
-        x <- St.get
-        St.put x'
-        return $ x' - x
-    in zip as' ms
+    f current next = (next, next - current)
+    (_, results) = mapAccumLOf (traverse . _1) f 0 track
+    in results
 
 export :: Int -> M.Track M.Ticks -> IO ()
 export tpb track = M.exportFile "test.mid" midi
